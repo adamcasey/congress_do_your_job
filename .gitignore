@@ -1,0 +1,34 @@
+node_modules
+
+### Environment Variables
+# NOTE: .env files ARE committed but encrypted by git-crypt (see .gitattributes)
+# They appear as binary/encrypted in the repo but decrypt automatically when you have access
+# Only ignore backup files
+.env.backup
+.env.*.backup
+
+### Notes
+*_NOTES.md
+
+### System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+### Vercel
+.vercel
+
+### Build outputs
+.next/
+out/
+dist/
+build/
+
+### Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+### Testing
+coverage/
+.nyc_output
