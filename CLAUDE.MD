@@ -61,7 +61,13 @@ CongressDoYourJob.com is a non-partisan civic engagement platform that provides 
 - When bipartisan bills pass → thank-you donations to sponsors
 - Positive reinforcement culture
 
-### 7. Paid Membership ($5–$10/month or $50–$100/year)
+### 7. Legistlation Scorecards
+
+- Calculate likelihood a bill will be challenged all the way to the supreme court
+- Track promises legislators give about a bill and assign Passing/Failing grade when appropriate
+- Transparent methodology
+
+### 8. Paid Membership ($5–$10/month or $50–$100/year)
 
 - Early access to digests & report cards
 - "I'm a Do Your Job voter" badge + window cling
@@ -95,6 +101,8 @@ Currently in early stages. Expected structure:
 - Tailwind CSS for styling
 - Optimize for Consistency & Availability (CAP Theorem)
 - Server Components by default, Client Components when needed
+- Client-side state management should be a mix of the Context API and local state management. Avoid prop-drilling more than 2-layers deep.
+- Design resilient APIs as defined by this [blog post](https://embedded.gusto.com/blog/defensive-programming-api-clients/)
 
 ### Key Principles
 
@@ -103,6 +111,8 @@ Currently in early stages. Expected structure:
 - **Transparency:** Show all methodology, data sources, calculations
 - **Privacy-conscious:** Minimal data collection, no selling user data
 - **Accessibility:** WCAG 2.1 AA compliance
+- **Design:** Minimalist but eye-catching, dazzling, and aesthetically beautiful desings throughout
+- **Viewports:** Optimize for desktop screens but always consider mobile designs
 
 ### Data Handling
 
