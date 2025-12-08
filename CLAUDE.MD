@@ -8,6 +8,44 @@ CongressDoYourJob.com is a non-partisan civic engagement platform that provides 
 **Revenue Goal:** ~$50k/year within 4–5 years via memberships + partnerships
 **Philosophy:** No outrage. No tribalism. Eisenhower-style pragmatism.
 
+## Git Workflow
+
+This project uses a four-tier branching strategy:
+
+```
+main (production-ready, deployed to congressdoyourjob.com)
+  ↑
+dev (integration branch, stable features)
+  ↑
+demo (preview features not quite ready for production)
+  ↑
+feature/* (individual features cut from dev)
+```
+
+### Branch Purposes
+
+- **main**: Production-ready code only. Deployed to live site.
+- **dev**: Integration branch for stable, tested features. Should always be in a deployable state.
+- **demo**: Preview/staging branch for features that work but need more testing or user feedback before going to production. Can be deployed to a staging URL.
+- **feature/***: Individual feature branches cut from `dev`. Naming convention: `feature/feature-name` (e.g., `feature/add-auth`, `feature/scorecard-logic`)
+
+### Workflow Process
+
+1. **Create feature branch from dev**: `git checkout dev && git checkout -b feature/your-feature`
+2. **Work on feature**: Commit changes to feature branch
+3. **Sync with dev periodically**: `git rebase dev` (preferred over merge)
+4. **When feature is complete**: Merge into `demo` first for testing
+5. **After demo testing**: Merge from `demo` into `dev`
+6. **When dev is stable**: Merge `dev` into `main` for production release
+
+### Key Rules
+
+- **Never commit directly to main, dev, or demo** - always use feature branches
+- **Prefer rebase over merge** when syncing feature branches with dev
+- **Use pull requests** for merging feature branches into demo/dev
+- **Test on demo** before promoting to dev
+- **Keep main stable** - only merge well-tested code from dev
+
 ## Tech Stack
 
 - **Frontend:** Next.js 14+ (App Router) + TypeScript + Tailwind CSS
