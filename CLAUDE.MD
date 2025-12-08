@@ -121,13 +121,246 @@ Currently in early stages. Expected structure:
 - Store scorecard methodology in version control
 - All scoring algorithms must be publicly documented
 
+## Data Collection & Information Sources
+
+### Core Data Strategy
+
+Our approach prioritizes **structured, verifiable data** from official sources over media coverage. We focus on what legislators DO, not what they SAY.
+
+### Primary Data Sources (Official Records)
+
+#### Federal Level
+1. **Congress.gov API** (Official legislative data)
+   - Bill introductions, co-sponsorships, amendments
+   - Committee assignments and hearings
+   - Floor votes (yea/nay/present/absent)
+   - Full bill text and status updates
+   - **Update frequency:** Real-time via API
+
+2. **New York Times Congress API** (News and legislative context)
+   - Article coverage of major legislation
+   - Member profiles and voting context
+   - Floor activity summaries
+   - **Update frequency:** Real-time
+   - **Note:** Used for context and summaries, not primary voting data
+
+3. **Senate.gov & House.gov** (Official sites)
+   - Floor schedules and calendars
+   - Committee hearing transcripts
+   - Member office contact information
+   - **Update frequency:** Daily scraping
+
+4. **Congressional Record** (Official proceedings)
+   - Floor speeches and remarks
+   - Extensions of remarks
+   - **Note:** Used ONLY for documented statements made on the floor, not for scoring rhetoric
+
+#### State & Local Level
+1. **OpenStates API** (50-state legislatures)
+   - Bill tracking across all states
+   - Legislator profiles and votes
+   - Committee information
+   - **Update frequency:** Varies by state (daily to weekly)
+
+2. **LegiScan API** (State legislation)
+   - Bill text and status
+   - Roll call votes
+   - Fiscal notes
+   - **Update frequency:** Real-time for 30+ states
+
+3. **State Government Websites** (Direct scraping)
+   - Legislative calendars
+   - Committee schedules
+   - Local ordinances
+   - **Update frequency:** Weekly for MVP
+
+### Secondary Sources (Behavior & Context)
+
+#### Stock Trading & Ethics
+1. **House Stock Watcher / Senate Stock Watcher** (Community projects)
+   - Congressional stock disclosures (STOCK Act)
+   - Timing analysis relative to committee work
+   - **Update frequency:** Daily
+
+2. **OpenSecrets / Center for Responsive Politics**
+   - Campaign contributions
+   - Lobbying relationships
+   - **Update frequency:** Quarterly
+
+#### Media & Public Statements
+**Critical for scoring:** Social media activity and media interviews ARE tracked to highlight the theater vs. work ratio.
+
+**What we measure:**
+1. **Time spent on media appearances** - TV interviews, podcasts, cable news hits
+2. **Social media activity volume** - Tweet frequency, Instagram posts, TikToks
+3. **Promises made vs. votes cast** - Track commitments made in interviews against actual legislative action
+
+**How this affects scoring:**
+- **Minus points:** High media activity + low legislative productivity = "All talk, no action"
+- **Neutral/Plus points:** Media activity proportional to legislative work = "Communicating while governing"
+- **Example metric:** "Senator X posted 47 tweets this week but missed 3 committee votes"
+
+**Approach:**
+1. **Social Media APIs** - Twitter/X API, Meta Graph API (public posts only)
+2. **Media appearance tracking** - Manual curation of major news appearances (C-SPAN, Sunday shows)
+3. **Volume tracking only** - We count post frequency and media appearances, NOT content quality or ideology
+4. **Promise Tracker integration** - When politicians make specific legislative commitments in media, we track vs. actual votes
+5. **Human review required** - ALL sentiment analysis and promise tracking reviewed by editorial team for accuracy before publication
+6. **Transparent methodology** - "We measure time allocation: governing vs. performing"
+
+**Data Sources:**
+- Twitter/X API (public posts, engagement metrics)
+- Meta Graph API (Facebook/Instagram public posts)
+- YouTube API (for official channels)
+- Cable news appearance databases (manual for MVP, automated later)
+- Podcast appearance tracking (optional Phase 2+)
+
+### Web Scraping Strategy
+
+#### What We Will Scrape
+1. **C-SPAN hearing transcripts** (when API unavailable)
+   - Committee hearings for attendance tracking
+   - Floor proceedings for recorded statements
+   - **Tool:** Cheerio + Puppeteer (for dynamic content)
+   - **Frequency:** Weekly batch jobs
+
+2. **State legislature websites** (where APIs don't exist)
+   - Bill status pages
+   - Committee schedules
+   - Roll call votes
+   - **Tool:** Playwright for reliable state site navigation
+   - **Frequency:** Weekly, with exponential backoff
+
+3. **Local government sites** (Phase 2+)
+   - City council agendas and minutes
+   - County board meetings
+   - **Tool:** Custom scrapers per municipality
+   - **Frequency:** Monthly for MVP cities
+
+#### What We Will NOT Scrape
+- Personal blogs or campaign websites (unofficial sources)
+- Paywalled news content
+- Private social media accounts
+
+**What We WILL Track (via APIs, not scraping):**
+- Public social media posts (Twitter/X API, Meta Graph API)
+- Cable news transcripts (for promise tracking and media appearance counts)
+- Op-eds (to count media engagement time vs. legislative time)
+
+**Rationale:** We measure the RATIO of theater to work. Social media IS theater - and we quantify exactly how much time is spent performing vs. governing.
+
+### Theater vs. Work Tracking
+
+#### The Promise Tracker & Media Activity Monitor
+**Core Premise:** Politicians spend too much time on TV and Twitter, not enough time legislating. We quantify this.
+
+**What We Track:**
+
+1. **Media Appearances (Theater)**
+   - TV interviews (Sunday shows, cable news, late night)
+   - Podcast appearances
+   - Op-eds written
+   - Social media posts (tweets, Instagram, TikTok, Facebook)
+   - Press conferences (non-legislative)
+
+2. **Legislative Work (The Job)**
+   - Committee attendance
+   - Floor votes
+   - Bill sponsorships/co-sponsorships
+   - Amendment proposals
+   - Constituent casework (when publicly reported)
+
+3. **Promise Tracking**
+   - Community-sourced or auto-detected commitments made in media
+   - Track specific legislative promises against actual votes
+   - Display: "Senator X promised to support Bill Y on Meet the Press (Oct 2024). They voted NO."
+   - Highlight broken promises AND kept promises (neutral presentation)
+
+**Scoring Impact:**
+- **Theater-to-Work Ratio** - Core metric displayed prominently
+- Example: "This week: 23 social media posts, 4 TV appearances, 2 committee votes missed, 0 bills advanced"
+- **High theater + low work = minus points**
+- **Promises broken = minus points**
+- **Promises kept = plus points**
+
+**Implementation Strategy:**
+
+**MVP (Phase 1):**
+1. Manual media appearance logging (editorial team tracks major TV/podcast)
+2. Twitter/X API integration for post counting (automated)
+3. Community submission form for promise tracking → human editorial review and approval required
+4. Simple ratio display: "Media posts this week: 34 | Legislative actions: 6"
+5. All promise tracking manually verified by editorial team before publication
+
+**Phase 2:**
+1. Automated TV appearance detection (partner with TV Eyes or similar) → flagged for human review
+2. Meta Graph API (Instagram/Facebook) for automated post counting
+3. YouTube API for video content counting
+4. Natural Language Processing for promise extraction → flags potential promises → MANDATORY human review and approval
+5. Integration with fact-checking organizations for cross-verification
+6. Editorial workflow system: Automated flagging → Human review queue → Approval → Publication
+
+**Safeguards:**
+- We count VOLUME of media activity, not judge CONTENT (no ideology scoring)
+- Only track promises about SPECIFIC legislation (not vague platitudes)
+- Display full quotes with timestamp citations
+- **MANDATORY human review** - All sentiment analysis, promise tracking, and media content interpretation reviewed by editorial team for accuracy before publication
+- No automated scoring based on statement content - only verifiable actions (votes, attendance, bill sponsorships)
+- Automated systems flag potential promises/commitments → human editors verify and approve
+- Clear methodology page: "We measure time allocation, not political positions"
+
+**User Experience:**
+- Weekly digest includes: "Top 10 Most Active on Social Media vs. Top 10 Most Productive Legislators"
+- Representative profiles show: "Theater vs. Work" chart (time series)
+- Tooltip explains: "Media activity includes interviews and social posts. Legislative work includes votes, committee participation, and bill sponsorship."
+
+### Data Processing Pipeline
+
+```
+1. Collection (Automated)
+   ↓
+2. Validation (Check for API errors, missing data)
+   ↓
+3. Enrichment (Merge data from multiple sources)
+   ↓
+4. Automated Flagging (NLP flags potential promises, high theater-to-work ratios, anomalies)
+   ↓
+5. Scoring (Run transparent algorithms on verifiable data only)
+   ↓
+6. MANDATORY Human Review (Editorial team verifies all sentiment analysis, promise tracking, media interpretations)
+   ↓
+7. Editorial Approval (Content must be approved before going live)
+   ↓
+8. Publication (Monday morning release)
+```
+
+**Critical:** Steps 6-7 are non-negotiable. No automated content about politician statements or promises goes live without human verification.
+
+### Handling Bias & Errors
+
+- **All data sources cited** - Users can click through to original records
+- **Version control for scoring** - GitHub tracks every methodology change
+- **Community corrections** - Users can flag errors with supporting evidence
+- **Transparent retractions** - If we get something wrong, we publish the correction prominently
+
+### Technology Stack for Data Collection
+
+- **Scraping:** Playwright (reliable for state sites), Cheerio (lightweight HTML parsing)
+- **Scheduling:** Vercel Cron Jobs (free tier: 2 jobs) + GitHub Actions (complex workflows)
+- **Storage:** MongoDB collections for raw data, transformed views for UI
+- **Caching:** Redis (Upstash free tier) for API response caching
+- **Monitoring:** Sentry for scraper failures, PostHog for data pipeline analytics
+
 ## External APIs & Services
 
 ### Required API Keys
 
 - Google Civic Information API (free)
 - Congress.gov API (free but requires key)
-- ProPublica Congress API (free)
+- New York Times Congress API (free with key - replaces deprecated ProPublica API)
+- Twitter/X API (for social media tracking)
+- Meta Graph API (Facebook/Instagram public posts)
+- YouTube Data API (for official channel tracking)
 - Clerk (auth)
 - Stripe (payments)
 - Lob.com (physical mail)
