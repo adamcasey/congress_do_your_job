@@ -32,3 +32,13 @@ yarn-error.log*
 ### Testing
 coverage/
 .nyc_output
+
+### TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+### IDE
+.vscode/
+.idea/
+*.swp
+*.swo
