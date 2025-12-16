@@ -6,7 +6,7 @@
  * Run with: npm run db:seed
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/prisma';
 
 const prisma = new PrismaClient();
 
@@ -38,6 +38,8 @@ async function main() {
       chamber: 'senate',
       party: 'Democratic',
       bioguideId: 'B001267',
+      govtrackId: '412330',
+      openStatesId: 'ocd-person-test-001',
       contactEmail: 'senator_bennet@bennet.senate.gov',
       website: 'https://www.bennet.senate.gov',
       socialMedia: {
@@ -73,6 +75,8 @@ async function main() {
       chamber: 'senate',
       party: 'Democratic',
       bioguideId: 'H001079',
+      govtrackId: '456799',
+      openStatesId: 'ocd-person-test-002',
       contactEmail: 'john_hickenlooper@hickenlooper.senate.gov',
       website: 'https://www.hickenlooper.senate.gov',
       socialMedia: {
@@ -110,6 +114,8 @@ async function main() {
       chamber: 'house',
       party: 'Democratic',
       bioguideId: 'D000197',
+      govtrackId: '400101',
+      openStatesId: 'ocd-person-test-003',
       contactEmail: 'diana.degette@mail.house.gov',
       website: 'https://degette.house.gov',
       offices: [
@@ -142,6 +148,8 @@ async function main() {
       chamber: 'house',
       party: 'Democratic',
       bioguideId: 'N000191',
+      govtrackId: '412753',
+      openStatesId: 'ocd-person-test-004',
       contactEmail: 'joe.neguse@mail.house.gov',
       website: 'https://neguse.house.gov',
       offices: [

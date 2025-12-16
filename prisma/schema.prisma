@@ -4,10 +4,12 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "mongodb"
+  url      = env("MONGODB_URI")
 }
 
 // ============================================================================
@@ -16,7 +18,7 @@ datasource db {
 
 model User {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  clerkId   String   @unique // Clerk authentication ID
+  clerkId   String   @unique
   email     String   @unique
   firstName String?
   lastName  String?
@@ -32,8 +34,8 @@ model User {
   representatives  Representative[]
 
   // Membership info
-  membershipTier   String?  // "free", "basic", "premium"
-  membershipStatus String?  // "active", "canceled", "past_due"
+  membershipTier   String?
+  membershipStatus String?
   stripeCustomerId String?  @unique
 
   // Preferences
@@ -53,11 +55,11 @@ model User {
 
 // Embedded type for representatives in User model
 type Representative {
-  officialId   String   // Reference to ElectedOfficial.id
+  officialId   String
   name         String
-  office       String   // e.g., "U.S. Senator", "State Representative"
-  level        String   // "federal", "state", "county", "city", "school_board"
-  party        String?  // Stored but never displayed per project philosophy
+  office       String
+  level        String
+  party        String?
   photoUrl     String?
   contactEmail String?
   contactPhone String?
@@ -70,15 +72,15 @@ model ElectedOfficial {
   // Basic info
   firstName        String
   lastName         String
-  fullName         String   // Computed: "FirstName LastName"
+  fullName         String
   photoUrl         String?
 
   // Office details
-  office           String   // "U.S. Senator", "State Representative District 5", etc.
-  level            String   // "federal", "state", "county", "city", "school_board"
-  jurisdiction     String   // "United States", "Colorado", "Denver County", etc.
-  district         String?  // Congressional/State district number
-  chamber          String?  // "senate", "house", "council", etc.
+  office           String
+  level            String
+  jurisdiction     String
+  district         String?
+  chamber          String?
 
   // Political info (stored but not displayed per project philosophy)
   party            String?
@@ -98,12 +100,12 @@ model ElectedOfficial {
   isCurrentOfficial Boolean @default(true)
 
   // External IDs (for API syncing)
-  bioguideId       String?  @unique // Congress.gov bioguide ID
+  bioguideId       String?  @unique
   govtrackId       String?  @unique
   openStatesId     String?  @unique
 
   // Current scorecard snapshot (denormalized for performance)
-  currentScore     Float?   // 0-100
+  currentScore     Float?
   lastScoreUpdate  DateTime?
 
   // Metadata
@@ -127,7 +129,7 @@ type SocialMediaLinks {
 }
 
 type OfficeLocation {
-  type    String  // "capitol", "district", "home"
+  type    String
   address String
   city    String
   state   String
@@ -143,19 +145,19 @@ model Scorecard {
   official    ElectedOfficial @relation(fields: [officialId], references: [id], onDelete: Cascade)
 
   // Time period
-  periodType  String   // "weekly", "monthly", "annual"
+  periodType  String
   periodStart DateTime
   periodEnd   DateTime
 
   // Overall score
-  totalScore  Float    // 0-100
+  totalScore  Float
 
   // Score components (detailed breakdown)
   components  ScoreComponent[]
 
   // Metadata
   calculatedAt DateTime @default(now())
-  methodology  String   // Version of scoring algorithm used (e.g., "v1.0")
+  methodology  String
 
   @@map("scorecards")
   @@index([officialId, periodStart])
@@ -164,10 +166,10 @@ model Scorecard {
 
 // Embedded type for score breakdown
 type ScoreComponent {
-  category    String  // "bipartisanship", "attendance", "productivity", "civility", "transparency"
-  score       Float   // 0-100
-  weight      Float   // Percentage weight in total score
-  details     Json?   // Additional context (bills co-sponsored, votes missed, etc.)
+  category    String
+  score       Float
+  weight      Float
+  details     Json?
 }
 
 // ============================================================================
@@ -179,20 +181,20 @@ model Petition {
 
   // Petition details
   title           String
-  slug            String   @unique // URL-friendly identifier
+  slug            String   @unique
   description     String
-  category        String   // "budget", "bipartisanship", "transparency", etc.
+  category        String
 
   // Template letter
-  letterTemplate  String   // Plain-English template sent to representatives
+  letterTemplate  String
 
   // Targeting
-  targetLevel     String   // "federal", "state", "local"
-  targetOffice    String?  // Specific office or "all"
+  targetLevel     String
+  targetOffice    String?
 
   // Status
-  status          String   // "active", "closed", "successful"
-  goal            Int?     // Target number of signatures
+  status          String
+  goal            Int?
 
   // Results
   signatureCount  Int      @default(0)
@@ -221,13 +223,13 @@ model PetitionSignature {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Delivery details
-  deliveryMethod String  // "email", "physical_mail"
+  deliveryMethod String
   deliveredAt    DateTime?
-  deliveryStatus String  // "pending", "sent", "delivered", "failed"
+  deliveryStatus String
 
   // Physical mail (Lob.com)
-  lobMailId      String?  @unique // Lob.com tracking ID
-  lobMailCost    Float?   // Cost in USD
+  lobMailId      String?  @unique
+  lobMailCost    Float?
 
   // Custom message (optional)
   customMessage  String?
@@ -248,18 +250,18 @@ model DigestEdition {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
 
   // Edition details
-  editionNumber   Int      @unique // Sequential number (1, 2, 3, ...)
-  weekStart       DateTime // Monday of the week
-  weekEnd         DateTime // Sunday of the week
+  editionNumber   Int      @unique
+  weekStart       DateTime
+  weekEnd         DateTime
 
   // Content sections
   headline        String
-  summary         String   // 2-3 sentence overview
+  summary         String
 
   sections        DigestSection[]
 
   // Publishing
-  status          String   // "draft", "scheduled", "published"
+  status          String
   publishedAt     DateTime?
 
   // Metadata
@@ -273,9 +275,9 @@ model DigestEdition {
 
 // Embedded type for digest sections
 type DigestSection {
-  sectionType     String   // "federal", "state", "highlights", "scoreboard"
+  sectionType     String
   title           String
-  content         String   // Markdown or HTML
-  items           Json[]   // Array of bills, votes, or highlights
-  order           Int      // Display order
+  content         String
+  items           Json[]
+  order           Int
 }
