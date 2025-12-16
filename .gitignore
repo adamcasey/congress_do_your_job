@@ -37,6 +37,9 @@ coverage/
 *.tsbuildinfo
 next-env.d.ts
 
+### Generated
+generated/
+
 ### IDE
 .vscode/
 .idea/
