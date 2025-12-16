@@ -32,4 +32,13 @@ yarn-error.log*
 ### Testing
 coverage/
 .nyc_output
-/generated/prisma
+
+### TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+### IDE
+.vscode/
+.idea/
+*.swp
+*.swo
