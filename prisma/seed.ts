@@ -6,7 +6,7 @@
  * Run with: npm run db:seed
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/prisma';
 
 const prisma = new PrismaClient();
 

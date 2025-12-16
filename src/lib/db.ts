@@ -14,5 +14,5 @@
  * See PRISMA_VS_MONGODB.md for detailed guidance
  */
 
-export { prisma, default as prismaClient } from './prisma.config';
+export { prisma as prismaClient } from './prisma';
 export { getDb, getCollection, clientPromise } from './mongodb';
