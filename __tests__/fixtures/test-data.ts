@@ -1,0 +1,140 @@
+export const mockElectedOfficial = {
+  id: '507f1f77bcf86cd799439011',
+  firstName: 'John',
+  lastName: 'Doe',
+  fullName: 'John Doe',
+  office: 'U.S. Senator',
+  level: 'federal',
+  jurisdiction: 'United States',
+  chamber: 'senate',
+  party: 'Democratic',
+  bioguideId: 'D000001',
+  govtrackId: '400001',
+  openStatesId: 'ocd-person-test-001',
+  contactEmail: 'senator@senate.gov',
+  website: 'https://example.senate.gov',
+  photoUrl: 'https://example.com/photo.jpg',
+  socialMedia: {
+    twitter: '@SenatorDoe',
+    facebook: 'SenatorDoe',
+  },
+  offices: [],
+  termStart: new Date('2023-01-03'),
+  termEnd: new Date('2029-01-03'),
+  isCurrentOfficial: true,
+  currentScore: 75.5,
+  lastScoreUpdate: new Date('2024-01-01'),
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
+};
+
+export const mockUser = {
+  id: '507f1f77bcf86cd799439012',
+  clerkId: 'user_test_123',
+  email: 'test@example.com',
+  firstName: 'Test',
+  lastName: 'User',
+  address: '123 Main St',
+  city: 'Denver',
+  state: 'Colorado',
+  zipCode: '80202',
+  congressionalDistrict: '1',
+  membershipTier: 'basic',
+  membershipStatus: 'active',
+  emailDigest: true,
+  emailReminders: true,
+  representatives: [],
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
+};
+
+export const mockScorecard = {
+  id: '507f1f77bcf86cd799439013',
+  officialId: '507f1f77bcf86cd799439011',
+  periodType: 'weekly',
+  periodStart: new Date('2024-01-01'),
+  periodEnd: new Date('2024-01-07'),
+  totalScore: 75.5,
+  components: [
+    {
+      category: 'bipartisanship',
+      score: 80,
+      weight: 0.3,
+      details: { billsCosponsored: 5 },
+    },
+    {
+      category: 'attendance',
+      score: 95,
+      weight: 0.2,
+      details: { votesAttended: 10 },
+    },
+  ],
+  calculatedAt: new Date('2024-01-08'),
+  methodology: 'v1.0',
+};
+
+export const mockPetition = {
+  id: '507f1f77bcf86cd799439014',
+  title: 'Pass Budget On Time',
+  slug: 'pass-budget-on-time',
+  description: 'Demand Congress pass the budget by the deadline',
+  category: 'budget',
+  letterTemplate: 'Dear [REPRESENTATIVE_NAME], ...',
+  targetLevel: 'federal',
+  targetOffice: 'all',
+  status: 'active',
+  goal: 10000,
+  signatureCount: 250,
+  lettersDelivered: 100,
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
+  closedAt: null,
+};
+
+export const mockPetitionSignature = {
+  id: '507f1f77bcf86cd799439015',
+  petitionId: '507f1f77bcf86cd799439014',
+  userId: '507f1f77bcf86cd799439012',
+  signerName: 'Test User',
+  signerEmail: 'test@example.com',
+  signerLocation: 'Denver, Colorado',
+  deliveryMethod: 'email',
+  deliveryStatus: 'pending',
+  deliveredAt: null,
+  lobMailId: null,
+  lobMailCost: null,
+  customMessage: null,
+  signedAt: new Date('2024-01-01'),
+};
+
+export const mockGoogleCivicResponse = {
+  normalizedInput: {
+    line1: '123 Main St',
+    city: 'Denver',
+    state: 'CO',
+    zip: '80202',
+  },
+  offices: [
+    {
+      name: 'U.S. Senator',
+      divisionId: 'ocd-division/country:us/state:co',
+      levels: ['country'],
+      roles: ['legislatorUpperBody'],
+      officialIndices: [0],
+    },
+  ],
+  officials: [
+    {
+      name: 'John Doe',
+      party: 'Democratic',
+      photoUrl: 'https://example.com/photo.jpg',
+      urls: ['https://example.senate.gov'],
+      emails: ['senator@senate.gov'],
+      phones: ['202-224-0000'],
+      channels: [
+        { type: 'Twitter', id: 'SenatorDoe' },
+        { type: 'Facebook', id: 'SenatorDoe' },
+      ],
+    },
+  ],
+};
