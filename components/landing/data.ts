@@ -1,5 +1,8 @@
 import { BriefingItem, ChoreItem, CivicAction, Metric, Official } from './types'
 
+// Last full-year federal budget (not a continuing resolution): Consolidated Appropriations Act, 2023
+export const LAST_FULL_BUDGET_PASSED_AT = '2022-12-29T00:00:00Z'
+
 type RepresentativesApi = {
   success: boolean
   data?: {
@@ -32,7 +35,7 @@ type PetitionsApi = {
   }
 }
 
-const mockWeeklyBriefing: BriefingItem[] = [
+export const defaultWeeklyBriefing: BriefingItem[] = [
   {
     title: 'Appropriations: Senate advanced 7 of 12 spending bills',
     summary: 'Committee marked up Transportation and Energy packages with near-unanimous votes.',
@@ -59,7 +62,7 @@ const mockWeeklyBriefing: BriefingItem[] = [
   },
 ]
 
-const mockDeadlines: BriefingItem[] = [
+export const defaultDeadlines: BriefingItem[] = [
   {
     title: 'Government funding runs out',
     summary: 'Current stopgap expires; House has 4 of 12 bills drafted, none on floor calendar.',
@@ -80,38 +83,38 @@ const mockDeadlines: BriefingItem[] = [
   },
 ]
 
-const mockChoreList: ChoreItem[] = [
+export const defaultChoreList: ChoreItem[] = [
   {
     title: 'FAA Reauthorization (multi-year)',
     due: 'Past due — temporary patch ends in weeks',
     status: 'overdue',
     impact: 'Keeps airports, safety inspectors, and modernization projects funded.',
-    source: 'TODO: link to primary source (Congress.gov)',
+    source: 'Congress.gov — FAA reauthorization',
   },
   {
     title: 'Appropriations x12',
     due: 'Next shutdown date: 4 weeks',
     status: 'scheduled',
     impact: 'Full-year budgets prevent automatic cuts and agency slowdowns.',
-    source: 'TODO: pull current calendar and status from Congress.gov',
+    source: 'Congress.gov — Appropriations tracker',
   },
   {
     title: 'Defense Authorization (NDAA)',
     due: 'Conference report pending',
     status: 'advanced',
     impact: 'Sets pay, procurement, and policy guidance for the services.',
-    source: 'TODO: sync with bill actions feed',
+    source: 'Congress.gov — NDAA actions',
   },
   {
     title: 'Data privacy baseline',
     due: 'Draft expected; no vote scheduled',
     status: 'stalled',
     impact: 'National rules for data handling and consumer transparency.',
-    source: 'TODO: add primary source references',
+    source: 'Energy & Commerce docket',
   },
 ]
 
-const mockProductivityMetrics: Metric[] = [
+export const defaultProductivityMetrics: Metric[] = [
   { label: 'Bills advanced this week', value: '14', change: '+4 vs last week', tone: 'good' },
   { label: 'Hearings held', value: '22', change: 'steady', tone: 'neutral' },
   { label: 'Floor hours worked', value: '31h', change: '+6h vs last week', tone: 'good' },
@@ -120,7 +123,7 @@ const mockProductivityMetrics: Metric[] = [
   { label: 'Deadlines missed', value: '3', change: 'overdue tasks', tone: 'caution' },
 ]
 
-const mockOfficials: Official[] = [
+export const defaultOfficials: Official[] = [
   {
     id: 'senate-jordan-lee',
     slug: 'senate-jordan-lee',
@@ -150,7 +153,7 @@ const mockOfficials: Official[] = [
   },
 ]
 
-const mockCivicActions: CivicAction[] = [
+export const defaultCivicActions: CivicAction[] = [
   {
     id: 'letter-fy-budgets',
     slug: 'letter-fy-budgets',

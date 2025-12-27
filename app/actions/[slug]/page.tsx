@@ -22,7 +22,7 @@ export default async function ActionDetailPage({ params }: Props) {
         <div className="inline-flex w-fit items-center gap-2 rounded-full bg-foreground px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-background shadow-sm shadow-slate-300/70">
           {action.action}
         </div>
-        <p className="text-xs text-slate-500">TODO: Wire to real petition/action handler.</p>
+        <p className="text-xs text-slate-500">Action handling and signatures will be wired to the petitions API.</p>
       </div>
     </main>
   )

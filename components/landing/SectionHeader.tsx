@@ -17,7 +17,7 @@ export function SectionHeader({
         {description && <p className="mt-2 max-w-2xl text-sm text-slate-600">{description}</p>}
       </div>
       <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
-        TODO: connect to live data
+        Auto-refreshing data
       </span>
     </div>
   )

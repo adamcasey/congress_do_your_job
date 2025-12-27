@@ -40,9 +40,7 @@ export function NewsletterSection() {
             Join the list
             <span aria-hidden>→</span>
           </button>
-          <p className="text-xs text-slate-500">
-            TODO: wire up to email service (Resend or Mailgun). No spam, ever.
-          </p>
+          <p className="text-xs text-slate-500">Email delivery hooks coming soon. No spam, ever.</p>
         </form>
       </div>
     </section>

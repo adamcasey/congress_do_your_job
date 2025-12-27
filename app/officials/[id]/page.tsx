@@ -30,7 +30,9 @@ export default async function OfficialDetailPage({ params }: Props) {
         <div className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-800 ring-1 ring-emerald-100">
           {official.civilityNotes}
         </div>
-        <p className="text-xs text-slate-500">TODO: Pull attendance, bills, committees, and decorum events from APIs.</p>
+        <p className="text-xs text-slate-500">
+          Attendance, bills, committees, and decorum events will sync from the data feeds.
+        </p>
       </div>
     </main>
   )

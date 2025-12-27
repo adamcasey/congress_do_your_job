@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { BudgetTimer } from './BudgetTimer'
+import { LAST_FULL_BUDGET_PASSED_AT } from './data'
 
 export function Hero() {
   const headlineStats = [
@@ -43,6 +45,7 @@ export function Hero() {
               Plain-English updates on bills, attendance, hearings, and deadlines. Built for people who want facts
               without outrage.
             </p>
+            <BudgetTimer lastBudgetDateIso={LAST_FULL_BUDGET_PASSED_AT} />
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/briefing"
