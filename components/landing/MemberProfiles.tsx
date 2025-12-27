@@ -11,9 +11,11 @@ export function MemberProfiles({ officials }: { officials: Official[] }) {
         description="Vote attendance, committee work, and documented decorum events. No party labels, no ideology."
       />
       <div className="grid gap-4 md:grid-cols-3">
-        {officials.map((official) => (
+        {officials.map((official, idx) => {
+          const key = official.id || official.slug || `${official.name}-${idx}`
+          return (
           <article
-            key={official.name}
+            key={key}
             className="flex h-full flex-col gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm transition hover:-translate-y-[2px] hover:border-amber-200 hover:shadow-md"
           >
             <div className="flex items-center justify-between gap-3">
@@ -39,7 +41,8 @@ export function MemberProfiles({ officials }: { officials: Official[] }) {
               <span aria-hidden>→</span>
             </Link>
           </article>
-        ))}
+          )
+        })}
       </div>
     </section>
   )
