@@ -5,6 +5,7 @@ import { Hero } from '@/components/landing/Hero'
 import { MemberProfiles } from '@/components/landing/MemberProfiles'
 import { NewsletterSection } from '@/components/landing/NewsletterSection'
 import { ProductivitySection } from '@/components/landing/ProductivitySection'
+import { BudgetBanner } from '@/components/landing/BudgetBanner'
 import {
   getBriefingData,
   getChoreList,
@@ -25,6 +26,7 @@ export default async function Home() {
   return (
     <main className="min-h-screen px-4 pb-20 pt-10 text-slate-900">
       <div className="mx-auto flex max-w-6xl flex-col gap-12">
+        <BudgetBanner />
         <Hero />
         <BriefingSection items={briefing.items} deadlines={briefing.deadlines} />
         <ChoresSection chores={chores} />
