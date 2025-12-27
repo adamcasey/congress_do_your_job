@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/src/lib/db';
+import { defaultOfficials } from '@/components/landing/data';
 
 export async function GET(request: NextRequest) {
   try {
@@ -63,59 +64,81 @@ export async function GET(request: NextRequest) {
     }
 
     // Execute query with pagination
-    const [officials, totalCount] = await Promise.all([
-      prisma.electedOfficial.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: [
-          { level: 'asc' },
-          { chamber: 'asc' },
-          { lastName: 'asc' },
-        ],
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          fullName: true,
-          office: true,
-          level: true,
-          jurisdiction: true,
-          chamber: true,
-          district: true,
-          party: true,
-          photoUrl: true,
-          contactEmail: true,
-          contactPhone: true,
-          website: true,
-          socialMedia: true,
-          bioguideId: true,
-          currentScore: true,
-          lastScoreUpdate: true,
-          termStart: true,
-          termEnd: true,
-          isCurrentOfficial: true,
-        },
-      }),
-      prisma.electedOfficial.count({ where }),
-    ]);
+    try {
+      const [officials, totalCount] = await Promise.all([
+        prisma.electedOfficial.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: [
+            { level: 'asc' },
+            { chamber: 'asc' },
+            { lastName: 'asc' },
+          ],
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            fullName: true,
+            office: true,
+            level: true,
+            jurisdiction: true,
+            chamber: true,
+            district: true,
+            party: true,
+            photoUrl: true,
+            contactEmail: true,
+            contactPhone: true,
+            website: true,
+            socialMedia: true,
+            bioguideId: true,
+            currentScore: true,
+            lastScoreUpdate: true,
+            termStart: true,
+            termEnd: true,
+            isCurrentOfficial: true,
+          },
+        }),
+        prisma.electedOfficial.count({ where }),
+      ]);
 
-    const totalPages = Math.ceil(totalCount / limit);
-    const hasMore = page < totalPages;
+      const totalPages = Math.ceil(totalCount / limit);
+      const hasMore = page < totalPages;
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        officials,
-        pagination: {
-          page,
-          limit,
-          total: totalCount,
-          totalPages,
-          hasMore,
+      return NextResponse.json({
+        success: true,
+        data: {
+          officials,
+          pagination: {
+            page,
+            limit,
+            total: totalCount,
+            totalPages,
+            hasMore,
+          },
         },
-      },
-    });
+      });
+    } catch (dbError) {
+      console.warn('Representatives DB unavailable, falling back to defaults.', dbError);
+      const fallback = defaultOfficials.slice(skip, skip + limit);
+      const totalCount = defaultOfficials.length;
+      const totalPages = Math.ceil(totalCount / limit);
+      const hasMore = page < totalPages;
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          officials: fallback,
+          pagination: {
+            page,
+            limit,
+            total: totalCount,
+            totalPages,
+            hasMore,
+          },
+        },
+      });
+    }
   } catch (error) {
     console.error('Representatives list error:', error);
     return NextResponse.json(
