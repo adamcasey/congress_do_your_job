@@ -25,7 +25,18 @@ export function BudgetBanner() {
 
   useEffect(() => {
     if (invalidDate) return
+    // Align client hydration with server render by delaying the first tick
+    const id = setInterval(() => setElapsed(formatDuration(Date.now() - start)), 1000)
+    return () => clearInterval(id)
+  }, [start, invalidDate])
+
+  // Ensure server and client render the same initial value
+  const renderElapsed = useMemo(() => formatDuration(start ? Date.now() - start : 0), [start])
+
+  useEffect(() => {
+    if (invalidDate) return
     const tick = () => setElapsed(formatDuration(Date.now() - start))
+    tick()
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [start, invalidDate])
@@ -45,7 +56,8 @@ export function BudgetBanner() {
             <span className="text-lg font-semibold">Waiting for latest budget date…</span>
           ) : (
             <span className="text-2xl font-bold">
-              {elapsed.days}d {elapsed.hours}:{elapsed.minutes}:{elapsed.seconds}
+          {elapsed.days ?? renderElapsed.days}d {elapsed.hours ?? renderElapsed.hours}:
+          {elapsed.minutes ?? renderElapsed.minutes}:{elapsed.seconds ?? renderElapsed.seconds}
             </span>
           )}
         </div>
