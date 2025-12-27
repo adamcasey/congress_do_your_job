@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export function Hero() {
   const headlineStats = [
     { label: 'Bills advanced', value: '14', detail: '+4 vs last week' },
@@ -42,13 +44,19 @@ export function Hero() {
               without outrage.
             </p>
             <div className="flex flex-wrap gap-3">
-              <button className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background shadow-lg shadow-slate-300/60 transition hover:-translate-y-[1px] hover:shadow-xl hover:shadow-slate-300/80">
+              <Link
+                href="/briefing"
+                className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background shadow-lg shadow-slate-300/60 transition hover:-translate-y-[1px] hover:shadow-xl hover:shadow-slate-300/80"
+              >
                 See this week&apos;s briefing
                 <span aria-hidden>→</span>
-              </button>
-              <button className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:-translate-y-[1px] hover:border-slate-300">
+              </Link>
+              <Link
+                href="/officials"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:-translate-y-[1px] hover:border-slate-300"
+              >
                 Track your officials
-              </button>
+              </Link>
             </div>
           </div>
           <div className="relative grid gap-4 rounded-2xl bg-white/90 p-5 ring-1 ring-amber-100 backdrop-blur">

@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { SectionHeader } from './SectionHeader'
 import { CivicAction } from './types'
 
@@ -25,10 +26,13 @@ export function CivicActionsSection({ actions }: { actions: CivicAction[] }) {
               </span>
             </div>
             <p className="text-sm text-slate-600">{action.summary}</p>
-            <button className="inline-flex w-fit items-center gap-2 rounded-full bg-foreground px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-background shadow-sm shadow-slate-300/70 transition hover:-translate-y-[1px] hover:shadow">
+            <Link
+              href={action.slug ? `/actions/${action.slug}` : action.id ? `/actions/${action.id}` : '/actions'}
+              className="inline-flex w-fit items-center gap-2 rounded-full bg-foreground px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-background shadow-sm shadow-slate-300/70 transition hover:-translate-y-[1px] hover:shadow"
+            >
               {action.action}
               <span aria-hidden>→</span>
-            </button>
+            </Link>
           </article>
         ))}
       </div>

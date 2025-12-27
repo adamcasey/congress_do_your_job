@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { SectionHeader } from './SectionHeader'
 import { Official } from './types'
 
@@ -28,10 +29,15 @@ export function MemberProfiles({ officials }: { officials: Official[] }) {
             <div className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-800 ring-1 ring-emerald-100">
               {official.civilityNotes}
             </div>
-            <button className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-slate-800 underline-offset-4 hover:underline">
+            <Link
+              href={
+                official.slug ? `/officials/${official.slug}` : official.id ? `/officials/${official.id}` : '/officials'
+              }
+              className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-slate-800 underline-offset-4 hover:underline"
+            >
               Open profile
               <span aria-hidden>→</span>
-            </button>
+            </Link>
           </article>
         ))}
       </div>

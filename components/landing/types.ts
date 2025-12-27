@@ -23,6 +23,8 @@ export type Metric = {
 }
 
 export type Official = {
+  id?: string
+  slug?: string
   name: string
   office: string
   score: number
@@ -31,6 +33,8 @@ export type Official = {
 }
 
 export type CivicAction = {
+  id?: string
+  slug?: string
   title: string
   summary: string
   level: string

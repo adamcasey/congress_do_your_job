@@ -1,6 +1,38 @@
 import { BriefingItem, ChoreItem, CivicAction, Metric, Official } from './types'
 
-export const weeklyBriefing: BriefingItem[] = [
+type RepresentativesApi = {
+  success: boolean
+  data?: {
+    officials: Array<{
+      id?: string
+      fullName?: string
+      firstName?: string
+      lastName?: string
+      office?: string
+      level?: string
+      chamber?: string
+      jurisdiction?: string
+      currentScore?: number
+      isCurrentOfficial?: boolean
+    }>
+  }
+}
+
+type PetitionsApi = {
+  success: boolean
+  data?: {
+    petitions: Array<{
+      id: string
+      slug?: string
+      title: string
+      description?: string
+      targetLevel?: string
+      status?: string
+    }>
+  }
+}
+
+const mockWeeklyBriefing: BriefingItem[] = [
   {
     title: 'Appropriations: Senate advanced 7 of 12 spending bills',
     summary: 'Committee marked up Transportation and Energy packages with near-unanimous votes.',
@@ -27,7 +59,7 @@ export const weeklyBriefing: BriefingItem[] = [
   },
 ]
 
-export const deadlines: BriefingItem[] = [
+const mockDeadlines: BriefingItem[] = [
   {
     title: 'Government funding runs out',
     summary: 'Current stopgap expires; House has 4 of 12 bills drafted, none on floor calendar.',
@@ -48,7 +80,7 @@ export const deadlines: BriefingItem[] = [
   },
 ]
 
-export const choreList: ChoreItem[] = [
+const mockChoreList: ChoreItem[] = [
   {
     title: 'FAA Reauthorization (multi-year)',
     due: 'Past due — temporary patch ends in weeks',
@@ -79,7 +111,7 @@ export const choreList: ChoreItem[] = [
   },
 ]
 
-export const productivityMetrics: Metric[] = [
+const mockProductivityMetrics: Metric[] = [
   { label: 'Bills advanced this week', value: '14', change: '+4 vs last week', tone: 'good' },
   { label: 'Hearings held', value: '22', change: 'steady', tone: 'neutral' },
   { label: 'Floor hours worked', value: '31h', change: '+6h vs last week', tone: 'good' },
@@ -88,8 +120,10 @@ export const productivityMetrics: Metric[] = [
   { label: 'Deadlines missed', value: '3', change: 'overdue tasks', tone: 'caution' },
 ]
 
-export const officials: Official[] = [
+const mockOfficials: Official[] = [
   {
+    id: 'senate-jordan-lee',
+    slug: 'senate-jordan-lee',
     name: 'Jordan Lee',
     office: 'U.S. Senator — Mid-Atlantic',
     score: 86,
@@ -97,6 +131,8 @@ export const officials: Official[] = [
     civilityNotes: 'No recorded decorum issues this session.',
   },
   {
+    id: 'house-avery-chen',
+    slug: 'house-avery-chen',
     name: 'Avery Chen',
     office: 'U.S. Representative — 7th District',
     score: 72,
@@ -104,6 +140,8 @@ export const officials: Official[] = [
     civilityNotes: 'Filed 3 bipartisan co-sponsor clusters in June.',
   },
   {
+    id: 'senate-samira-patel',
+    slug: 'senate-samira-patel',
     name: 'Samira Patel',
     office: 'U.S. Senator — Southwest',
     score: 64,
@@ -112,23 +150,100 @@ export const officials: Official[] = [
   },
 ]
 
-export const civicActions: CivicAction[] = [
+const mockCivicActions: CivicAction[] = [
   {
+    id: 'letter-fy-budgets',
+    slug: 'letter-fy-budgets',
     title: 'Letter: Finish full-year budgets',
     summary: 'Direct, neutral message reminding members to move all 12 appropriations bills before the next deadline.',
     level: 'Federal',
     action: 'Send to your delegation',
   },
   {
+    id: 'petition-hearing-materials',
+    slug: 'petition-hearing-materials',
     title: 'Petition: Publish hearing materials on time',
     summary: 'Requests committees to post witness lists, slides, and recordings within 48 hours of each hearing.',
     level: 'Congressional committees',
     action: 'Add your name',
   },
   {
+    id: 'alert-faa-reauthorization',
+    slug: 'alert-faa-reauthorization',
     title: 'Alert: Track FAA reauthorization',
     summary: 'Get updates when the reauthorization bill moves committees or is scheduled for floor debate.',
     level: 'Federal aviation policy',
     action: 'Start tracking',
   },
 ]
+
+async function safeFetch<T>(path: string): Promise<T | null> {
+  try {
+    const res = await fetch(path, { next: { revalidate: 300 } })
+    if (!res.ok) return null
+    return (await res.json()) as T
+  } catch (err) {
+    console.error('Data fetch failed', err)
+    return null
+  }
+}
+
+export async function getBriefingData(): Promise<{ items: BriefingItem[]; deadlines: BriefingItem[] }> {
+  // TODO: replace with newsroom API endpoint (e.g., /api/v1/briefing)
+  return { items: mockWeeklyBriefing, deadlines: mockDeadlines }
+}
+
+export async function getChoreList(): Promise<ChoreItem[]> {
+  // TODO: wire to chores list endpoint when available
+  return mockChoreList
+}
+
+export async function getProductivityMetrics(): Promise<Metric[]> {
+  // TODO: connect to aggregation of scorecards once available
+  return mockProductivityMetrics
+}
+
+export async function getOfficials(): Promise<Official[]> {
+  const apiData = await safeFetch<RepresentativesApi>('/api/v1/representatives?limit=6')
+
+  if (apiData?.success && apiData.data?.officials?.length) {
+    return apiData.data.officials.map((official) => {
+      const name = official.fullName || [official.firstName, official.lastName].filter(Boolean).join(' ')
+      const office =
+        official.office ||
+        [official.level, official.chamber].filter(Boolean).join(' • ') ||
+        'Elected official'
+
+      return {
+        id: official.id,
+        slug: official.id,
+        name: name || 'Elected official',
+        office,
+        score: official.currentScore ?? 0,
+        attendance: 'Attendance data coming soon',
+        civilityNotes: official.isCurrentOfficial
+          ? 'No recorded decorum notes yet — data feed coming soon.'
+          : 'Former official — decorum data pending.',
+      }
+    })
+  }
+
+  return mockOfficials
+}
+
+export async function getCivicActions(): Promise<CivicAction[]> {
+  const apiData = await safeFetch<PetitionsApi>('/api/v1/petitions?status=active&limit=6')
+
+  if (apiData?.success && apiData.data?.petitions?.length) {
+    return apiData.data.petitions.map((petition) => ({
+      id: petition.id,
+      slug: petition.slug || petition.id,
+      title: petition.title,
+      summary: petition.description || 'Neutral petition text coming soon.',
+      level: petition.targetLevel || 'Federal',
+      action: petition.status === 'closed' ? 'View summary' : 'Add your name',
+    }))
+  }
+
+  return mockCivicActions
+}
