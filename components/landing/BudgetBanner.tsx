@@ -42,22 +42,24 @@ export function BudgetBanner() {
   }, [start, invalidDate])
 
   return (
-    <div className="relative isolate overflow-hidden rounded-3xl border border-amber-100 bg-gradient-to-r from-amber-50 via-white to-emerald-50 px-5 py-4 shadow-lg shadow-amber-100/50">
+    <div className="relative isolate overflow-hidden rounded-3xl border border-amber-100 bg-gradient-to-r from-amber-50 via-white to-emerald-50 px-6 py-6 shadow-lg shadow-amber-100/50">
       <div className="pointer-events-none absolute inset-0 bg-dot-grid bg-[size:20px_20px] opacity-40" />
-      <div className="relative flex flex-wrap items-center gap-3">
-        <span className="grid h-9 w-9 place-items-center rounded-full bg-white text-sm font-bold text-amber-600 ring-1 ring-amber-100 shadow-sm">
-          ⏱
+      <div className="relative flex flex-wrap items-center gap-5">
+        <span className="grid h-12 w-12 place-items-center rounded-full bg-white text-lg font-bold text-amber-600 ring-1 ring-amber-100 shadow-sm">
+          ⏱️
         </span>
         <div className="flex flex-col leading-tight text-slate-900">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
+          <span className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-700">
             Days since Congress passed a full budget (not a CR)
           </span>
           {invalidDate ? (
-            <span className="text-lg font-semibold">Waiting for latest budget date…</span>
+            <span className="text-2xl font-semibold">Waiting for latest budget date…</span>
           ) : (
-            <span className="text-2xl font-bold">
-          {elapsed.days ?? renderElapsed.days}d {elapsed.hours ?? renderElapsed.hours}:
-          {elapsed.minutes ?? renderElapsed.minutes}:{elapsed.seconds ?? renderElapsed.seconds}
+            <span className="text-4xl font-black tracking-[0.12em]">
+              {elapsed.days ?? renderElapsed.days}d{' '}
+              <span className="inline-block min-w-[3ch]">{elapsed.hours ?? renderElapsed.hours}</span>:
+              <span className="inline-block min-w-[3ch]">{elapsed.minutes ?? renderElapsed.minutes}</span>:
+              <span className="inline-block min-w-[3ch]">{elapsed.seconds ?? renderElapsed.seconds}</span>
             </span>
           )}
         </div>
