@@ -180,9 +180,16 @@ export const defaultCivicActions: CivicAction[] = [
   },
 ]
 
+function resolveUrl(path: string) {
+  if (path.startsWith('http')) return path
+  const base = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  return `${base}${path}`
+}
+
 async function safeFetch<T>(path: string): Promise<T | null> {
   try {
-    const res = await fetch(path, { next: { revalidate: 300 } })
+    const url = resolveUrl(path)
+    const res = await fetch(url, { next: { revalidate: 300 } })
     if (!res.ok) return null
     return (await res.json()) as T
   } catch (err) {
@@ -192,18 +199,32 @@ async function safeFetch<T>(path: string): Promise<T | null> {
 }
 
 export async function getBriefingData(): Promise<{ items: BriefingItem[]; deadlines: BriefingItem[] }> {
-  // TODO: replace with newsroom API endpoint (e.g., /api/v1/briefing)
-  return { items: mockWeeklyBriefing, deadlines: mockDeadlines }
+  const apiData = await safeFetch<BriefingApi>('/api/v1/briefing')
+
+  if (apiData?.success && apiData.data) {
+    return {
+      items: apiData.data.items ?? defaultWeeklyBriefing,
+      deadlines: apiData.data.deadlines ?? defaultDeadlines,
+    }
+  }
+
+  return { items: defaultWeeklyBriefing, deadlines: defaultDeadlines }
 }
 
 export async function getChoreList(): Promise<ChoreItem[]> {
-  // TODO: wire to chores list endpoint when available
-  return mockChoreList
+  const apiData = await safeFetch<ChoresApi>('/api/v1/chores')
+  if (apiData?.success && apiData.data?.chores?.length) {
+    return apiData.data.chores
+  }
+  return defaultChoreList
 }
 
 export async function getProductivityMetrics(): Promise<Metric[]> {
-  // TODO: connect to aggregation of scorecards once available
-  return mockProductivityMetrics
+  const apiData = await safeFetch<ProductivityApi>('/api/v1/productivity')
+  if (apiData?.success && apiData.data?.metrics?.length) {
+    return apiData.data.metrics
+  }
+  return defaultProductivityMetrics
 }
 
 export async function getOfficials(): Promise<Official[]> {
@@ -231,7 +252,7 @@ export async function getOfficials(): Promise<Official[]> {
     })
   }
 
-  return mockOfficials
+  return defaultOfficials
 }
 
 export async function getCivicActions(): Promise<CivicAction[]> {
@@ -248,5 +269,5 @@ export async function getCivicActions(): Promise<CivicAction[]> {
     }))
   }
 
-  return mockCivicActions
+  return defaultCivicActions
 }
