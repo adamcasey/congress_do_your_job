@@ -27,14 +27,28 @@ export function BudgetTimer({ lastBudgetDateIso }: { lastBudgetDateIso: string }
     return () => clearInterval(id)
   }, [start])
 
+  const invalidDate = Number.isNaN(start)
+
+  if (invalidDate) {
+    return (
+      <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-5 py-3 text-sm font-semibold text-slate-800 ring-1 ring-amber-100 shadow-sm">
+        <span className="h-2.5 w-2.5 rounded-full bg-orange-500" aria-hidden />
+        <span>Waiting for latest budget date…</span>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700 ring-1 ring-amber-100 shadow-sm">
-      <span className="h-2 w-2 rounded-full bg-orange-500" aria-hidden />
-      <span className="text-slate-500">Full budget passed</span>
-      <span className="font-bold text-slate-900">
-        {elapsed.days}d {elapsed.hours}:{elapsed.minutes}:{elapsed.seconds}
-      </span>
-      <span className="text-slate-500">ago (not a CR)</span>
+    <div className="inline-flex items-center gap-3 rounded-full bg-white/90 px-5 py-3 text-sm font-semibold text-slate-900 ring-1 ring-amber-100 shadow-sm shadow-amber-100/50">
+      <span className="h-2.5 w-2.5 rounded-full bg-orange-500" aria-hidden />
+      <div className="flex flex-col leading-tight">
+        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+          Days since a full budget (not a CR)
+        </span>
+        <span className="text-lg font-bold">
+          {elapsed.days}d {elapsed.hours}:{elapsed.minutes}:{elapsed.seconds}
+        </span>
+      </div>
     </div>
   )
 }
