@@ -12,6 +12,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/src/lib/db';
 import { defaultCivicActions } from '@/components/landing/data';
 
+const DB_TIMEOUT_MS = 1500;
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -65,85 +67,91 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    try {
-      // Execute query with pagination
-      const [petitions, totalCount] = await Promise.all([
-        prisma.petition.findMany({
-          where,
-          skip,
-          take: limit,
-          orderBy: [
-            { createdAt: 'desc' },
-          ],
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            description: true,
-            category: true,
-            targetLevel: true,
-            targetOffice: true,
-            status: true,
-            goal: true,
-            signatureCount: true,
-            createdAt: true,
-            updatedAt: true,
+    const hasDb = Boolean(process.env.MONGODB_URI);
+
+    if (hasDb) {
+      try {
+        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('db-timeout')), DB_TIMEOUT_MS));
+        const dbQuery = Promise.all([
+          prisma.petition.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: [
+              { createdAt: 'desc' },
+            ],
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              description: true,
+              category: true,
+              targetLevel: true,
+              targetOffice: true,
+              status: true,
+              goal: true,
+              signatureCount: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          }),
+          prisma.petition.count({ where }),
+        ]);
+
+        const [petitions, totalCount] = await Promise.race([dbQuery, timeout]);
+        const totalPages = Math.ceil(totalCount / limit);
+        const hasMore = page < totalPages;
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            petitions,
+            pagination: {
+              page,
+              limit,
+              total: totalCount,
+              totalPages,
+              hasMore,
+            },
           },
-        }),
-        prisma.petition.count({ where }),
-      ]);
-
-      const totalPages = Math.ceil(totalCount / limit);
-      const hasMore = page < totalPages;
-
-      return NextResponse.json({
-        success: true,
-        data: {
-          petitions,
-          pagination: {
-            page,
-            limit,
-            total: totalCount,
-            totalPages,
-            hasMore,
-          },
-        },
-      });
-    } catch (dbError) {
-      console.warn('Petitions DB unavailable, returning defaults.', dbError);
-      const petitions = defaultCivicActions.slice(skip, skip + limit).map((action) => ({
-        id: action.id ?? action.slug ?? action.title,
-        title: action.title,
-        slug: action.slug,
-        description: action.summary,
-        category: 'general',
-        targetLevel: action.level,
-        targetOffice: action.level,
-        status: 'active',
-        goal: 0,
-        signatureCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }));
-
-      const totalCount = defaultCivicActions.length;
-      const totalPages = Math.ceil(totalCount / limit);
-      const hasMore = page < totalPages;
-
-      return NextResponse.json({
-        success: true,
-        data: {
-          petitions,
-          pagination: {
-            page,
-            limit,
-            total: totalCount,
-            totalPages,
-            hasMore,
-          },
-        },
-      });
+        });
+      } catch (dbError) {
+        console.warn('Petitions DB unavailable, returning defaults.', dbError);
+      }
     }
+
+    const petitions = defaultCivicActions.slice(skip, skip + limit).map((action) => ({
+      id: action.id ?? action.slug ?? action.title,
+      title: action.title,
+      slug: action.slug,
+      description: action.summary,
+      category: 'general',
+      targetLevel: action.level,
+      targetOffice: action.level,
+      status: 'active',
+      goal: 0,
+      signatureCount: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }));
+
+    const totalCount = defaultCivicActions.length;
+    const totalPages = Math.ceil(totalCount / limit);
+    const hasMore = page < totalPages;
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        petitions,
+        pagination: {
+          page,
+          limit,
+          total: totalCount,
+          totalPages,
+          hasMore,
+        },
+      },
+    });
   } catch (error) {
     console.error('Petitions list error:', error);
     return NextResponse.json(
