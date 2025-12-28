@@ -42,36 +42,22 @@ export function BudgetBanner() {
 	}, [start, invalidDate]);
 
 	return (
-		<div className="relative isolate overflow-hidden rounded-3xl border border-amber-100 bg-gradient-to-r from-amber-50 via-white to-emerald-50 px-6 py-6 shadow-lg shadow-amber-100/50">
+		<div className="relative isolate overflow-hidden rounded-3xl border border-amber-100 bg-gradient-to-r from-amber-50 via-white to-emerald-50 px-6 py-8 shadow-lg shadow-amber-100/50">
 			<div className="pointer-events-none absolute inset-0 bg-dot-grid bg-[size:20px_20px] opacity-40" />
-			<div className="relative flex flex-wrap items-center justify-center gap-5 text-center md:justify-between md:text-left">
-				<div className="flex flex-col items-center leading-tight text-slate-900 md:items-start">
-					<span className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-700">
-						Days since Congress passed a full budget (not a CR)
+			<div className="relative flex flex-col items-center justify-center gap-4 text-center">
+				<span className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-700">
+					Days since Congress passed a full budget (not a CR)
+				</span>
+				{invalidDate ? (
+					<span className="text-2xl font-semibold">Waiting for latest budget date…</span>
+				) : (
+					<span className="text-4xl font-black tracking-[0.18em]">
+						{elapsed.days ?? renderElapsed.days}d{' '}
+						<span className="inline-block min-w-[3ch]">{elapsed.hours ?? renderElapsed.hours}</span>:
+						<span className="inline-block min-w-[3ch]">{elapsed.minutes ?? renderElapsed.minutes}</span>:
+						<span className="inline-block min-w-[3ch]">{elapsed.seconds ?? renderElapsed.seconds}</span>
 					</span>
-					{invalidDate ? (
-						<span className="text-2xl font-semibold">Waiting for latest budget date…</span>
-					) : (
-						<span className="text-4xl font-black tracking-[0.12em]">
-							{elapsed.days ?? renderElapsed.days}d{' '}
-							<span className="inline-block min-w-[3ch]">
-								{elapsed.hours ?? renderElapsed.hours}
-							</span>
-							:
-							<span className="inline-block min-w-[3ch]">
-								{elapsed.minutes ?? renderElapsed.minutes}
-							</span>
-							:
-							<span className="inline-block min-w-[3ch]">
-								{elapsed.seconds ?? renderElapsed.seconds}
-							</span>
-						</span>
-					)}
-				</div>
-				<div className="ml-auto flex flex-wrap justify-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600 md:justify-end">
-					<span className="rounded-full bg-white px-3 py-1 ring-1 ring-amber-100">Not a continuing resolution</span>
-					<span className="rounded-full bg-white px-3 py-1 ring-1 ring-amber-100">Updates every second</span>
-				</div>
+				)}
 			</div>
 		</div>
 	);
