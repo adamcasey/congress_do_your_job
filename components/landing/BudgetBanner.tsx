@@ -45,9 +45,6 @@ export function BudgetBanner() {
 		<div className="relative isolate overflow-hidden rounded-3xl border border-amber-100 bg-gradient-to-r from-amber-50 via-white to-emerald-50 px-6 py-6 shadow-lg shadow-amber-100/50">
 			<div className="pointer-events-none absolute inset-0 bg-dot-grid bg-[size:20px_20px] opacity-40" />
 			<div className="relative flex flex-wrap items-center justify-center gap-5 text-center md:justify-between md:text-left">
-				<span className="grid h-12 w-12 place-items-center rounded-full bg-white text-lg font-bold text-amber-600 ring-1 ring-amber-100 shadow-sm md:justify-self-start">
-					⏱️
-				</span>
 				<div className="flex flex-col items-center leading-tight text-slate-900 md:items-start">
 					<span className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-700">
 						Days since Congress passed a full budget (not a CR)
