@@ -5,7 +5,11 @@ import { Hero } from '@/components/landing/Hero'
 import { MemberProfiles } from '@/components/landing/MemberProfiles'
 import { NewsletterSection } from '@/components/landing/NewsletterSection'
 import { ProductivitySection } from '@/components/landing/ProductivitySection'
-import { BudgetBanner } from '@/components/landing/BudgetBanner'
+import dynamic from 'next/dynamic'
+const BudgetBanner = dynamic(
+  () => import('@/components/landing/BudgetBanner').then((mod) => mod.BudgetBanner),
+  { ssr: false }
+)
 import {
   getBriefingData,
   getChoreList,
