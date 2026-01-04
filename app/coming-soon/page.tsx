@@ -1,5 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 'use client'
+
+import Image from 'next/image'
 
 export default function ComingSoon() {
   return (
@@ -12,11 +13,11 @@ export default function ComingSoon() {
         <header className="mb-10">
           <div className="flex items-center gap-3 text-slate-800">
             <span className="grid h-12 w-12 place-items-center rounded-xl bg-white/90 text-xl font-bold shadow-sm ring-1 ring-amber-100">
-              CDYJ
+              <Image src="/logos/favicon.png" alt="CongressDoYourJob logo" width={36} height={36} />
             </span>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">CongressDoYourJob</p>
-              <p className="text-sm text-slate-600">Less theater. More laws.</p>
+              <p className="text-sm text-slate-600">Less theater. More legislation.</p>
             </div>
           </div>
         </header>

@@ -24,7 +24,7 @@ export default function Home() {
           CongressDoYourJob.com
         </h1>
         <p className="text-xl text-center text-gray-600">
-          Less theater. More laws.
+          Less theater. More legislation.
         </p>
       </div>
     </main>

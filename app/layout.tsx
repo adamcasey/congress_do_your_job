@@ -4,7 +4,7 @@ import { LaunchDarklyProvider } from '@/lib/launchdarkly-provider'
 
 export const metadata: Metadata = {
   title: 'CongressDoYourJob.com',
-  description: 'Less theater. More laws. Non-partisan civic engagement platform tracking what elected officials actually do.',
+  description: 'Less theater. More legislation. Non-partisan civic engagement platform tracking what elected officials actually do.',
 }
 
 export default function RootLayout({

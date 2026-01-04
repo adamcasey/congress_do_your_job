@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-CongressDoYourJob.com is a non-partisan civic engagement platform that provides objective, plain-English information about what elected officials actually do. The mission is "Less theater. More laws."
+CongressDoYourJob.com is a non-partisan civic engagement platform that provides objective, plain-English information about what elected officials actually do. The mission is "Less theater. More legislation."
 
 **Target Users:** Everyday Americans, regardless of party affiliation, frustrated with political theater who want civility and real legislative results
 **Revenue Goal:** ~$50k/year within 4–5 years via memberships + partnerships
@@ -27,7 +27,7 @@ feature/* (individual features cut from dev)
 - **main**: Production-ready code only. Deployed to live site.
 - **dev**: Integration branch for stable, tested features. Should always be in a deployable state.
 - **demo**: Preview/staging branch for features that work but need more testing or user feedback before going to production. Can be deployed to a staging URL.
-- **feature/***: Individual feature branches cut from `dev`. Naming convention: `feature/feature-name` (e.g., `feature/add-auth`, `feature/scorecard-logic`)
+- **feature/\***: Individual feature branches cut from `dev`. Naming convention: `feature/feature-name` (e.g., `feature/add-auth`, `feature/scorecard-logic`)
 
 ### Workflow Process
 
@@ -168,6 +168,7 @@ Our approach prioritizes **structured, verifiable data** from official sources o
 ### Primary Data Sources (Official Records)
 
 #### Federal Level
+
 1. **Congress.gov API** (Official legislative data)
    - Bill introductions, co-sponsorships, amendments
    - Committee assignments and hearings
@@ -194,6 +195,7 @@ Our approach prioritizes **structured, verifiable data** from official sources o
    - **Note:** Used ONLY for documented statements made on the floor, not for scoring rhetoric
 
 #### State & Local Level
+
 1. **OpenStates API** (50-state legislatures)
    - Bill tracking across all states
    - Legislator profiles and votes
@@ -215,6 +217,7 @@ Our approach prioritizes **structured, verifiable data** from official sources o
 ### Secondary Sources (Behavior & Context)
 
 #### Stock Trading & Ethics
+
 1. **House Stock Watcher / Senate Stock Watcher** (Community projects)
    - Congressional stock disclosures (STOCK Act)
    - Timing analysis relative to committee work
@@ -226,19 +229,23 @@ Our approach prioritizes **structured, verifiable data** from official sources o
    - **Update frequency:** Quarterly
 
 #### Media & Public Statements
+
 **Critical for scoring:** Social media activity and media interviews ARE tracked to highlight the theater vs. work ratio.
 
 **What we measure:**
+
 1. **Time spent on media appearances** - TV interviews, podcasts, cable news hits
 2. **Social media activity volume** - Tweet frequency, Instagram posts, TikToks
 3. **Promises made vs. votes cast** - Track commitments made in interviews against actual legislative action
 
 **How this affects scoring:**
+
 - **Minus points:** High media activity + low legislative productivity = "All talk, no action"
 - **Neutral/Plus points:** Media activity proportional to legislative work = "Communicating while governing"
 - **Example metric:** "Senator X posted 47 tweets this week but missed 3 committee votes"
 
 **Approach:**
+
 1. **Social Media APIs** - Twitter/X API, Meta Graph API (public posts only)
 2. **Media appearance tracking** - Manual curation of major news appearances (C-SPAN, Sunday shows)
 3. **Volume tracking only** - We count post frequency and media appearances, NOT content quality or ideology
@@ -247,6 +254,7 @@ Our approach prioritizes **structured, verifiable data** from official sources o
 6. **Transparent methodology** - "We measure time allocation: governing vs. performing"
 
 **Data Sources:**
+
 - Twitter/X API (public posts, engagement metrics)
 - Meta Graph API (Facebook/Instagram public posts)
 - YouTube API (for official channels)
@@ -256,6 +264,7 @@ Our approach prioritizes **structured, verifiable data** from official sources o
 ### Web Scraping Strategy
 
 #### What We Will Scrape
+
 1. **C-SPAN hearing transcripts** (when API unavailable)
    - Committee hearings for attendance tracking
    - Floor proceedings for recorded statements
@@ -276,11 +285,13 @@ Our approach prioritizes **structured, verifiable data** from official sources o
    - **Frequency:** Monthly for MVP cities
 
 #### What We Will NOT Scrape
+
 - Personal blogs or campaign websites (unofficial sources)
 - Paywalled news content
 - Private social media accounts
 
 **What We WILL Track (via APIs, not scraping):**
+
 - Public social media posts (Twitter/X API, Meta Graph API)
 - Cable news transcripts (for promise tracking and media appearance counts)
 - Op-eds (to count media engagement time vs. legislative time)
@@ -290,6 +301,7 @@ Our approach prioritizes **structured, verifiable data** from official sources o
 ### Theater vs. Work Tracking
 
 #### The Promise Tracker & Media Activity Monitor
+
 **Core Premise:** Politicians spend too much time on TV and Twitter, not enough time legislating. We quantify this.
 
 **What We Track:**
@@ -315,6 +327,7 @@ Our approach prioritizes **structured, verifiable data** from official sources o
    - Highlight broken promises AND kept promises (neutral presentation)
 
 **Scoring Impact:**
+
 - **Theater-to-Work Ratio** - Core metric displayed prominently
 - Example: "This week: 23 social media posts, 4 TV appearances, 2 committee votes missed, 0 bills advanced"
 - **High theater + low work = minus points**
@@ -324,6 +337,7 @@ Our approach prioritizes **structured, verifiable data** from official sources o
 **Implementation Strategy:**
 
 **MVP (Phase 1):**
+
 1. Manual media appearance logging (editorial team tracks major TV/podcast)
 2. Twitter/X API integration for post counting (automated)
 3. Community submission form for promise tracking → human editorial review and approval required
@@ -331,6 +345,7 @@ Our approach prioritizes **structured, verifiable data** from official sources o
 5. All promise tracking manually verified by editorial team before publication
 
 **Phase 2:**
+
 1. Automated TV appearance detection (partner with TV Eyes or similar) → flagged for human review
 2. Meta Graph API (Instagram/Facebook) for automated post counting
 3. YouTube API for video content counting
@@ -339,6 +354,7 @@ Our approach prioritizes **structured, verifiable data** from official sources o
 6. Editorial workflow system: Automated flagging → Human review queue → Approval → Publication
 
 **Safeguards:**
+
 - We count VOLUME of media activity, not judge CONTENT (no ideology scoring)
 - Only track promises about SPECIFIC legislation (not vague platitudes)
 - Display full quotes with timestamp citations
@@ -348,6 +364,7 @@ Our approach prioritizes **structured, verifiable data** from official sources o
 - Clear methodology page: "We measure time allocation, not political positions"
 
 **User Experience:**
+
 - Weekly digest includes: "Top 10 Most Active on Social Media vs. Top 10 Most Productive Legislators"
 - Representative profiles show: "Theater vs. Work" chart (time series)
 - Tooltip explains: "Media activity includes interviews and social posts. Legislative work includes votes, committee participation, and bill sponsorship."
@@ -504,7 +521,7 @@ When implementing features, consider:
 1. Is this neutral and non-partisan?
 2. Would both parties' supporters find this fair?
 3. Is the methodology transparent and documented?
-4. Does this advance "Less theater. More laws"?
+4. Does this advance "Less theater. More legislation"?
 5. Can a typical American understand this without political knowledge?
 
 ## Contact & Resources
