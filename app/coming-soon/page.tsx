@@ -1,3 +1,6 @@
+/* eslint-disable @next/next/no-img-element */
+'use client'
+
 export default function ComingSoon() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#e4f0f9] via-[#e4f0f9] to-[#fde3e0]">
