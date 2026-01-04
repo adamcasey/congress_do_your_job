@@ -12,16 +12,13 @@ export default function ComingSoon() {
       <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 py-16">
         <header className="mb-10">
           <div className="flex items-center gap-3 text-slate-800">
-            <span className="grid h-12 w-12 place-items-center rounded-xl bg-white/90 text-xl font-bold shadow-sm ring-1 ring-amber-100">
-              <Image src="/logos/favicon.png" alt="CongressDoYourJob logo" width={36} height={36} />
-            </span>
             <div>
               <p className="text-xl font-semibold uppercase tracking-[0.22em] text-slate-500">Less theater. More legislation.</p>
             </div>
           </div>
         </header>
 
-        <section className="grid gap-10 rounded-[28px] bg-white/80 p-10 shadow-2xl shadow-amber-100/40 ring-1 ring-amber-100/70 md:grid-cols-[1.2fr_1fr] md:items-center">
+        <section className="mx-auto grid max-w-5xl gap-10 rounded-[28px] bg-white/80 p-10 shadow-2xl shadow-amber-100/40 ring-1 ring-amber-100/70 md:items-center">
           <div className="space-y-6 text-slate-900">
             <p className="text-lg font-semibold uppercase tracking-[0.28em] text-slate-500">Coming soon</p>
             <h1 className="text-4xl font-black leading-tight md:text-5xl">
@@ -58,29 +55,8 @@ export default function ComingSoon() {
               </button>
             </form>
             <p className="text-sm text-slate-500">
-              No spam. We&apos;ll email you once when the public preview is live.
+              No spam. No third party data brokers. Only get notified once we go live.
             </p>
-          </div>
-
-          <div className="relative overflow-hidden rounded-[24px] bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-6 shadow-inner ring-1 ring-amber-100">
-            <div className="absolute inset-0 bg-dot-grid bg-[size:18px_18px] opacity-40" />
-            <div className="relative flex flex-col items-center gap-4 text-center">
-              <div className="grid h-20 w-20 place-items-center rounded-2xl bg-white shadow-md ring-1 ring-amber-100">
-                <svg viewBox="0 0 64 64" className="h-12 w-12 text-amber-600" fill="none" stroke="currentColor">
-                  <path
-                    d="M12 28h40M12 36h40M16 18h32l4 10H12l4-10Zm0 0L24 8h16l8 10M16 36v20h32V36"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">Up next</p>
-              <p className="text-base font-semibold text-slate-900">Weekly civic briefing</p>
-              <p className="text-sm text-slate-600">
-                Bills moved, hearings held, deadlines missed, and what to expect next week — all in plain English.
-              </p>
-            </div>
           </div>
         </section>
       </div>
