@@ -16,8 +16,7 @@ export default function ComingSoon() {
               <Image src="/logos/favicon.png" alt="CongressDoYourJob logo" width={36} height={36} />
             </span>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">CongressDoYourJob</p>
-              <p className="text-sm text-slate-600">Less theater. More legislation.</p>
+              <p className="text-xl font-semibold uppercase tracking-[0.22em] text-slate-500">Less theater. More legislation.</p>
             </div>
           </div>
         </header>
@@ -29,7 +28,7 @@ export default function ComingSoon() {
               A calm, plain-English dashboard for what Congress actually did this week.
             </h1>
             <p className="text-lg text-slate-700">
-              Get the first look when we launch: weekly briefings, accountability scorecards, and one-tap civic actions
+              Get notified when we launch: weekly briefings, accountability scorecards, and one-tap civic actions
               — no partisanship, no outrage.
             </p>
 
@@ -53,7 +52,7 @@ export default function ComingSoon() {
               />
               <button
                 type="submit"
-                className="inline-flex h-12 items-center justify-center rounded-full bg-slate-900 px-6 text-sm font-semibold text-white shadow-lg shadow-slate-900/30 transition hover:-translate-y-[1px] hover:shadow-xl"
+                className="inline-flex h-12 min-w-[12rem] items-center justify-center rounded-full bg-slate-900 px-8 text-sm font-semibold text-white shadow-lg shadow-slate-900/30 transition hover:-translate-y-[1px] hover:shadow-xl"
               >
                 Notify me
               </button>
