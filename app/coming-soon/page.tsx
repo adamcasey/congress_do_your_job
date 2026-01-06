@@ -1,6 +1,4 @@
-'use client'
-
-import Image from 'next/image'
+import { WaitlistForm } from '@/components/forms/WaitlistForm'
 
 export default function ComingSoon() {
   return (
@@ -29,34 +27,7 @@ export default function ComingSoon() {
               — no partisanship, no outrage.
             </p>
 
-            <form
-              className="flex flex-col gap-3 md:flex-row md:items-center"
-              onSubmit={(e) => {
-                e.preventDefault()
-              }}
-            >
-              <input
-                type="text"
-                name="name"
-                placeholder="Name"
-                className="h-12 w-full rounded-full border border-slate-200 bg-white px-5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-200 md:w-48"
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                className="h-12 w-full rounded-full border border-slate-200 bg-white px-5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-200 md:w-64"
-              />
-              <button
-                type="submit"
-                className="inline-flex h-12 min-w-[12rem] items-center justify-center rounded-full bg-slate-900 px-8 text-sm font-semibold text-white shadow-lg shadow-slate-900/30 transition hover:-translate-y-[1px] hover:shadow-xl"
-              >
-                Notify me
-              </button>
-            </form>
-            <p className="text-sm text-slate-500">
-              No spam. No third party data brokers. Only get notified once we go live.
-            </p>
+            <WaitlistForm />
           </div>
         </section>
       </div>
