@@ -3,10 +3,13 @@
 import { useFlags } from 'launchdarkly-react-client-sdk'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { FeatureFlag, featureFlagDefaults } from '@/lib/feature-flags'
 
 export default function Home() {
-  const { showComingSoon } = useFlags()
+  const flags = useFlags()
   const router = useRouter()
+
+  const showComingSoon = flags[FeatureFlag.COMING_SOON_LANDING_PAGE] ?? featureFlagDefaults[FeatureFlag.COMING_SOON_LANDING_PAGE]
 
   useEffect(() => {
     if (showComingSoon) {
