@@ -41,7 +41,7 @@ export function WaitlistForm() {
   if (success) {
     return (
       <Alert variant="success" title="You're on the list!">
-        Check your email for confirmation. We'll notify you when we launch.
+        Check your email for confirmation. We&apos;ll notify you when we launch.
       </Alert>
     )
   }

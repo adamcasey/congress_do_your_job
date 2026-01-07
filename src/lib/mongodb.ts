@@ -9,7 +9,7 @@
  * - Operations that need raw MongoDB power
  */
 
-import { MongoClient, Db } from 'mongodb';
+import { MongoClient, Db, Document } from 'mongodb';
 
 if (!process.env.MONGODB_URI) {
   throw new Error('Please add your MongoDB URI to .env');
@@ -49,7 +49,7 @@ export async function getDb(): Promise<Db> {
 /**
  * Get a specific collection (with type safety)
  */
-export async function getCollection<T = any>(collectionName: string) {
+export async function getCollection<T extends Document = Document>(collectionName: string) {
   const db = await getDb();
   return db.collection<T>(collectionName);
 }
