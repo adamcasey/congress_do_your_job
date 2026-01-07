@@ -81,7 +81,7 @@ export function WaitlistForm() {
         className="flex flex-col gap-3 md:flex-row md:items-start"
         onSubmit={handleSubmit}
       >
-        <div className="flex-1">
+        <div>
           <input
             type="email"
             name="email"
@@ -90,7 +90,7 @@ export function WaitlistForm() {
             onChange={handleEmailChange}
             required
             disabled={loading}
-            className={`h-12 w-full rounded-full border bg-white px-5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed transition ${
+            className={`h-12 w-full md:w-96 rounded-full border bg-white px-5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed transition ${
               emailError
                 ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
                 : 'border-slate-200 focus:border-amber-300 focus:ring-amber-200'
