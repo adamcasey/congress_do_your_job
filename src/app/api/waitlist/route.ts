@@ -6,18 +6,19 @@ import { resend } from '@/config'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, email } = body
+    const { email } = body
 
-    if (!name || !email) {
+    if (!email) {
       return NextResponse.json(
-        { error: 'Name and email are required' },
+        { error: 'Email is required' },
         { status: 400 }
       )
     }
 
-    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: 'Invalid email address' },
+        { error: 'Please enter a valid email address' },
         { status: 400 }
       )
     }
@@ -33,7 +34,6 @@ export async function POST(request: NextRequest) {
     }
 
     const signup: WaitlistSignup = {
-      name,
       email,
       signedUpAt: new Date(),
       confirmed: true,
@@ -49,17 +49,18 @@ export async function POST(request: NextRequest) {
         to: email,
         subject: "You're on the list!",
         html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #1f2937;">Thanks for joining, ${name}!</h1>
-            <p style="color: #4b5563; font-size: 16px; line-height: 1.5;">
-              We'll notify you as soon as CongressDoYourJob.com launches.
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1 style="color: #1f2937; font-size: 24px; margin-bottom: 16px;">You're on the list!</h1>
+            <p style="color: #4b5563; font-size: 16px; line-height: 1.5; margin-bottom: 12px;">
+              Thanks for your interest in CongressDoYourJob.com. We'll notify you as soon as we launch.
             </p>
-            <p style="color: #4b5563; font-size: 16px; line-height: 1.5;">
+            <p style="color: #4b5563; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
               No spam. No third party data brokers. Just a one-time notification when we go live.
             </p>
-            <p style="color: #6b7280; font-size: 14px; margin-top: 40px;">
-              Less theater. More legislation.<br/>
-              — CongressDoYourJob.com
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
+            <p style="color: #6b7280; font-size: 14px; margin: 0;">
+              <strong>Less theater. More legislation.</strong><br/>
+              CongressDoYourJob.com
             </p>
           </div>
         `,
