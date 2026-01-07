@@ -1,5 +1,4 @@
 export interface WaitlistSignup {
-  name: string
   email: string
   signedUpAt: Date
   confirmed: boolean
