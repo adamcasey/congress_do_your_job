@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { LaunchDarklyProvider } from '@/lib/launchdarkly-provider'
 
 export const metadata: Metadata = {
   title: 'CongressDoYourJob.com',
-  description: 'Less theater. More laws. Non-partisan civic engagement platform tracking what elected officials actually do.',
+  description: 'Less theater. More legislation. Non-partisan civic engagement platform tracking what elected officials actually do.',
 }
 
 export default function RootLayout({
@@ -13,7 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <LaunchDarklyProvider>{children}</LaunchDarklyProvider>
+      </body>
     </html>
   )
 }
