@@ -49,10 +49,10 @@ export function WaitlistForm() {
   return (
     <div className="space-y-4">
       <form
-        className="flex flex-col gap-3 md:flex-row md:items-center"
+        className="flex flex-row items-center gap-3"
         onSubmit={handleSubmit}
       >
-        <Input
+        <input
           type="text"
           name="name"
           placeholder="Name"
@@ -60,9 +60,9 @@ export function WaitlistForm() {
           onChange={(e) => setName(e.target.value)}
           required
           disabled={loading}
-          className="md:w-48"
+          className="h-12 w-48 rounded-full border border-slate-200 bg-white px-5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-200"
         />
-        <Input
+        <input
           type="email"
           name="email"
           placeholder="Email"
@@ -70,12 +70,15 @@ export function WaitlistForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           disabled={loading}
-          error={!!error}
-          className="md:w-64"
+          className="h-12 w-72 rounded-full border border-slate-200 bg-white px-5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-200"
         />
-        <Button type="submit" loading={loading}>
+        <button
+          type="submit"
+          disabled={loading}
+          className="inline-flex h-12 min-w-[160px] items-center justify-center rounded-full bg-slate-900 px-8 text-base font-semibold text-white shadow-lg shadow-slate-900/30 transition hover:-translate-y-[1px] hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           {loading ? 'Signing up...' : 'Notify me'}
-        </Button>
+        </button>
       </form>
 
       {error && (
