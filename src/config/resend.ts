@@ -8,7 +8,7 @@ export function getResendClient(): Resend {
 
   const API_KEY = getEnvValue({
     development: process.env.RESEND_API_KEY_DEV,
-    production: process.env.RESEND_API_KEY,
+    production: process.env.RESEND_API_KEY_PRODUCTION,
   })
 
   if (!API_KEY) {
