@@ -75,8 +75,19 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     console.error('Waitlist signup error:', error)
+
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const isDatabaseError = errorMessage.includes('Mongo') || errorMessage.includes('connect')
+
+    if (isDatabaseError) {
+      return NextResponse.json(
+        { error: 'Database connection error. Please try again later.' },
+        { status: 503 }
+      )
+    }
+
     return NextResponse.json(
-      { error: 'Failed to sign up for waitlist' },
+      { error: 'Failed to sign up for waitlist. Please try again.' },
       { status: 500 }
     )
   }

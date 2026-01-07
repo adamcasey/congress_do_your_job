@@ -16,7 +16,14 @@ if (!process.env.MONGODB_URI) {
 }
 
 const uri = process.env.MONGODB_URI;
-const options = {};
+const isLocalDB = uri?.includes('localhost') || uri?.includes('127.0.0.1');
+
+const options = {
+  tls: !isLocalDB,
+  tlsAllowInvalidCertificates: isLocalDB || process.env.NODE_ENV === 'development',
+  serverSelectionTimeoutMS: 10000,
+  socketTimeoutMS: 45000,
+};
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
