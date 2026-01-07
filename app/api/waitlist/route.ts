@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCollection } from '@/lib/mongodb'
 import { WaitlistSignup } from '@/types/waitlist'
-import { Resend } from 'resend'
-
-const resend = new Resend(process.env.RESEND_API_KEY || process.env.RESEND_API_KEY_DEV)
+import { resend } from '@/config'
 
 export async function POST(request: NextRequest) {
   try {
