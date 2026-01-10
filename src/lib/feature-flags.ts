@@ -12,6 +12,13 @@ export enum FeatureFlag {
 }
 
 /**
+ * LaunchDarkly flag keys (raw dashboard keys).
+ */
+export const featureFlagKeys: Record<FeatureFlag, string> = {
+  [FeatureFlag.COMING_SOON_LANDING_PAGE]: 'coming-soon-landing-page',
+}
+
+/**
  * Type-safe flag defaults
  * Used as fallback when LaunchDarkly is unavailable
  */
