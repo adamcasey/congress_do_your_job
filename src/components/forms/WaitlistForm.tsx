@@ -112,10 +112,6 @@ export function WaitlistForm() {
       {error && (
         <Alert variant="error">{error}</Alert>
       )}
-
-      <p className="text-sm text-slate-500">
-        No spam. No third party data brokers. Only get notified once we go live.
-      </p>
     </div>
   )
 }

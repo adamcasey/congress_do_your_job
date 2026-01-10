@@ -1,4 +1,5 @@
 import { WaitlistForm } from '@/components/forms/WaitlistForm'
+import { freePressFont } from '@/styles/fonts'
 
 export default function ComingSoon() {
   return (
@@ -8,11 +9,12 @@ export default function ComingSoon() {
       <div className="absolute -right-16 bottom-10 h-72 w-72 rotate-12 rounded-full bg-emerald-200/40 blur-3xl" />
 
       <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 py-16">
-        <header className="mb-10">
-          <div className="flex items-center gap-3 text-slate-800">
-            <div>
-              <p className="text-xl font-semibold uppercase tracking-[0.22em] text-slate-500">Less theater. More legislation.</p>
-            </div>
+        <header className="mb-10 text-center">
+          <div className="flex flex-col items-center justify-center gap-3 text-slate-800">
+            <h1 className={`${freePressFont.className} text-5xl leading-none tracking-tight text-slate-900 md:text-6xl lg:text-7xl`}>
+              Congress Do Your Job
+            </h1>
+            <p className="text-xl font-semibold uppercase tracking-[0.22em] text-slate-500">Less theater. More legislation.</p>
           </div>
         </header>
 
@@ -24,7 +26,7 @@ export default function ComingSoon() {
             </h1>
             <p className="text-lg text-slate-700">
               Get notified when we launch: weekly briefings, accountability scorecards, and one-tap civic actions
-              — no partisanship, no outrage.
+              delivered without the partisanship and outrage.
             </p>
 
             <WaitlistForm />
