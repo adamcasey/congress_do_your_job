@@ -2,15 +2,14 @@
 
 import { useState, FormEvent } from 'react'
 import { Alert } from '@/components/ui'
+import { useWaitlistSignup } from '@/hooks'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function WaitlistForm() {
   const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState('')
   const [emailError, setEmailError] = useState('')
+  const { loading, success, error, submitEmail } = useWaitlistSignup()
 
   const validateEmail = (value: string) => {
     if (!value) {
@@ -37,34 +36,13 @@ export function WaitlistForm() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError('')
 
     if (!validateEmail(email)) {
-      setLoading(false)
       return
     }
 
-    try {
-      const response = await fetch('/api/waitlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Something went wrong')
-      }
-
-      setSuccess(true)
-      setEmail('')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign up')
-    } finally {
-      setLoading(false)
-    }
+    await submitEmail(email)
+    setEmail('')
   }
 
   if (success) {
