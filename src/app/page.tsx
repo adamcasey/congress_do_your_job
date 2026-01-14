@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { FeatureFlag } from '@/lib/feature-flags'
 import { getServerFlag } from '@/lib/launchdarkly-server'
 import { freePressFont, latoFont } from '@/styles/fonts'
@@ -329,9 +330,12 @@ export default async function Home() {
                     See this week&apos;s briefing
                     <span aria-hidden>-></span>
                   </button>
-                  <button className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:-translate-y-[1px] hover:border-slate-300">
-                    Track your officials
-                  </button>
+                  <Link
+                    href="/representatives"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:-translate-y-[1px] hover:border-slate-300"
+                  >
+                    Find your representatives
+                  </Link>
                 </div>
               </div>
               <div className="relative grid gap-4 rounded-2xl bg-white/90 p-5 ring-1 ring-amber-100 backdrop-blur">
