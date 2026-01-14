@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { RepresentativeResponse } from '@/types/representative'
 
-const FIVE_CALLS_API_URL = 'https://api.5calls.org/v1/representatives'
-
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
@@ -16,6 +14,8 @@ export async function GET(request: NextRequest) {
     }
 
     const apiKey = process.env.FIVE_CALLS_API_KEY
+    const apiUrl = process.env.FIVE_CALLS_API_URL
+
     if (!apiKey) {
       console.error('5 Calls API key not configured')
       return NextResponse.json(
@@ -24,8 +24,16 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    if (!apiUrl) {
+      console.error('5 Calls API URL not configured')
+      return NextResponse.json(
+        { error: 'API configuration error' },
+        { status: 500 }
+      )
+    }
+
     // Call 5 Calls API
-    const url = new URL(FIVE_CALLS_API_URL)
+    const url = new URL(apiUrl)
     url.searchParams.set('location', address)
     url.searchParams.set('areas', 'US House,US Senate') // Federal level only for MVP
 

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const GOOGLE_PLACES_AUTOCOMPLETE_URL = 'https://places.googleapis.com/v1/places:autocomplete'
-
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
@@ -12,6 +10,8 @@ export async function GET(request: NextRequest) {
     }
 
     const apiKey = process.env.GOOGLE_API_KEY
+    const apiUrl = process.env.GOOGLE_PLACES_API_URL
+
     if (!apiKey) {
       console.error('Google API key not configured')
       return NextResponse.json(
@@ -20,8 +20,16 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    if (!apiUrl) {
+      console.error('Google Places API URL not configured')
+      return NextResponse.json(
+        { error: 'API configuration error' },
+        { status: 500 }
+      )
+    }
+
     // Use new Places API (New) format
-    const response = await fetch(GOOGLE_PLACES_AUTOCOMPLETE_URL, {
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
