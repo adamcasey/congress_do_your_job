@@ -1,5 +1,5 @@
-import { AddressLookupForm } from '@/components/forms/AddressLookupForm'
 import { BackButton } from '@/components/ui'
+import { RepresentativeLookup } from '@/components/representatives/RepresentativeLookup'
 import { freePressFont } from '@/styles/fonts'
 
 export const metadata = {
@@ -10,26 +10,28 @@ export const metadata = {
 export default function RepresentativesPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#e4f0f9] via-[#e4f0f9] to-[#fde3e0]">
-      <div className="mx-auto max-w-4xl px-6 py-16">
+      <div className="mx-auto max-w-5xl px-6 py-12 md:py-16">
         <BackButton href="/">Back to Dashboard</BackButton>
 
-        <header className="mb-12 mt-8 text-center">
-          <h1 className={`${freePressFont.className} text-4xl leading-none tracking-tight text-slate-900 md:text-5xl lg:text-6xl mb-4`}>
+        <header className="mb-10 mt-8 text-center">
+          <h1 className={`${freePressFont.className} text-4xl leading-tight tracking-tight text-slate-900 md:text-5xl lg:text-6xl mb-4`}>
             Find Your Representatives
           </h1>
-          <p className="text-lg text-slate-600">
-            Enter your address to see who represents you in Congress
-          </p>
+          <h3 className="mx-auto max-w-2xl text-lg text-slate-600 text-balance">
+            <span className="block">See who represents you and reach out directly.</span>
+          </h3>
         </header>
 
-        <div className="rounded-2xl bg-white/90 p-8 shadow-xl ring-1 ring-slate-200 backdrop-blur-sm">
-          <AddressLookupForm />
+        <div className="rounded-3xl bg-white/90 p-6 md:p-10 shadow-xl ring-1 ring-slate-200/80 backdrop-blur-sm">
+          <RepresentativeLookup />
         </div>
 
-        <footer className="mt-8 text-center">
+        <footer className="mt-10 text-center">
           <p className="text-sm text-slate-500">
-            We use the Google Civic Information API to find your representatives.
-            Your address is not stored.
+            Powered by 5 Calls API. Your address is not stored and is only used for lookup.
+          </p>
+          <p className="mt-2 text-xs text-slate-400">
+            Federal representatives only (House & Senate)
           </p>
         </footer>
       </div>
