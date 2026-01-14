@@ -1,4 +1,5 @@
 import { AddressLookupForm } from '@/components/forms/AddressLookupForm'
+import { BackButton } from '@/components/ui'
 import { freePressFont } from '@/styles/fonts'
 
 export const metadata = {
@@ -10,7 +11,9 @@ export default function RepresentativesPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#e4f0f9] via-[#e4f0f9] to-[#fde3e0]">
       <div className="mx-auto max-w-4xl px-6 py-16">
-        <header className="mb-12 text-center">
+        <BackButton href="/">Back to Dashboard</BackButton>
+
+        <header className="mb-12 mt-8 text-center">
           <h1 className={`${freePressFont.className} text-4xl leading-none tracking-tight text-slate-900 md:text-5xl lg:text-6xl mb-4`}>
             Find Your Representatives
           </h1>
