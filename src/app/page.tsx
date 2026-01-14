@@ -1,22 +1,14 @@
-'use client'
-
-import { useFlags } from 'launchdarkly-react-client-sdk'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
-import { FeatureFlag, featureFlagDefaults } from '@/lib/feature-flags'
+import { redirect } from 'next/navigation'
+import { getServerFlag } from '@/lib/launchdarkly-server'
+import { FeatureFlag } from '@/lib/feature-flags'
 import { freePressFont, latoFont } from '@/styles/fonts'
 
-export default function Home() {
-  const flags = useFlags()
-  const router = useRouter()
+export default async function Home() {
+  const showComingSoon = await getServerFlag(FeatureFlag.COMING_SOON_LANDING_PAGE)
 
-  const showComingSoon = flags[FeatureFlag.COMING_SOON_LANDING_PAGE] ?? featureFlagDefaults[FeatureFlag.COMING_SOON_LANDING_PAGE]
-
-  useEffect(() => {
-    if (showComingSoon) {
-      router.push('/coming-soon')
-    }
-  }, [showComingSoon, router])
+  if (showComingSoon) {
+    redirect('/coming-soon')
+  }
 
   return (
     <main className={`flex min-h-screen flex-col items-center justify-center p-24 ${latoFont.className}`}>
