@@ -1,28 +1,53 @@
 'use client'
 
-import { useState, FormEvent, ChangeEvent } from 'react'
-import { useRepresentativeLookup } from '@/hooks'
+import { useState, FormEvent, ChangeEvent, useRef, useEffect } from 'react'
+import { useRepresentativeLookup, useAddressAutocomplete } from '@/hooks'
 import { EmptyState } from '@/components/ui'
 
 export function AddressLookupForm() {
   const [address, setAddress] = useState('')
+  const [showAutocomplete, setShowAutocomplete] = useState(false)
   const { loading, representatives, lookupByAddress } = useRepresentativeLookup()
+  const { predictions, fetchPredictions, clearPredictions } = useAddressAutocomplete()
   const [hasSearched, setHasSearched] = useState(false)
+  const autocompleteRef = useRef<HTMLDivElement>(null)
 
   const handleAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setAddress(e.target.value)
+    const value = e.target.value
+    setAddress(value)
+    fetchPredictions(value)
+    setShowAutocomplete(true)
+  }
+
+  const handleSelectPrediction = (description: string) => {
+    setAddress(description)
+    setShowAutocomplete(false)
+    clearPredictions()
   }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setHasSearched(true)
+    setShowAutocomplete(false)
     await lookupByAddress(address)
   }
+
+  // Close autocomplete when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (autocompleteRef.current && !autocompleteRef.current.contains(event.target as Node)) {
+        setShowAutocomplete(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
+        <div className="relative" ref={autocompleteRef}>
           <label htmlFor="address" className="block text-sm font-semibold text-slate-700 mb-2">
             Enter Your Address
           </label>
@@ -34,8 +59,25 @@ export function AddressLookupForm() {
             placeholder="123 Main St, City, State ZIP"
             required
             disabled={loading}
+            autoComplete="off"
             className="w-full h-12 rounded-lg border border-slate-300 bg-white px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200 disabled:opacity-50 disabled:cursor-not-allowed"
           />
+
+          {showAutocomplete && predictions.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              {predictions.map((prediction) => (
+                <button
+                  key={prediction.placeId}
+                  type="button"
+                  onClick={() => handleSelectPrediction(prediction.description)}
+                  className="w-full text-left px-4 py-3 hover:bg-slate-50 transition text-sm text-slate-700 border-b border-slate-100 last:border-b-0"
+                >
+                  {prediction.description}
+                </button>
+              ))}
+            </div>
+          )}
+
           <p className="mt-2 text-xs text-slate-500">
             We'll find your federal representatives (House & Senate)
           </p>
@@ -60,28 +102,28 @@ export function AddressLookupForm() {
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-slate-900">Your Representatives</h3>
           <div className="grid gap-4 md:grid-cols-2">
-            {representatives.map((rep, index) => (
+            {representatives.map((rep) => (
               <div
-                key={index}
+                key={rep.id}
                 className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
               >
                 <div className="flex items-start gap-4">
-                  {rep.photoUrl && (
+                  {rep.photoURL && (
                     <img
-                      src={rep.photoUrl}
+                      src={rep.photoURL}
                       alt={rep.name}
                       className="h-16 w-16 rounded-full object-cover"
                     />
                   )}
                   <div className="flex-1">
                     <h4 className="font-semibold text-slate-900">{rep.name}</h4>
-                    <p className="text-sm text-slate-600">{rep.office}</p>
-                    {rep.phones && rep.phones.length > 0 && (
-                      <p className="text-sm text-slate-700 mt-2">{rep.phones[0]}</p>
+                    <p className="text-sm text-slate-600">{rep.area}</p>
+                    {rep.phone && (
+                      <p className="text-sm text-slate-700 mt-2">{rep.phone}</p>
                     )}
-                    {rep.urls && rep.urls.length > 0 && (
+                    {rep.url && (
                       <a
-                        href={rep.urls[0]}
+                        href={rep.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-amber-600 hover:text-amber-700 mt-1 inline-block"
