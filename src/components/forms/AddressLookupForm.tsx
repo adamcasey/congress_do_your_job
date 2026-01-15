@@ -37,7 +37,7 @@ export function AddressLookupForm() {
             className="w-full h-12 rounded-lg border border-slate-300 bg-white px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200 disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <p className="mt-2 text-xs text-slate-500">
-            We'll find your federal representatives (House & Senate)
+            We&apos;ll find your federal representatives (House & Senate)
           </p>
         </div>
 

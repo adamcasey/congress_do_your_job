@@ -327,7 +327,7 @@ export default async function Home() {
                 <div className="flex flex-wrap gap-3">
                   <button className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background shadow-lg shadow-slate-300/60 transition hover:-translate-y-[1px] hover:shadow-xl hover:shadow-slate-300/80">
                     See this week&apos;s briefing
-                    <span aria-hidden>-></span>
+                    <span aria-hidden>&rarr;</span>
                   </button>
                   <button className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:-translate-y-[1px] hover:border-slate-300">
                     Track your officials
@@ -499,7 +499,7 @@ export default async function Home() {
                 </div>
                 <button className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-slate-800 underline-offset-4 hover:underline">
                   Open profile
-                  <span aria-hidden>-></span>
+                  <span aria-hidden>&rarr;</span>
                 </button>
               </article>
             ))}
@@ -530,7 +530,7 @@ export default async function Home() {
                 <p className="text-sm text-slate-600">{action.summary}</p>
                 <button className="inline-flex w-fit items-center gap-2 rounded-full bg-foreground px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-background shadow-sm shadow-slate-300/70 transition hover:-translate-y-[1px] hover:shadow">
                   {action.action}
-                  <span aria-hidden>-></span>
+                  <span aria-hidden>&rarr;</span>
                 </button>
               </article>
             ))}
@@ -575,7 +575,7 @@ export default async function Home() {
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-lg shadow-slate-400/40 transition hover:-translate-y-[1px] hover:shadow-xl"
               >
                 Join the list
-                <span aria-hidden>-></span>
+                <span aria-hidden>&rarr;</span>
               </button>
               <p className="text-xs text-slate-500">
                 TODO: wire up to email service (Resend or Mailgun). No spam, ever.
