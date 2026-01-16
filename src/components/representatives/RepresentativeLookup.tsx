@@ -1,6 +1,7 @@
 'use client'
 
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import { useAddressAutocomplete, useRepresentativeLookup } from '@/hooks'
 import { EmptyState } from '@/components/ui'
 
@@ -59,9 +60,12 @@ function RepresentativeCard({
     >
       <div className="flex w-full items-center gap-4">
         {rep.photoURL ? (
-          <img
+          <Image
             src={rep.photoURL}
             alt={rep.name}
+            width={56}
+            height={56}
+            unoptimized
             className="h-14 w-14 rounded-full object-cover"
           />
         ) : (
@@ -80,7 +84,7 @@ function RepresentativeCard({
               rel="noopener noreferrer"
               className="mt-1 inline-block text-sm text-amber-600 hover:text-amber-700"
             >
-              Visit Website ->
+              Visit Website <span aria-hidden>&rarr;</span>
             </a>
           ) : (
             <p className="mt-1 text-xs text-slate-400">Example profile</p>

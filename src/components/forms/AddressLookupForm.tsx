@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, FormEvent, ChangeEvent, useRef, useEffect } from 'react'
+import Image from 'next/image'
 import { useRepresentativeLookup, useAddressAutocomplete } from '@/hooks'
 import { EmptyState } from '@/components/ui'
 
@@ -109,9 +110,12 @@ export function AddressLookupForm() {
               >
                 <div className="flex items-start gap-4">
                   {rep.photoURL && (
-                    <img
+                    <Image
                       src={rep.photoURL}
                       alt={rep.name}
+                      width={64}
+                      height={64}
+                      unoptimized
                       className="h-16 w-16 rounded-full object-cover"
                     />
                   )}
