@@ -219,7 +219,7 @@ export function RepresentativeLookup() {
             )}
 
             <p className="mt-2 text-xs text-slate-500">
-              We'll find your federal representatives (House & Senate)
+              We&apos;ll find your federal representatives (House & Senate)
             </p>
           </div>
 
