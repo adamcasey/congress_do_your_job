@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { RepresentativeWithOffice } from '@/types/representative'
+import { Representative } from '@/types/representative'
 
 interface UseRepresentativeLookupReturn {
   loading: boolean
   error: string
-  representatives: RepresentativeWithOffice[]
+  representatives: Representative[]
   lookupByAddress: (address: string) => Promise<void>
   reset: () => void
 }
@@ -12,7 +12,7 @@ interface UseRepresentativeLookupReturn {
 export function useRepresentativeLookup(): UseRepresentativeLookupReturn {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [representatives, setRepresentatives] = useState<RepresentativeWithOffice[]>([])
+  const [representatives, setRepresentatives] = useState<Representative[]>([])
 
   const lookupByAddress = async (address: string) => {
     setLoading(true)

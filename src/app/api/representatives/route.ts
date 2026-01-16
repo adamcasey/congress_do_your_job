@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { RepresentativeResponse, RepresentativeWithOffice } from '@/types/representative'
-
-const GOOGLE_CIVIC_API_URL = 'https://www.googleapis.com/civicinfo/v2/representatives'
+import { RepresentativeResponse } from '@/types/representative'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,28 +13,39 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const apiKey = process.env.GOOGLE_API_KEY
+    const apiKey = process.env.FIVE_CALLS_API_KEY
+    const apiUrl = process.env.FIVE_CALLS_API_URL
+
     if (!apiKey) {
-      console.error('Google API key not configured')
+      console.error('5 Calls API key not configured')
       return NextResponse.json(
         { error: 'API configuration error' },
         { status: 500 }
       )
     }
 
-    // Call Google Civic Information API
-    const url = new URL(GOOGLE_CIVIC_API_URL)
-    url.searchParams.set('address', address)
-    url.searchParams.set('key', apiKey)
-    url.searchParams.set('levels', 'country') // Federal level only for MVP
-    url.searchParams.set('roles', 'legislatorUpperBody') // Senate
-    url.searchParams.append('roles', 'legislatorLowerBody') // House
+    if (!apiUrl) {
+      console.error('5 Calls API URL not configured')
+      return NextResponse.json(
+        { error: 'API configuration error' },
+        { status: 500 }
+      )
+    }
 
-    const response = await fetch(url.toString())
+    // Call 5 Calls API
+    const url = new URL(apiUrl)
+    url.searchParams.set('location', address)
+    url.searchParams.set('areas', 'US House,US Senate') // Federal level only for MVP
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        'X-5Calls-Token': apiKey,
+      },
+    })
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Google Civic API error:', response.status, errorText)
+      console.error('5 Calls API error:', response.status, errorText)
 
       if (response.status === 404) {
         return NextResponse.json(
@@ -53,28 +62,11 @@ export async function GET(request: NextRequest) {
 
     const data: RepresentativeResponse = await response.json()
 
-    // Transform the response to flatten offices and officials
-    const representatives: RepresentativeWithOffice[] = []
-
-    if (data.offices && data.officials) {
-      data.offices.forEach((office) => {
-        office.officialIndices.forEach((index) => {
-          const official = data.officials[index]
-          if (official) {
-            representatives.push({
-              ...official,
-              office: office.name,
-              level: office.levels?.[0] || 'unknown',
-              division: office.divisionId,
-            })
-          }
-        })
-      })
-    }
-
     return NextResponse.json({
-      address: data.normalizedInput,
-      representatives,
+      location: data.location,
+      state: data.state,
+      district: data.district,
+      representatives: data.representatives,
     })
 
   } catch (error) {
