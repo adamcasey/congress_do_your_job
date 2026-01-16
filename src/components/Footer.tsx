@@ -23,11 +23,11 @@ const navGroups = [
 export default function Footer() {
   return (
     <footer
-      className={`relative mt-12 overflow-hidden bg-gradient-to-br from-[#f8f2e8] via-[#f5efe6] to-[#efe6d8] ${latoFont.className}`}
+      className={`relative mt-12 overflow-hidden border-t border-slate-200/80 bg-gradient-to-br from-slate-50 via-white to-amber-50/30 ${latoFont.className}`}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(148,163,184,0.35)_1px,transparent_1px)] bg-[size:20px_20px] opacity-40" />
-      <div className="absolute -left-16 top-10 h-40 w-40 rounded-full bg-amber-200/40 blur-3xl" />
-      <div className="absolute -right-20 bottom-12 h-48 w-48 rounded-full bg-emerald-200/40 blur-3xl" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(148,163,184,0.25)_1px,transparent_1px)] bg-[size:20px_20px] opacity-30" />
+      <div className="absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-amber-100/50 blur-3xl" />
+      <div className="absolute -right-24 top-0 h-72 w-72 rounded-full bg-emerald-100/40 blur-3xl" />
 
       <div className="relative mx-auto max-w-6xl px-6 py-14">
         <div className="grid gap-12 md:grid-cols-[1.3fr_1fr]">
