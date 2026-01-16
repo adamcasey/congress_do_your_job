@@ -88,14 +88,29 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-3 border-t border-slate-200/70 pt-6 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
-          <p>Copyright 2026 Congress Do Your Job. All rights reserved.</p>
-          <div className="flex flex-wrap items-center gap-3">
-            <a className="transition hover:text-slate-700" href="mailto:hello@congressdoyourjob.com">
-              hello@congressdoyourjob.com
-            </a>
-            <span className="h-1 w-1 rounded-full bg-slate-400" aria-hidden />
-            <span>Built with public data sources.</span>
+        <div className="mt-12 border-t border-slate-200/70 pt-6">
+          <div className="flex flex-col gap-4 text-xs text-slate-500">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <Link href="/privacy" className="transition hover:text-slate-700 hover:underline">
+                Privacy Policy
+              </Link>
+              <Link href="/terms" className="transition hover:text-slate-700 hover:underline">
+                Terms of Use
+              </Link>
+              <Link href="/cookies" className="transition hover:text-slate-700 hover:underline">
+                Cookie Policy
+              </Link>
+              <Link href="/accessibility" className="transition hover:text-slate-700 hover:underline">
+                Accessibility
+              </Link>
+              <a className="transition hover:text-slate-700 hover:underline" href="mailto:hello@congressdoyourjob.com">
+                Contact
+              </a>
+            </div>
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <p>Copyright 2026 Congress Do Your Job. All rights reserved.</p>
+              <p>Built with public data sources.</p>
+            </div>
           </div>
         </div>
       </div>
