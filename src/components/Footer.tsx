@@ -1,0 +1,104 @@
+import Link from 'next/link'
+import { freePressFont, latoFont } from '@/styles/fonts'
+
+const navGroups = [
+  {
+    title: 'Explore',
+    links: [
+      { label: 'Home', href: '/' },
+      { label: 'Find representatives', href: '/representatives' },
+      { label: 'Weekly briefing', href: '/coming-soon' },
+    ],
+  },
+  {
+    title: 'Get involved',
+    links: [
+      { label: 'Share feedback', href: 'mailto:hello@congressdoyourjob.com', external: true },
+      { label: 'Join the waitlist', href: '/coming-soon' },
+      { label: 'Press + partnerships', href: 'mailto:press@congressdoyourjob.com', external: true },
+    ],
+  },
+]
+
+export default function Footer() {
+  return (
+    <footer
+      className={`relative mt-12 overflow-hidden bg-gradient-to-br from-[#f8f2e8] via-[#f5efe6] to-[#efe6d8] ${latoFont.className}`}
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(148,163,184,0.35)_1px,transparent_1px)] bg-[size:20px_20px] opacity-40" />
+      <div className="absolute -left-16 top-10 h-40 w-40 rounded-full bg-amber-200/40 blur-3xl" />
+      <div className="absolute -right-20 bottom-12 h-48 w-48 rounded-full bg-emerald-200/40 blur-3xl" />
+
+      <div className="relative mx-auto max-w-6xl px-6 py-14">
+        <div className="grid gap-12 md:grid-cols-[1.3fr_1fr]">
+          <div className="space-y-5">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-[11px] font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-slate-900/30">
+                CDYJ
+              </div>
+              <div>
+                <p className={`${freePressFont.className} text-2xl text-slate-900`}>Congress Do Your Job</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
+                  Less theater. More legislation.
+                </p>
+              </div>
+            </div>
+            <p className="max-w-xl text-sm text-slate-600">
+              A calm, plain-English dashboard for what Congress actually did this week. Nonpartisan, source-linked,
+              and designed for busy people.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/coming-soon"
+                className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white shadow-sm shadow-slate-900/30 transition hover:-translate-y-[1px] hover:shadow-md"
+              >
+                Join the weekly briefing
+                <span aria-hidden>&rarr;</span>
+              </Link>
+              <Link
+                href="/representatives"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-700 shadow-sm transition hover:-translate-y-[1px] hover:border-amber-300"
+              >
+                Find your reps
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid gap-10 sm:grid-cols-2">
+            {navGroups.map((group) => (
+              <div key={group.title} className="space-y-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">{group.title}</p>
+                <ul className="space-y-2 text-sm text-slate-700">
+                  {group.links.map((link) => (
+                    <li key={link.label}>
+                      {link.external ? (
+                        <a className="transition hover:text-slate-900" href={link.href}>
+                          {link.label}
+                        </a>
+                      ) : (
+                        <Link className="transition hover:text-slate-900" href={link.href}>
+                          {link.label}
+                        </Link>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-12 flex flex-col gap-3 border-t border-slate-200/70 pt-6 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
+          <p>Copyright 2026 Congress Do Your Job. All rights reserved.</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <a className="transition hover:text-slate-700" href="mailto:hello@congressdoyourjob.com">
+              hello@congressdoyourjob.com
+            </a>
+            <span className="h-1 w-1 rounded-full bg-slate-400" aria-hidden />
+            <span>Built with public data sources.</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}

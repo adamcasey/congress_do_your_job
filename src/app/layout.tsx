@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { LaunchDarklyProvider } from '@/lib/launchdarkly-provider'
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
   title: 'Congress Do Your Job',
@@ -41,6 +42,7 @@ export default function RootLayout({
       <body>
         <LaunchDarklyProvider>
           {children}
+          <Footer />
           <SpeedInsights />
         </LaunchDarklyProvider>
       </body>
