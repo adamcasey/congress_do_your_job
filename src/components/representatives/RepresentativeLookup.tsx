@@ -3,15 +3,8 @@
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react'
 import { useAddressAutocomplete, useRepresentativeLookup } from '@/hooks'
 import { EmptyState } from '@/components/ui'
-
-type RepresentativeCardData = {
-  id: string
-  name: string
-  area: string
-  phone?: string
-  url?: string
-  photoURL?: string
-}
+import { RepresentativeCard, RepresentativeCardData } from './RepresentativeCard'
+import { DistrictSnapshotCard } from './DistrictSnapshotCard'
 
 const placeholderRepresentatives: RepresentativeCardData[] = [
   {
@@ -33,96 +26,6 @@ const placeholderRepresentatives: RepresentativeCardData[] = [
     phone: '202-224-6622',
   },
 ]
-
-function getInitials(name: string) {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
-
-function RepresentativeCard({
-  rep,
-  isPlaceholder = false,
-}: {
-  rep: RepresentativeCardData
-  isPlaceholder?: boolean
-}) {
-  return (
-    <div
-      className={`flex h-[200px] items-center rounded-2xl border border-slate-200/80 p-4 shadow-sm ${
-        isPlaceholder ? 'bg-slate-50/80' : 'bg-white'
-      }`}
-    >
-      <div className="flex w-full items-center gap-4">
-        {rep.photoURL ? (
-          <img
-            src={rep.photoURL}
-            alt={rep.name}
-            className="h-14 w-14 rounded-full object-cover"
-          />
-        ) : (
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-600">
-            {getInitials(rep.name)}
-          </div>
-        )}
-        <div className="flex-1">
-          <h4 className="font-semibold text-slate-900">{rep.name}</h4>
-          <p className="text-sm text-slate-600">{rep.area}</p>
-          {rep.phone && <p className="mt-2 text-sm text-slate-700">{rep.phone}</p>}
-          {rep.url ? (
-            <a
-              href={rep.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-1 inline-block text-sm text-amber-600 hover:text-amber-700"
-            >
-              Visit Website ->
-            </a>
-          ) : (
-            <p className="mt-1 text-xs text-slate-400">Example profile</p>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function DistrictSnapshotCard() {
-  return (
-    <div className="h-[200px] rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">District Snapshot</p>
-          <h4 className="mt-1 text-lg font-semibold text-slate-900">Missouri - 02</h4>
-        </div>
-        <span className="rounded-full bg-emerald-100/80 px-3 py-1 text-xs font-semibold text-emerald-700">
-          Example
-        </span>
-      </div>
-      <div className="mt-4 grid gap-3 text-sm text-slate-700">
-        <div className="flex items-center justify-between">
-          <span className="text-slate-500">Population</span>
-          <span className="font-semibold text-slate-900">766k</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-slate-500">Median age</span>
-          <span className="font-semibold text-slate-900">38</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-slate-500">Next election</span>
-          <span className="font-semibold text-slate-900">Nov 2026</span>
-        </div>
-      </div>
-      <p className="mt-4 text-xs text-slate-500">
-        District stats appear after lookup.
-      </p>
-    </div>
-  )
-}
 
 export function RepresentativeLookup() {
   const [address, setAddress] = useState('')
