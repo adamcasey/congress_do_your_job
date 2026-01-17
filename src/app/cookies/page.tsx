@@ -1,7 +1,5 @@
 import { latoFont, freePressFont } from '@/styles/fonts'
 import Link from 'next/link'
-import { FeatureFlagGuard } from '@/components/FeatureFlagGuard'
-import { FeatureFlag } from '@/lib/feature-flags'
 
 export const metadata = {
   title: 'Cookie Policy | Congress Do Your Job',
@@ -10,8 +8,7 @@ export const metadata = {
 
 export default function CookiesPage() {
   return (
-    <FeatureFlagGuard flag={FeatureFlag.COMING_SOON_LANDING_PAGE}>
-      <main className={`min-h-screen px-4 pb-20 pt-10 ${latoFont.className}`}>
+    <main className={`min-h-screen px-4 pb-20 pt-10 ${latoFont.className}`}>
       <div className="mx-auto max-w-4xl">
         <Link
           href="/"
@@ -143,6 +140,5 @@ export default function CookiesPage() {
         </article>
       </div>
     </main>
-    </FeatureFlagGuard>
   )
 }
