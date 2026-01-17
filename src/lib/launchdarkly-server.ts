@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import LaunchDarkly from 'launchdarkly-node-server-sdk'
 import { FeatureFlag, featureFlagDefaults, featureFlagKeys } from '@/lib/feature-flags'
 
@@ -10,27 +11,38 @@ const ldContext = {
   anonymous: true,
 } as const
 
-let clientPromise: Promise<LdClient> | null = null
+let clientInstance: LdClient | null = null
+let initializationPromise: Promise<LdClient | null> | null = null
 
-async function getClient(): Promise<LdClient | null> {
+const getClient = cache(async (): Promise<LdClient | null> => {
   if (!sdkKey) {
     console.warn('LaunchDarkly SDK key not found. Falling back to defaults.')
     return null
   }
 
-  if (!clientPromise) {
-    const client = LaunchDarkly.init(sdkKey)
-    clientPromise = client.waitForInitialization().then(() => client)
+  if (clientInstance) {
+    return clientInstance
   }
 
-  try {
-    return await clientPromise
-  } catch (error) {
-    console.error('Failed to initialize LaunchDarkly server client:', error)
-    clientPromise = null
-    return null
+  if (initializationPromise) {
+    return initializationPromise
   }
-}
+
+  initializationPromise = (async () => {
+    try {
+      const client = LaunchDarkly.init(sdkKey)
+      await client.waitForInitialization()
+      clientInstance = client
+      return client
+    } catch (error) {
+      console.error('Failed to initialize LaunchDarkly server client:', error)
+      initializationPromise = null
+      return null
+    }
+  })()
+
+  return initializationPromise
+})
 
 export async function getServerFlag(flag: FeatureFlag): Promise<boolean> {
   const fallback = featureFlagDefaults[flag]
