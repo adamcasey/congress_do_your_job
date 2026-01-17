@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 export type RepresentativeCardData = {
   id: string
   name: string
@@ -32,9 +34,12 @@ export function RepresentativeCard({
     >
       <div className="flex w-full items-center gap-4">
         {rep.photoURL ? (
-          <img
+          <Image
             src={rep.photoURL}
             alt={rep.name}
+            width={56}
+            height={56}
+            unoptimized
             className="h-14 w-14 rounded-full object-cover"
           />
         ) : (

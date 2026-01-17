@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       email,
       signedUpAt: new Date(),
       confirmed: true,
-      ipAddress: request.ip || request.headers.get('x-forwarded-for') || undefined,
+      ipAddress: request.headers.get('x-forwarded-for') || undefined,
       userAgent: request.headers.get('user-agent') || undefined,
     }
 
