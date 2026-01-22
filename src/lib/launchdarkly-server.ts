@@ -1,15 +1,53 @@
 import { cache } from 'react'
+import { headers } from 'next/headers'
 import LaunchDarkly from 'launchdarkly-node-server-sdk'
 import { FeatureFlag, featureFlagDefaults, featureFlagKeys } from '@/lib/feature-flags'
 
 type LdClient = ReturnType<typeof LaunchDarkly.init>
 
 const sdkKey = process.env.LAUNCH_DARKLY_ENV_SDK_DEV
-const ldContext = {
-  kind: 'user',
-  key: 'anonymous',
-  anonymous: true,
-} as const
+
+/**
+ * Get the user's IP address from request headers
+ * Checks common headers used by proxies/load balancers
+ */
+async function getClientIp(): Promise<string | undefined> {
+  const headersList = await headers()
+
+  // Check common headers in order of preference
+  const xForwardedFor = headersList.get('x-forwarded-for')
+  if (xForwardedFor) {
+    // x-forwarded-for can contain multiple IPs, take the first one
+    return xForwardedFor.split(',')[0].trim()
+  }
+
+  const xRealIp = headersList.get('x-real-ip')
+  if (xRealIp) {
+    return xRealIp
+  }
+
+  // Vercel-specific header
+  const vercelForwardedFor = headersList.get('x-vercel-forwarded-for')
+  if (vercelForwardedFor) {
+    return vercelForwardedFor.split(',')[0].trim()
+  }
+
+  return undefined
+}
+
+/**
+ * Build LaunchDarkly context with user IP for targeting
+ */
+async function buildLdContext() {
+  const ip = await getClientIp()
+
+  return {
+    kind: 'user',
+    key: 'anonymous',
+    anonymous: true,
+    ip,
+  }
+}
 
 let clientInstance: LdClient | null = null
 let initializationPromise: Promise<LdClient | null> | null = null
@@ -53,7 +91,8 @@ export async function getServerFlag(flag: FeatureFlag): Promise<boolean> {
   }
 
   try {
-    const value = await client.variation(featureFlagKeys[flag], ldContext, fallback)
+    const context = await buildLdContext()
+    const value = await client.variation(featureFlagKeys[flag], context, fallback)
     return Boolean(value)
   } catch (error) {
     console.error('Failed to evaluate LaunchDarkly flag:', error)
