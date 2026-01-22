@@ -74,33 +74,64 @@ export async function GET(request: NextRequest) {
 
     if (!censusResponse.ok) {
       const errorText = await censusResponse.text()
-      console.error('Census API error:', censusResponse.status, errorText)
-
-      // Handle 404 for invalid district (e.g., district doesn't exist)
-      if (censusResponse.status === 404 || errorText.includes('unknown/unsupported geography')) {
-        return NextResponse.json({
-          state: stateFips,
-          district: formattedDistrict,
-          districtName: isAtLarge ? 'At-Large District' : `District ${formattedDistrict}`,
-          population: null,
-          medianAge: null,
-          nextElection: null,
-          error: 'District not found or no data available',
-        } as DistrictData, { status: 404 })
-      }
+      console.error('Census API error:', censusResponse.status, errorText, 'URL:', censusUrl.toString())
 
       return NextResponse.json({
         state: stateFips,
         district: formattedDistrict,
-        districtName: `District ${formattedDistrict}`,
+        districtName: isAtLarge ? 'At-Large District' : `District ${formattedDistrict}`,
         population: null,
         medianAge: null,
         nextElection: null,
-        error: 'Unable to fetch district data',
+        error: 'District not found or no data available',
+      } as DistrictData, { status: censusResponse.status })
+    }
+
+    // Parse JSON with error handling
+    let responseText: string
+    try {
+      responseText = await censusResponse.text()
+    } catch (readError) {
+      console.error('Census API read error:', readError, 'URL:', censusUrl.toString())
+      return NextResponse.json({
+        state: stateFips,
+        district: formattedDistrict,
+        districtName: isAtLarge ? 'At-Large District' : `District ${formattedDistrict}`,
+        population: null,
+        medianAge: null,
+        nextElection: null,
+        error: 'Failed to read Census API response',
       } as DistrictData, { status: 500 })
     }
 
-    const censusData = await censusResponse.json()
+    if (!responseText || responseText.trim().length === 0) {
+      console.error('Census API returned empty response, URL:', censusUrl.toString())
+      return NextResponse.json({
+        state: stateFips,
+        district: formattedDistrict,
+        districtName: isAtLarge ? 'At-Large District' : `District ${formattedDistrict}`,
+        population: null,
+        medianAge: null,
+        nextElection: null,
+        error: 'District not found or no data available',
+      } as DistrictData, { status: 404 })
+    }
+
+    let censusData: unknown
+    try {
+      censusData = JSON.parse(responseText)
+    } catch (parseError) {
+      console.error('Census API JSON parse error:', parseError, 'Response:', responseText.substring(0, 200), 'URL:', censusUrl.toString())
+      return NextResponse.json({
+        state: stateFips,
+        district: formattedDistrict,
+        districtName: isAtLarge ? 'At-Large District' : `District ${formattedDistrict}`,
+        population: null,
+        medianAge: null,
+        nextElection: null,
+        error: 'Invalid JSON response from Census API',
+      } as DistrictData, { status: 500 })
+    }
 
     if (!Array.isArray(censusData) || censusData.length < 2) {
       return NextResponse.json({

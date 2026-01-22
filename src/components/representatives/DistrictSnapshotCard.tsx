@@ -21,12 +21,10 @@ export function DistrictSnapshotCard({ state, district, isPlaceholder = false }:
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    // Don't fetch if placeholder or if we don't have the required data
     if (isPlaceholder) {
       return
     }
 
-    // If no district, show message that this is Senate-only or invalid
     if (!state || !district) {
       setData({
         districtName: 'No district data',
@@ -38,12 +36,10 @@ export function DistrictSnapshotCard({ state, district, isPlaceholder = false }:
       return
     }
 
-    const fetchDistrictData = async () {
-      setLoading(true)
-      try {
-        const response = await fetch(`/api/district?state=${state}&district=${district}`)
-        const result = await response.json()
-
+    setLoading(true)
+    fetch(`/api/district?state=${state}&district=${district}`)
+      .then((response) => response.json().then((result) => ({ response, result })))
+      .then(({ response, result }) => {
         if (response.ok) {
           setData(result)
         } else {
@@ -55,7 +51,8 @@ export function DistrictSnapshotCard({ state, district, isPlaceholder = false }:
             error: result.error || 'Unable to load district data',
           })
         }
-      } catch (error) {
+      })
+      .catch(() => {
         setData({
           districtName: `District ${district}`,
           population: null,
@@ -63,12 +60,10 @@ export function DistrictSnapshotCard({ state, district, isPlaceholder = false }:
           nextElection: null,
           error: 'Failed to load district data',
         })
-      } finally {
+      })
+      .finally(() => {
         setLoading(false)
-      }
-    }
-
-    fetchDistrictData()
+      })
   }, [state, district, isPlaceholder])
 
   const formatPopulation = (pop: number | null): string => {
@@ -83,11 +78,13 @@ export function DistrictSnapshotCard({ state, district, isPlaceholder = false }:
     : data
 
   return (
-    <div className="h-[200px] rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-4 shadow-sm">
+    <div className="flex h-[200px] flex-col overflow-hidden rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">District Snapshot</p>
-          <h4 className="mt-1 text-lg font-semibold text-slate-900">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-700">
+            District Snapshot
+          </p>
+          <h4 className="mt-1 text-base font-semibold leading-snug text-slate-900">
             {loading ? 'Loading...' : displayData?.districtName || 'District data unavailable'}
           </h4>
         </div>
@@ -97,31 +94,31 @@ export function DistrictSnapshotCard({ state, district, isPlaceholder = false }:
           </span>
         )}
       </div>
-      <div className="mt-4 grid gap-3 text-sm text-slate-700">
+      <div className="mt-3 grid gap-2 text-xs text-slate-700">
         <div className="flex items-center justify-between">
           <span className="text-slate-500">Population</span>
-          <span className="font-semibold text-slate-900">
+          <span className="text-sm font-semibold text-slate-900">
             {loading ? '...' : formatPopulation(displayData?.population || null)}
           </span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-slate-500">Median age</span>
-          <span className="font-semibold text-slate-900">
+          <span className="text-sm font-semibold text-slate-900">
             {loading ? '...' : displayData?.medianAge || 'N/A'}
           </span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-slate-500">Next election</span>
-          <span className="font-semibold text-slate-900">
+          <span className="text-sm font-semibold text-slate-900">
             {loading ? '...' : displayData?.nextElection || 'N/A'}
           </span>
         </div>
       </div>
       {isPlaceholder && (
-        <p className="mt-8 text-xs text-slate-500">District stats appear after lookup.</p>
+        <p className="mt-auto pt-2 text-[11px] text-slate-500">District stats appear after lookup.</p>
       )}
       {!isPlaceholder && data?.error && (
-        <p className="mt-4 text-xs text-amber-600">{data.error}</p>
+        <p className="mt-auto pt-2 text-[11px] text-amber-600">{data.error}</p>
       )}
     </div>
   )
