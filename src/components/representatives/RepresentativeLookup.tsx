@@ -32,7 +32,7 @@ export function RepresentativeLookup() {
   const [showAutocomplete, setShowAutocomplete] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
   const autocompleteRef = useRef<HTMLDivElement>(null)
-  const { loading, error, representatives, lookupByAddress } = useRepresentativeLookup()
+  const { loading, error, representatives, state, district, lookupByAddress } = useRepresentativeLookup()
   const { predictions, fetchPredictions, clearPredictions } = useAddressAutocomplete()
 
   const handleAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -173,7 +173,7 @@ export function RepresentativeLookup() {
             {cardsToShow.map((rep) => (
               <RepresentativeCard key={rep.id} rep={rep} isPlaceholder />
             ))}
-            <DistrictSnapshotCard />
+            <DistrictSnapshotCard isPlaceholder />
           </div>
         )}
 
@@ -182,7 +182,7 @@ export function RepresentativeLookup() {
             {cardsToShow.map((rep) => (
               <RepresentativeCard key={rep.id} rep={rep} />
             ))}
-            <DistrictSnapshotCard />
+            <DistrictSnapshotCard state={state} district={district} />
           </div>
         )}
       </div>
