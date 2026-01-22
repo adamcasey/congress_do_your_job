@@ -5,7 +5,8 @@ import { FeatureFlag, featureFlagDefaults, featureFlagKeys } from '@/lib/feature
 
 type LdClient = ReturnType<typeof LaunchDarkly.init>
 
-const sdkKey = process.env.LAUNCH_DARKLY_ENV_SDK_DEV
+// Use production SDK key in production, dev key in development
+const sdkKey = process.env.LAUNCH_DARKLY_ENV_SDK || process.env.LAUNCH_DARKLY_ENV_SDK_DEV
 
 /**
  * Get the user's IP address from request headers
