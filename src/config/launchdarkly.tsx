@@ -4,6 +4,7 @@ import { withLDProvider, useFlags, useLDClient, useLDClientError } from 'launchd
 import { ReactNode } from 'react'
 
 const clientSideID = process.env.NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID || ''
+const isDev = process.env.NODE_ENV === 'development'
 
 function LaunchDarklyProviderComponent({ children }: { children: ReactNode }) {
   return <>{children}</>
@@ -19,6 +20,9 @@ export const LaunchDarklyProvider = clientSideID
       },
       options: {
         bootstrap: 'localStorage',
+        sendEvents: !isDev,
+        streaming: !isDev,
+        diagnosticOptOut: isDev,
       },
     })(LaunchDarklyProviderComponent as any)
   : LaunchDarklyProviderComponent
