@@ -9,6 +9,9 @@ export const metadata = {
   description: 'Look up your federal representatives by address. Find your senators and house representatives.',
 }
 
+// Force dynamic rendering since we use headers() for LaunchDarkly IP targeting
+export const dynamic = 'force-dynamic'
+
 export default function RepresentativesPage() {
   return (
     <FeatureFlagGuard flag={FeatureFlag.COMING_SOON_LANDING_PAGE}>
