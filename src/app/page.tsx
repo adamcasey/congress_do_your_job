@@ -288,10 +288,10 @@ export default async function Home() {
   ]
 
   return (
-    <main className={`min-h-screen text-slate-900 ${latoFont.className}`}>
-      <BudgetCountdown />
-      <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 pb-20 pt-10">
+    <main className={`min-h-screen px-4 pb-20 pt-10 text-slate-900 ${latoFont.className}`}>
+      <div className="mx-auto flex max-w-6xl flex-col gap-12">
         <header className="flex flex-col gap-4">
+          <BudgetCountdown />
           <div className="flex items-center justify-between gap-4 rounded-full border border-amber-100 bg-white/80 px-4 py-2 shadow-sm shadow-amber-100 backdrop-blur">
             <div className="flex items-center gap-3">
               <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-tr from-amber-400 to-emerald-300 text-sm font-bold text-slate-900 shadow-md">

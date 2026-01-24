@@ -5,13 +5,13 @@ import { freePressFont } from '@/styles/fonts'
 export default function ComingSoon() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#e4f0f9] via-[#e4f0f9] to-[#fde3e0]">
-      <BudgetCountdown />
       <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent_50%,rgba(253,227,224,0.75)_50%)]" />
       <div className="absolute -left-28 -top-28 h-64 w-64 rotate-6 rounded-full bg-amber-200/40 blur-3xl" />
       <div className="absolute -right-16 bottom-10 h-72 w-72 rotate-12 rounded-full bg-emerald-200/40 blur-3xl" />
 
       <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 py-16">
         <header className="mb-10 text-center">
+          <BudgetCountdown />
           <div className="flex flex-col items-center justify-center gap-3 text-slate-800">
             <h1 className={`${freePressFont.className} text-5xl leading-none tracking-tight text-slate-900 md:text-6xl lg:text-7xl`}>
               Congress Do Your Job
