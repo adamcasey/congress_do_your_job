@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { FeatureFlag } from '@/lib/feature-flags'
 import { getServerFlag } from '@/lib/launchdarkly-server'
 import { freePressFont, latoFont } from '@/styles/fonts'
+import { BudgetCountdown } from '@/components/BudgetCountdown'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -287,8 +288,9 @@ export default async function Home() {
   ]
 
   return (
-    <main className={`min-h-screen px-4 pb-20 pt-10 text-slate-900 ${latoFont.className}`}>
-      <div className="mx-auto flex max-w-6xl flex-col gap-12">
+    <main className={`min-h-screen text-slate-900 ${latoFont.className}`}>
+      <BudgetCountdown />
+      <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 pb-20 pt-10">
         <header className="flex flex-col gap-4">
           <div className="flex items-center justify-between gap-4 rounded-full border border-amber-100 bg-white/80 px-4 py-2 shadow-sm shadow-amber-100 backdrop-blur">
             <div className="flex items-center gap-3">
