@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import Image from 'next/image'
 
 export type RepresentativeCardData = {
@@ -26,6 +29,14 @@ export function RepresentativeCard({
   rep: RepresentativeCardData
   isPlaceholder?: boolean
 }) {
+  const [imageError, setImageError] = useState(false)
+
+  const handleImageError = () => {
+    setImageError(true)
+  }
+
+  const showInitials = !rep.photoURL || imageError
+
   return (
     <div
       className={`flex h-[200px] items-center rounded-2xl border border-slate-200/80 p-4 shadow-sm ${
@@ -33,19 +44,20 @@ export function RepresentativeCard({
       }`}
     >
       <div className="flex w-full items-center gap-4">
-        {rep.photoURL ? (
+        {showInitials ? (
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-slate-200 text-sm font-semibold text-slate-700 ring-2 ring-slate-300/50">
+            {getInitials(rep.name)}
+          </div>
+        ) : (
           <Image
-            src={rep.photoURL}
+            src={rep.photoURL!}
             alt={rep.name}
             width={56}
             height={56}
             unoptimized
+            onError={handleImageError}
             className="h-14 w-14 rounded-full object-cover"
           />
-        ) : (
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-slate-200 text-sm font-semibold text-slate-700 ring-2 ring-slate-300/50">
-            {getInitials(rep.name)}
-          </div>
         )}
         <div className="flex-1">
           <h4 className="font-semibold text-slate-900">{rep.name}</h4>
