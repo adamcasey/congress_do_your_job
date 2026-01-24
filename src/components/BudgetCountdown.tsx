@@ -22,18 +22,13 @@ export function BudgetCountdown() {
   }
 
   return (
-    <div className="mb-6 rounded-2xl border border-amber-100/60 bg-white/40 px-6 py-4 shadow-sm backdrop-blur-sm">
-      <div className="flex flex-col items-center justify-center gap-2 text-center sm:flex-row sm:gap-3">
-        <div className="flex items-baseline gap-2">
-          <span className="text-4xl font-bold tabular-nums text-amber-900 sm:text-5xl">
-            {daysSince.toLocaleString()}
-          </span>
-          <span className="text-lg font-medium text-amber-800 sm:text-xl">
-            days
-          </span>
-        </div>
-        <span className="text-sm font-medium text-amber-700 sm:text-base">
-          since a budget resolution was passed
+    <div className="mb-4 rounded-2xl border border-amber-100/60 bg-white/40 px-6 py-3 shadow-sm backdrop-blur-sm">
+      <div className="flex items-center justify-center gap-2 text-center">
+        <span className="text-3xl font-bold tabular-nums text-amber-900">
+          {daysSince.toLocaleString()}
+        </span>
+        <span className="text-base font-medium text-amber-700">
+          days since a budget resolution was passed
         </span>
       </div>
     </div>
