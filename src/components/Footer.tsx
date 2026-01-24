@@ -6,6 +6,7 @@ const navGroups = [
     title: 'Explore',
     links: [
       { label: 'Home', href: '/' },
+      { label: 'About', href: '/about' },
       { label: 'Find representatives', href: '/representatives' },
       { label: 'Weekly briefing', href: '/coming-soon' },
     ],
