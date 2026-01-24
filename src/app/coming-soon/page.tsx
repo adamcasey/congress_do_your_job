@@ -1,8 +1,12 @@
 import { WaitlistForm } from '@/components/forms/WaitlistForm'
 import { BudgetCountdown } from '@/components/BudgetCountdown'
 import { freePressFont } from '@/styles/fonts'
+import { getServerFlag } from '@/lib/launchdarkly-server'
+import { FeatureFlag } from '@/lib/feature-flags'
 
-export default function ComingSoon() {
+export default async function ComingSoon() {
+  const showBudgetTimer = await getServerFlag(FeatureFlag.BUDGET_BILL_TIMER)
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#e4f0f9] via-[#e4f0f9] to-[#fde3e0]">
       <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent_50%,rgba(253,227,224,0.75)_50%)]" />
@@ -11,7 +15,7 @@ export default function ComingSoon() {
 
       <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 py-6">
         <header className="mb-10 text-center">
-          <BudgetCountdown />
+          {showBudgetTimer && <BudgetCountdown />}
           <div className="flex flex-col items-center justify-center gap-3 text-slate-800">
             <h1 className={`${freePressFont.className} text-5xl leading-none tracking-tight text-slate-900 md:text-6xl lg:text-7xl`}>
               Congress Do Your Job

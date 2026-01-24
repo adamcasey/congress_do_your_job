@@ -273,6 +273,7 @@ export default async function Home() {
     redirect('/coming-soon')
   }
 
+  const showBudgetTimer = await getServerFlag(FeatureFlag.BUDGET_BILL_TIMER)
   const lastBudgetDate = process.env.BUDGET_LAST_PASSED_DATE ?? '2024-03-23'
   const { daysSinceBudget, lastBudgetDateLabel } = getBudgetStats(lastBudgetDate)
 
@@ -291,7 +292,7 @@ export default async function Home() {
     <main className={`min-h-screen px-4 pb-20 pt-10 text-slate-900 ${latoFont.className}`}>
       <div className="mx-auto flex max-w-6xl flex-col gap-12">
         <header className="flex flex-col gap-4">
-          <BudgetCountdown />
+          {showBudgetTimer && <BudgetCountdown />}
           <div className="flex items-center justify-between gap-4 rounded-full border border-amber-100 bg-white/80 px-4 py-2 shadow-sm shadow-amber-100 backdrop-blur">
             <div className="flex items-center gap-3">
               <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-tr from-amber-400 to-emerald-300 text-sm font-bold text-slate-900 shadow-md">
