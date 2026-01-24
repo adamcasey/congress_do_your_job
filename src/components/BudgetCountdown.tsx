@@ -22,7 +22,7 @@ export function BudgetCountdown() {
   }
 
   return (
-    <div className="mb-4 rounded-2xl border border-amber-100/60 bg-white/40 px-6 py-3 shadow-sm backdrop-blur-sm">
+    <div className="mb-4 rounded-2xl border border-amber-100/60 bg-white/40 px-8 py-5 shadow-sm backdrop-blur-sm">
       <div className="flex items-center justify-center gap-2 text-center">
         <span className="text-3xl font-bold tabular-nums text-amber-900">
           {daysSince.toLocaleString()}
