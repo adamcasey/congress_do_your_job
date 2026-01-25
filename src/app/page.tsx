@@ -291,25 +291,29 @@ export default async function Home() {
   return (
     <main className={`min-h-screen px-4 pb-20 pt-10 text-slate-900 ${latoFont.className}`}>
       <div className="mx-auto flex max-w-6xl flex-col gap-12">
-        <header className="flex flex-col gap-4">
+        <header className="flex flex-col gap-8">
           {showBudgetTimer && <BudgetCountdown />}
-          <div className="flex items-center justify-between gap-4 rounded-full border border-amber-100 bg-white/80 px-4 py-2 shadow-sm shadow-amber-100 backdrop-blur">
-            <div className="flex items-center gap-3">
-              <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-tr from-amber-400 to-emerald-300 text-sm font-bold text-slate-900 shadow-md">
-                C
+          <div className="relative overflow-hidden rounded-[32px] border border-amber-100/80 bg-gradient-to-br from-[#eaf4fb] via-white to-[#fde7e3] px-6 py-10 shadow-xl shadow-amber-100/40">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,rgba(148,163,184,0.32)_1px,transparent_1px)] bg-[size:26px_26px] opacity-40" />
+            <div className="pointer-events-none absolute -left-24 -top-24 h-48 w-48 rotate-6 rounded-full bg-amber-200/40 blur-3xl" />
+            <div className="pointer-events-none absolute -right-16 bottom-0 h-56 w-56 rotate-12 rounded-full bg-emerald-200/40 blur-3xl" />
+            <div className="relative flex flex-col items-center gap-5 text-center">
+              <div className="flex flex-col items-center gap-3 text-slate-800">
+                <h1 className={`${freePressFont.className} text-4xl leading-none tracking-tight text-slate-900 sm:text-5xl md:text-6xl`}>
+                  Congress Do Your Job
+                </h1>
+                <p className="text-base font-semibold uppercase tracking-[0.22em] text-slate-500 sm:text-lg">
+                  Less theater. More legislation.
+                </p>
               </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">CongressDoYourJob</p>
-                <p className="text-sm font-medium text-slate-700">Less theater. More laws.</p>
+              <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-medium">
+                <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 ring-1 ring-emerald-100">
+                  Public alpha
+                </span>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-700 ring-1 ring-slate-200">
+                  Neutral, plain English
+                </span>
               </div>
-            </div>
-            <div className="flex items-center gap-2 text-xs font-medium">
-              <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 ring-1 ring-emerald-100">
-                Public alpha
-              </span>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-700 ring-1 ring-slate-200">
-                Neutral, plain English
-              </span>
             </div>
           </div>
 
@@ -321,9 +325,9 @@ export default async function Home() {
                 <p className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600 ring-1 ring-amber-100">
                   Weekly civic briefing
                 </p>
-                <h1 className={`${freePressFont.className} text-4xl font-semibold leading-tight md:text-5xl`}>
+                <h2 className={`${freePressFont.className} text-4xl font-semibold leading-tight md:text-5xl`}>
                   What your representatives actually did this week - no spin, no red/blue.
-                </h1>
+                </h2>
                 <p className="max-w-2xl text-lg text-slate-700">
                   Plain-English updates on bills, attendance, hearings, and deadlines. Built for people who want facts
                   without outrage.
