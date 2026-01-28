@@ -33,7 +33,7 @@ export function useAddressAutocomplete(): UseAddressAutocompleteReturn {
     debounceTimer.current = setTimeout(async () => {
       setLoading(true)
       try {
-        const response = await fetch(`/api/autocomplete?input=${encodeURIComponent(input)}`)
+        const response = await fetch(`/api/v1/autocomplete?input=${encodeURIComponent(input)}`)
         const data = await response.json()
         setPredictions(data.predictions || [])
       } catch (error) {
