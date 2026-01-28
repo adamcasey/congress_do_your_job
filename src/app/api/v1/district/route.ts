@@ -7,8 +7,8 @@ import { stateAbbrToFips } from '@/lib/states'
  * Returns population, median age, and next election date for a congressional district
  *
  * Accepts either state FIPS codes or abbreviations:
- * - /api/district?state=29&district=02 (FIPS code)
- * - /api/district?state=MO&district=02 (abbreviation)
+ * - /api/v1/district?state=29&district=02 (FIPS code)
+ * - /api/v1/district?state=MO&district=02 (abbreviation)
  */
 
 interface DistrictData {
