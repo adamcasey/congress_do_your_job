@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCollection } from '@/lib/mongodb'
 import { WaitlistSignup } from '@/types/waitlist'
 import { resend } from '@/config'
+import { WaitlistConfirmation } from '@/emails'
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,23 +48,8 @@ export async function POST(request: NextRequest) {
       await resend.emails.send({
         from: 'CongressDoYourJob <no-reply@congressdoyourjob.com>',
         to: email,
-        subject: "You're on the list!",
-        html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #1f2937; font-size: 24px; margin-bottom: 16px;">You're on the list!</h1>
-            <p style="color: #4b5563; font-size: 16px; line-height: 1.5; margin-bottom: 12px;">
-              Thanks for your interest in CongressDoYourJob.com. We'll notify you as soon as we launch.
-            </p>
-            <p style="color: #4b5563; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
-              No spam. No third party data brokers. Just a one-time notification when we go live.
-            </p>
-            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
-            <p style="color: #6b7280; font-size: 14px; margin: 0;">
-              <strong>Less theater. More legislation.</strong><br/>
-              CongressDoYourJob.com
-            </p>
-          </div>
-        `,
+        subject: "You're on the list — Congress Do Your Job",
+        html: WaitlistConfirmation({ email }),
       })
     } catch (emailError) {
       console.error('Failed to send confirmation email:', emailError)
