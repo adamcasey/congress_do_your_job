@@ -29,7 +29,7 @@ export function useRepresentativeLookup(): UseRepresentativeLookupReturn {
     setDistrict('')
 
     try {
-      const response = await fetch(`/api/representatives?address=${encodeURIComponent(address)}`)
+      const response = await fetch(`/api/v1/representatives?address=${encodeURIComponent(address)}`)
       const data = await response.json()
 
       if (!response.ok) {

@@ -37,7 +37,7 @@ export function DistrictSnapshotCard({ state, district, isPlaceholder = false }:
     }
 
     setLoading(true)
-    fetch(`/api/district?state=${state}&district=${district}`)
+    fetch(`/api/v1/district?state=${state}&district=${district}`)
       .then((response) => response.json().then((result) => ({ response, result })))
       .then(({ response, result }) => {
         if (response.ok) {
