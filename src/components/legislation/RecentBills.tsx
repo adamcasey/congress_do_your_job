@@ -1,8 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import { useRecentLegislation } from '@/hooks/useRecentLegislation'
 import { Bill } from '@/types/congress'
 import { formatDate } from '@/utils/dates'
+import { Modal } from '@/components/ui/Modal'
 
 interface RecentBillsProps {
   limit?: number
@@ -11,6 +13,34 @@ interface RecentBillsProps {
 
 export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
   const { data, loading, error } = useRecentLegislation({ limit, days })
+  const [selectedBill, setSelectedBill] = useState<Bill | null>(null)
+  const [billDetails, setBillDetails] = useState<Bill | null>(null)
+  const [loadingDetails, setLoadingDetails] = useState(false)
+
+  const handleExplainClick = async (bill: Bill) => {
+    setSelectedBill(bill)
+    setLoadingDetails(true)
+
+    try {
+      const response = await fetch(
+        `/api/v1/legislation/bill?type=${bill.type}&number=${bill.number}&congress=${bill.congress}`
+      )
+
+      if (response.ok) {
+        const details = await response.json()
+        setBillDetails(details)
+      }
+    } catch (err) {
+      console.error('Failed to load bill details:', err)
+    } finally {
+      setLoadingDetails(false)
+    }
+  }
+
+  const handleCloseModal = () => {
+    setSelectedBill(null)
+    setBillDetails(null)
+  }
 
   const getBillStatus = (bill: Bill): { label: string; classes: string } => {
     if (!bill.latestAction) {
@@ -77,7 +107,7 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
             key={`${bill.congress}-${bill.type}-${bill.number}`}
             className="group rounded-lg border border-slate-200 bg-white p-4 transition-shadow hover:shadow-md"
           >
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-slate-500">
@@ -102,6 +132,12 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
                   Updated {formatDate(bill.updateDate)}
                 </p>
               </div>
+              <button
+                onClick={() => handleExplainClick(bill)}
+                className="flex-shrink-0 rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
+              >
+                Explain
+              </button>
             </div>
           </div>
         )
@@ -112,6 +148,66 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
           Showing {data.bills.length} of {data.count} bills
         </p>
       )}
+
+      <Modal
+        isOpen={selectedBill !== null}
+        onClose={handleCloseModal}
+        title={selectedBill ? `${selectedBill.type} ${selectedBill.number}` : ''}
+      >
+        {loadingDetails ? (
+          <div className="space-y-3">
+            <div className="animate-pulse">
+              <div className="h-4 w-3/4 rounded bg-slate-200"></div>
+              <div className="mt-2 h-4 w-full rounded bg-slate-200"></div>
+              <div className="mt-2 h-4 w-5/6 rounded bg-slate-200"></div>
+            </div>
+          </div>
+        ) : billDetails ? (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">{billDetails.title}</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Introduced: {formatDate(billDetails.introducedDate)}
+              </p>
+            </div>
+
+            {billDetails.summaries && billDetails.summaries.length > 0 && (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <h4 className="text-sm font-semibold text-slate-900">Summary</h4>
+                <p className="mt-2 text-sm leading-relaxed text-slate-700">
+                  {billDetails.summaries[0].text}
+                </p>
+                <p className="mt-2 text-xs text-slate-500">
+                  {billDetails.summaries[0].actionDesc} - {formatDate(billDetails.summaries[0].actionDate)}
+                </p>
+              </div>
+            )}
+
+            {billDetails.sponsors && billDetails.sponsors.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold text-slate-900">Sponsor</h4>
+                <p className="mt-1 text-sm text-slate-700">
+                  {billDetails.sponsors[0].fullName} ({billDetails.sponsors[0].state})
+                </p>
+              </div>
+            )}
+
+            {billDetails.latestAction && (
+              <div>
+                <h4 className="text-sm font-semibold text-slate-900">Latest Action</h4>
+                <p className="mt-1 text-sm text-slate-700">
+                  {billDetails.latestAction.text}
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {formatDate(billDetails.latestAction.actionDate)}
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-slate-600">Failed to load bill details.</p>
+        )}
+      </Modal>
     </div>
   )
 }
