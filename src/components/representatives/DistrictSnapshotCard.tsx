@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useDistrictSnapshot } from '@/hooks/useDistrictSnapshot'
 
 interface DistrictSnapshotCardProps {
   state?: string
@@ -8,63 +8,8 @@ interface DistrictSnapshotCardProps {
   isPlaceholder?: boolean
 }
 
-interface DistrictData {
-  districtName: string
-  population: number | null
-  medianAge: number | null
-  nextElection: string | null
-  error?: string
-}
-
 export function DistrictSnapshotCard({ state, district, isPlaceholder = false }: DistrictSnapshotCardProps) {
-  const [data, setData] = useState<DistrictData | null>(null)
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    if (isPlaceholder) {
-      return
-    }
-
-    if (!state || !district) {
-      setData({
-        districtName: 'No district data',
-        population: null,
-        medianAge: null,
-        nextElection: null,
-        error: 'District information not available',
-      })
-      return
-    }
-
-    setLoading(true)
-    fetch(`/api/v1/district?state=${state}&district=${district}`)
-      .then((response) => response.json().then((result) => ({ response, result })))
-      .then(({ response, result }) => {
-        if (response.ok) {
-          setData(result)
-        } else {
-          setData({
-            districtName: `District ${district}`,
-            population: null,
-            medianAge: null,
-            nextElection: null,
-            error: result.error || 'Unable to load district data',
-          })
-        }
-      })
-      .catch(() => {
-        setData({
-          districtName: `District ${district}`,
-          population: null,
-          medianAge: null,
-          nextElection: null,
-          error: 'Failed to load district data',
-        })
-      })
-      .finally(() => {
-        setLoading(false)
-      })
-  }, [state, district, isPlaceholder])
+  const { data, loading } = useDistrictSnapshot({ state, district, isPlaceholder })
 
   const formatPopulation = (pop: number | null): string => {
     if (!pop) return 'N/A'
