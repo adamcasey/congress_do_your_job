@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getNextHouseElection, formatElectionDate } from '@/lib/elections'
 import { stateAbbrToFips } from '@/lib/states'
+import { getOrFetch, buildCacheKey, CacheTTL } from '@/lib/cache'
 
 /**
  * District data API endpoint
@@ -37,7 +38,6 @@ export async function GET(request: NextRequest) {
     // Convert state abbreviation to FIPS code if needed
     let stateFips = stateParam
     if (stateParam.length === 2 && isNaN(Number(stateParam))) {
-      // Looks like a state abbreviation (e.g., "MO")
       const converted = stateAbbrToFips(stateParam)
       if (!converted) {
         return NextResponse.json(
@@ -50,126 +50,101 @@ export async function GET(request: NextRequest) {
 
     const formattedDistrict = district.padStart(2, '0')
 
-    // Handle at-large districts (states with only 1 representative)
-    // At-large districts are typically coded as "00" or "01" depending on source
+    // Build cache key
+    const cacheKey = buildCacheKey('census', 'district', `${stateFips}-${formattedDistrict}`)
+
     const isAtLarge = formattedDistrict === '00' || formattedDistrict === '01'
 
-    // Fetch Census data
-    const year = '2022'
-    const censusApiKey = process.env.CENSUS_API_KEY
-    const variables = 'NAME,B01003_001E,B01002_001E'
+    // Fetcher function for cache miss
+    const fetchDistrictData = async (): Promise<DistrictData> => {
+      const year = '2022'
+      const censusApiKey = process.env.CENSUS_API_KEY
+      const variables = 'NAME,B01003_001E,B01002_001E'
 
-    const censusUrl = new URL(`https://api.census.gov/data/${year}/acs/acs5`)
-    censusUrl.searchParams.set('get', variables)
-    censusUrl.searchParams.set('for', `congressional district:${formattedDistrict}`)
-    censusUrl.searchParams.set('in', `state:${stateFips}`)
+      const censusUrl = new URL(`https://api.census.gov/data/${year}/acs/acs5`)
+      censusUrl.searchParams.set('get', variables)
+      censusUrl.searchParams.set('for', `congressional district:${formattedDistrict}`)
+      censusUrl.searchParams.set('in', `state:${stateFips}`)
 
-    if (censusApiKey) {
-      censusUrl.searchParams.set('key', censusApiKey)
+      if (censusApiKey) {
+        censusUrl.searchParams.set('key', censusApiKey)
+      }
+
+      const censusResponse = await fetch(censusUrl.toString(), {
+        headers: { 'Accept': 'application/json' },
+      })
+
+      if (!censusResponse.ok) {
+        const errorText = await censusResponse.text()
+        console.error('Census API error:', censusResponse.status, errorText, 'URL:', censusUrl.toString())
+        throw new Error('District not found or no data available')
+      }
+
+      const responseText = await censusResponse.text()
+
+      if (!responseText || responseText.trim().length === 0) {
+        console.error('Census API returned empty response, URL:', censusUrl.toString())
+        throw new Error('District not found or no data available')
+      }
+
+      let censusData: unknown
+      try {
+        censusData = JSON.parse(responseText)
+      } catch (parseError) {
+        console.error('Census API JSON parse error:', parseError, 'Response:', responseText.substring(0, 200))
+        throw new Error('Invalid JSON response from Census API')
+      }
+
+      if (!Array.isArray(censusData) || censusData.length < 2) {
+        throw new Error('Invalid district data')
+      }
+
+      const headers = censusData[0]
+      const values = censusData[1]
+
+      const nameIndex = headers.indexOf('NAME')
+      const populationIndex = headers.indexOf('B01003_001E')
+      const medianAgeIndex = headers.indexOf('B01002_001E')
+
+      const districtName = values[nameIndex] || `District ${formattedDistrict}`
+      const population = values[populationIndex] ? parseInt(values[populationIndex], 10) : null
+      const medianAge = values[medianAgeIndex] ? parseFloat(values[medianAgeIndex]) : null
+
+      const nextElectionDate = getNextHouseElection()
+      const nextElection = formatElectionDate(nextElectionDate)
+
+      return {
+        state: stateFips,
+        district: formattedDistrict,
+        districtName: isAtLarge && districtName.includes('At-Large') ? 'At-Large District' : districtName,
+        population,
+        medianAge,
+        nextElection,
+      }
     }
 
-    const censusResponse = await fetch(censusUrl.toString(), {
-      headers: { 'Accept': 'application/json' },
+    // Get from cache or fetch fresh data
+    const cached = await getOrFetch<DistrictData>(
+      cacheKey,
+      fetchDistrictData,
+      CacheTTL.DISTRICT_DATA
+    )
+
+    if (!cached.data) {
+      return NextResponse.json(
+        { error: 'Failed to fetch district data' },
+        { status: 500 }
+      )
+    }
+
+    // Return data with cache status headers
+    return NextResponse.json(cached.data, {
+      headers: {
+        'X-Cache-Status': cached.status,
+        'X-Cache-Stale': cached.isStale ? 'true' : 'false',
+        ...(cached.age !== undefined && { 'X-Cache-Age': cached.age.toString() }),
+      },
     })
-
-    if (!censusResponse.ok) {
-      const errorText = await censusResponse.text()
-      console.error('Census API error:', censusResponse.status, errorText, 'URL:', censusUrl.toString())
-
-      return NextResponse.json({
-        state: stateFips,
-        district: formattedDistrict,
-        districtName: isAtLarge ? 'At-Large District' : `District ${formattedDistrict}`,
-        population: null,
-        medianAge: null,
-        nextElection: null,
-        error: 'District not found or no data available',
-      } as DistrictData, { status: censusResponse.status })
-    }
-
-    // Parse JSON with error handling
-    let responseText: string
-    try {
-      responseText = await censusResponse.text()
-    } catch (readError) {
-      console.error('Census API read error:', readError, 'URL:', censusUrl.toString())
-      return NextResponse.json({
-        state: stateFips,
-        district: formattedDistrict,
-        districtName: isAtLarge ? 'At-Large District' : `District ${formattedDistrict}`,
-        population: null,
-        medianAge: null,
-        nextElection: null,
-        error: 'Failed to read Census API response',
-      } as DistrictData, { status: 500 })
-    }
-
-    if (!responseText || responseText.trim().length === 0) {
-      console.error('Census API returned empty response, URL:', censusUrl.toString())
-      return NextResponse.json({
-        state: stateFips,
-        district: formattedDistrict,
-        districtName: isAtLarge ? 'At-Large District' : `District ${formattedDistrict}`,
-        population: null,
-        medianAge: null,
-        nextElection: null,
-        error: 'District not found or no data available',
-      } as DistrictData, { status: 404 })
-    }
-
-    let censusData: unknown
-    try {
-      censusData = JSON.parse(responseText)
-    } catch (parseError) {
-      console.error('Census API JSON parse error:', parseError, 'Response:', responseText.substring(0, 200), 'URL:', censusUrl.toString())
-      return NextResponse.json({
-        state: stateFips,
-        district: formattedDistrict,
-        districtName: isAtLarge ? 'At-Large District' : `District ${formattedDistrict}`,
-        population: null,
-        medianAge: null,
-        nextElection: null,
-        error: 'Invalid JSON response from Census API',
-      } as DistrictData, { status: 500 })
-    }
-
-    if (!Array.isArray(censusData) || censusData.length < 2) {
-      return NextResponse.json({
-        state: stateFips,
-        district: formattedDistrict,
-        districtName: isAtLarge ? 'At-Large District' : `District ${formattedDistrict}`,
-        population: null,
-        medianAge: null,
-        nextElection: null,
-        error: 'Invalid district data',
-      } as DistrictData, { status: 404 })
-    }
-
-    const headers = censusData[0]
-    const values = censusData[1]
-
-    const nameIndex = headers.indexOf('NAME')
-    const populationIndex = headers.indexOf('B01003_001E')
-    const medianAgeIndex = headers.indexOf('B01002_001E')
-
-    const districtName = values[nameIndex] || `District ${formattedDistrict}`
-    const population = values[populationIndex] ? parseInt(values[populationIndex], 10) : null
-    const medianAge = values[medianAgeIndex] ? parseFloat(values[medianAgeIndex]) : null
-
-    // Calculate next election date (House elections are every 2 years)
-    const nextElectionDate = getNextHouseElection()
-    const nextElection = formatElectionDate(nextElectionDate)
-
-    const result: DistrictData = {
-      state: stateFips,
-      district: formattedDistrict,
-      districtName: isAtLarge && districtName.includes('At-Large') ? 'At-Large District' : districtName,
-      population,
-      medianAge,
-      nextElection,
-    }
-
-    return NextResponse.json(result, { status: 200 })
 
   } catch (error) {
     console.error('District API error:', error)
