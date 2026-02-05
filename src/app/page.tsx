@@ -4,6 +4,7 @@ import { FeatureFlag } from '@/lib/feature-flags'
 import { getServerFlag } from '@/lib/launchdarkly-server'
 import { freePressFont, latoFont } from '@/styles/fonts'
 import { BudgetCountdown } from '@/components/BudgetCountdown'
+import { RecentBills } from '@/components/legislation/RecentBills'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -372,29 +373,18 @@ export default async function Home() {
         </header>
 
         <section className="grid gap-6 rounded-3xl border border-slate-200/80 bg-white/90 p-8 shadow-lg shadow-slate-200/60">
-          <SectionHeader
-            eyebrow="Briefing"
-            title="This week in Congress"
-            description="A neutral, Strava-style activity view meets Tangle-style clarity. Every item links to primary sources in production."
-          />
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Live Data</p>
+              <h2 className="text-2xl font-semibold leading-tight text-slate-900">Recent Congressional Activity</h2>
+              <p className="mt-2 max-w-2xl text-sm text-slate-600">
+                Real-time legislative updates from Congress.gov. Bills, votes, and actions from the past 7 days.
+              </p>
+            </div>
+          </div>
           <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
             <div className="space-y-4">
-              {weeklyBriefing.map((item) => (
-                <article
-                  key={item.title}
-                  className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white/80 p-5 shadow-sm transition hover:-translate-y-[2px] hover:shadow-md"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <StatusBadge status={item.status} />
-                    <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                      Primary source
-                    </span>
-                  </div>
-                  <h3 className="mt-3 text-xl font-semibold text-slate-900">{item.title}</h3>
-                  <p className="mt-2 text-sm text-slate-600">{item.summary}</p>
-                  <p className="mt-2 text-sm font-medium text-slate-800">{item.detail}</p>
-                </article>
-              ))}
+              <RecentBills limit={5} days={7} />
             </div>
             <div className="space-y-4 rounded-2xl border border-amber-100 bg-amber-50/70 p-5 shadow-inner">
               <div className="flex items-center justify-between">
