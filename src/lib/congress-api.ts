@@ -126,15 +126,19 @@ export async function getBill(
   billNumber: string,
   congress: number = CURRENT_CONGRESS
 ): Promise<Bill> {
-  const response = await fetchCongressApi<Bill>(
+  const response = await fetchCongressApi<any>(
     `/bill/${congress}/${billType.toLowerCase()}/${billNumber}`
   )
 
-  if (!response.bills || response.bills.length === 0) {
-    throw new CongressApiError(`Bill ${billType} ${billNumber} not found`, 404)
+  if (response.bill) {
+    return response.bill
   }
 
-  return response.bills[0]
+  if (response.bills && response.bills.length > 0) {
+    return response.bills[0]
+  }
+
+  throw new CongressApiError(`Bill ${billType} ${billNumber} not found`, 404)
 }
 
 /**
@@ -151,6 +155,19 @@ export async function getBillActions(
   return fetchCongressApi<Bill>(
     `/bill/${congress}/${billType.toLowerCase()}/${billNumber}/actions`,
     { limit, offset }
+  )
+}
+
+/**
+ * Get bill summaries
+ */
+export async function getBillSummaries(
+  billType: string,
+  billNumber: string,
+  congress: number = CURRENT_CONGRESS
+): Promise<CongressApiResponse<Bill>> {
+  return fetchCongressApi<Bill>(
+    `/bill/${congress}/${billType.toLowerCase()}/${billNumber}/summaries`
   )
 }
 
