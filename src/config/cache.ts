@@ -5,6 +5,7 @@ import { Redis } from '@upstash/redis'
  */
 export const CacheTTL = {
   REPRESENTATIVE_LOOKUP: 90 * 24 * 60 * 60, // 90 days
+  DISTRICT_DATA: 90 * 24 * 60 * 60, // 90 days - Census data changes infrequently
   LEGISLATOR_PROFILE: 30 * 24 * 60 * 60, // 30 days
   LEGISLATIVE_DATA: 2 * 60 * 60, // 2 hours
   SCORECARD: 6 * 60 * 60, // 6 hours
