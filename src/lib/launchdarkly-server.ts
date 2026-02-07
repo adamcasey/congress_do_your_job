@@ -28,28 +28,31 @@ async function getClientIp(): Promise<string | undefined> {
   const xRealIp = headersList.get('x-real-ip')
   const vercelForwardedFor = headersList.get('x-vercel-forwarded-for')
 
-  console.log('[LaunchDarkly] IP Detection Headers:', {
-    'x-forwarded-for': xForwardedFor || 'not set',
-    'x-real-ip': xRealIp || 'not set',
-    'x-vercel-forwarded-for': vercelForwardedFor || 'not set',
-  })
+  /*
+  Keep LaunchDarkly debugging log statements in case you need them again int eh future
+  */
+  // console.log('[LaunchDarkly] IP Detection Headers:', {
+  //   'x-forwarded-for': xForwardedFor || 'not set',
+  //   'x-real-ip': xRealIp || 'not set',
+  //   'x-vercel-forwarded-for': vercelForwardedFor || 'not set',
+  // })
 
   if (xForwardedFor) {
     // x-forwarded-for can contain multiple IPs, take the first one
     const ip = xForwardedFor.split(',')[0].trim()
-    console.log('[LaunchDarkly] Using IP from x-forwarded-for:', ip)
+    // console.log('[LaunchDarkly] Using IP from x-forwarded-for:', ip)
     return ip
   }
 
   if (xRealIp) {
-    console.log('[LaunchDarkly] Using IP from x-real-ip:', xRealIp)
+    // console.log('[LaunchDarkly] Using IP from x-real-ip:', xRealIp)
     return xRealIp
   }
 
   // Vercel-specific header
   if (vercelForwardedFor) {
     const ip = vercelForwardedFor.split(',')[0].trim()
-    console.log('[LaunchDarkly] Using IP from x-vercel-forwarded-for:', ip)
+    // console.log('[LaunchDarkly] Using IP from x-vercel-forwarded-for:', ip)
     return ip
   }
 
@@ -70,7 +73,8 @@ async function buildLdContext() {
     ip,
   }
 
-  console.log('[LaunchDarkly] Built context:', JSON.stringify(context, null, 2))
+  // Keep for debugging 
+  // console.log('[LaunchDarkly] Built context:', JSON.stringify(context, null, 2))
 
   return context
 }

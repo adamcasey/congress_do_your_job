@@ -34,6 +34,7 @@ export async function getOrCreateBillSummary(
   const bill = await getBill(billType, billNumber, congress)
 
   let billText = ''
+  // TODO: debug why some bills don't have summaries and what to do as a default
   if (bill.summaries && bill.summaries.length > 0) {
     billText = bill.summaries[0].text
   } else if (bill.title) {
