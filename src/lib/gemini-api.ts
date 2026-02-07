@@ -39,7 +39,7 @@ Full Bill Text:
 ${billText}
 
 Instructions:
-- Write a concise, plain-English summary in 2-3 sentences (max ${maxLength} characters)
+- Write a concise, plain-English summary in 5-6 sentences (max ${maxLength} characters)
 - Focus on WHAT the bill does, not WHY or political motivations
 - Use active voice and 8th-grade reading level
 - Avoid jargon, partisan framing, and superlatives
@@ -49,7 +49,7 @@ Instructions:
 Summary:`
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       contents: prompt,
     })
 
