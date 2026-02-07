@@ -26,3 +26,12 @@ export function getRelativeTime(dateString: string): string {
   if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
   return `${Math.floor(diffDays / 365)} years ago`
 }
+
+export function stripHtmlTags(html: string): string {
+  return html.replace(/<[^>]*>/g, '')
+}
+
+export function extractSentences(text: string, count: number = 3): string {
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || []
+  return sentences.slice(0, count).join(' ').trim()
+}
