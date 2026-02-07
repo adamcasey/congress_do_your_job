@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       'bill-summary',
       `${congress}-${billType}-${billNumber}`
     )
-
+    
     const cached = await getOrFetch(
       cacheKey,
       () => getOrCreateBillSummary(billType, billNumber, congress),
