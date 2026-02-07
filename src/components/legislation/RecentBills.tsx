@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { useRecentLegislation } from '@/hooks/useRecentLegislation'
 import { Bill } from '@/types/congress'
-import { formatDate } from '@/utils/dates'
+import { formatDate, stripHtmlTags, extractSentences } from '@/utils/dates'
 import { Modal } from '@/components/ui/Modal'
+import { BillTimeline } from './BillTimeline'
 
 interface RecentBillsProps {
   limit?: number
@@ -163,46 +164,29 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
             </div>
           </div>
         ) : billDetails ? (
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">{billDetails.title}</h3>
-              <p className="mt-1 text-sm text-slate-600">
-                Introduced: {formatDate(billDetails.introducedDate)}
-              </p>
+          <div className="flex flex-col">
+            <div className="space-y-4 p-6">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">{billDetails.title}</h3>
+                <p className="mt-1 text-sm text-slate-600">
+                  Introduced: {formatDate(billDetails.introducedDate)}
+                  {billDetails.sponsors && billDetails.sponsors.length > 0 && (
+                    <> by {billDetails.sponsors[0].fullName}</>
+                  )}
+                </p>
+              </div>
+
+              {billDetails.summaries && billDetails.summaries.length > 0 && (
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <h4 className="text-sm font-semibold text-slate-900">What This Bill Does</h4>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-700">
+                    {extractSentences(stripHtmlTags(billDetails.summaries[0].text), 3)}
+                  </p>
+                </div>
+              )}
             </div>
 
-            {billDetails.summaries && billDetails.summaries.length > 0 && (
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <h4 className="text-sm font-semibold text-slate-900">Summary</h4>
-                <p className="mt-2 text-sm leading-relaxed text-slate-700">
-                  {billDetails.summaries[0].text}
-                </p>
-                <p className="mt-2 text-xs text-slate-500">
-                  {billDetails.summaries[0].actionDesc} - {formatDate(billDetails.summaries[0].actionDate)}
-                </p>
-              </div>
-            )}
-
-            {billDetails.sponsors && billDetails.sponsors.length > 0 && (
-              <div>
-                <h4 className="text-sm font-semibold text-slate-900">Sponsor</h4>
-                <p className="mt-1 text-sm text-slate-700">
-                  {billDetails.sponsors[0].fullName} ({billDetails.sponsors[0].state})
-                </p>
-              </div>
-            )}
-
-            {billDetails.latestAction && (
-              <div>
-                <h4 className="text-sm font-semibold text-slate-900">Latest Action</h4>
-                <p className="mt-1 text-sm text-slate-700">
-                  {billDetails.latestAction.text}
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  {formatDate(billDetails.latestAction.actionDate)}
-                </p>
-              </div>
-            )}
+            <BillTimeline bill={billDetails} />
           </div>
         ) : (
           <p className="text-sm text-slate-600">Failed to load bill details.</p>
