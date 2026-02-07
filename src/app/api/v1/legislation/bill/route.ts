@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getBill, CongressApiError, getCurrentCongress } from '@/lib/congress-api'
+import { getBill, getBillSummaries, CongressApiError, getCurrentCongress } from '@/lib/congress-api'
 import { getOrFetch, buildCacheKey, CacheTTL } from '@/lib/cache'
 import { Bill } from '@/types/congress'
 
 /**
  * Bill details API endpoint
- * Returns detailed information about a specific bill
+ * Returns detailed information about a specific bill including summaries
  *
  * Query params:
  * - type: bill type (HR, S, HJRES, etc.)
@@ -27,10 +27,21 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const cacheKey = buildCacheKey('congress', 'bill', `${congress}-${billType}-${billNumber}`)
+    const cacheKey = buildCacheKey('congress', 'bill-full', `${congress}-${billType}-${billNumber}`)
 
     const fetchBillDetails = async (): Promise<Bill> => {
-      return await getBill(billType, billNumber, congress)
+      const bill = await getBill(billType, billNumber, congress)
+
+      try {
+        const summariesResponse = await getBillSummaries(billType, billNumber, congress)
+        if (summariesResponse.summaries && summariesResponse.summaries.length > 0) {
+          bill.summaries = summariesResponse.summaries
+        }
+      } catch (error) {
+        console.warn('Failed to fetch bill summaries:', error)
+      }
+
+      return bill
     }
 
     const cached = await getOrFetch<Bill>(
