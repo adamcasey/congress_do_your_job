@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRecentLegislation } from '@/hooks/useRecentLegislation'
+import { useBillSummary } from '@/hooks/useBillSummary'
 import { Bill } from '@/types/congress'
 import { formatDate, stripHtmlTags, extractSentences } from '@/utils/dates'
 import { Modal } from '@/components/ui/Modal'
@@ -17,6 +18,13 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null)
   const [billDetails, setBillDetails] = useState<Bill | null>(null)
   const [loadingDetails, setLoadingDetails] = useState(false)
+
+  const { data: summaryData, loading: summaryLoading } = useBillSummary({
+    billType: selectedBill?.type,
+    billNumber: selectedBill?.number,
+    congress: selectedBill?.congress,
+    enabled: !!selectedBill,
+  })
 
   const handleExplainClick = async (bill: Bill) => {
     setSelectedBill(bill)
@@ -176,14 +184,27 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
                 </p>
               </div>
 
-              {billDetails.summaries && billDetails.summaries.length > 0 && (
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <h4 className="text-sm font-semibold text-slate-900">What This Bill Does</h4>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <h4 className="text-sm font-semibold text-slate-900">What This Bill Does</h4>
+                {summaryLoading ? (
+                  <div className="mt-2 animate-pulse">
+                    <div className="h-4 w-full rounded bg-slate-200"></div>
+                    <div className="mt-2 h-4 w-5/6 rounded bg-slate-200"></div>
+                  </div>
+                ) : summaryData ? (
                   <p className="mt-2 text-sm leading-relaxed text-slate-700">
-                    {extractSentences(stripHtmlTags(billDetails.summaries[0].text), 3)}
+                    {summaryData.summary}
                   </p>
-                </div>
-              )}
+                ) : billDetails.summaries && billDetails.summaries.length > 0 ? (
+                  <p className="mt-2 text-sm leading-relaxed text-slate-700">
+                    {extractSentences(stripHtmlTags(billDetails.summaries[0].text), 2)}
+                  </p>
+                ) : (
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                    Summary not available.
+                  </p>
+                )}
+              </div>
             </div>
 
             <BillTimeline bill={billDetails} />
