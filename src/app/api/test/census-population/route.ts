@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('CensusTest')
 
 /**
  * Test endpoint for Census Bureau Population API
@@ -57,7 +60,7 @@ export async function GET(request: NextRequest) {
       url.searchParams.set('key', censusApiKey)
     }
 
-    console.log('🔍 Testing Census API:', url.toString())
+    logger.info('🔍 Testing Census API:', url.toString())
 
     const response = await fetch(url.toString(), {
       headers: {
@@ -67,7 +70,7 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Census API error:', response.status, errorText)
+      logger.error('Census API error:', response.status, errorText)
 
       return NextResponse.json({
         state,
@@ -89,7 +92,7 @@ export async function GET(request: NextRequest) {
     //   ["Congressional District 2, Missouri", "766987", "38.2", "29", "02"]
     // ]
 
-    console.log('✅ Census API Response:', JSON.stringify(data, null, 2))
+    logger.info('✅ Census API Response:', JSON.stringify(data, null, 2))
 
     if (!Array.isArray(data) || data.length < 2) {
       return NextResponse.json({
@@ -130,7 +133,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result, { status: 200 })
 
   } catch (error) {
-    console.error('Census API test error:', error)
+    logger.error('Census API test error:', error)
     return NextResponse.json({
       error: 'Failed to fetch Census data',
       details: error instanceof Error ? error.message : 'Unknown error',

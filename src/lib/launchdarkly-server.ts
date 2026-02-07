@@ -2,6 +2,9 @@ import { cache } from 'react'
 import { headers } from 'next/headers'
 import LaunchDarkly from 'launchdarkly-node-server-sdk'
 import { FeatureFlag, featureFlagDefaults, featureFlagKeys } from '@/lib/feature-flags'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('LaunchDarkly')
 
 type LdClient = ReturnType<typeof LaunchDarkly.init>
 
@@ -9,7 +12,7 @@ type LdClient = ReturnType<typeof LaunchDarkly.init>
 const sdkKey = process.env.LAUNCH_DARKLY_ENV_SDK || process.env.LAUNCH_DARKLY_ENV_SDK_DEV
 
 // Log SDK key configuration at startup
-console.log('[LaunchDarkly] SDK Key Configuration:', {
+logger.info('SDK Key Configuration:', {
   hasProductionKey: !!process.env.LAUNCH_DARKLY_ENV_SDK,
   hasDevKey: !!process.env.LAUNCH_DARKLY_ENV_SDK_DEV,
   usingSdkKey: sdkKey ? `${sdkKey.substring(0, 8)}...` : 'NONE',
@@ -56,7 +59,7 @@ async function getClientIp(): Promise<string | undefined> {
     return ip
   }
 
-  console.warn('[LaunchDarkly] No IP address found in request headers')
+  logger.warn('No IP address found in request headers')
   return undefined
 }
 
@@ -84,31 +87,31 @@ let initializationPromise: Promise<LdClient | null> | null = null
 
 const getClient = cache(async (): Promise<LdClient | null> => {
   if (!sdkKey) {
-    console.warn('[LaunchDarkly] SDK key not found. Falling back to defaults.')
+    logger.warn('SDK key not found. Falling back to defaults.')
     return null
   }
 
   if (clientInstance) {
-    console.log('[LaunchDarkly] Reusing existing client instance')
+    logger.info('Reusing existing client instance')
     return clientInstance
   }
 
   if (initializationPromise) {
-    console.log('[LaunchDarkly] Waiting for existing initialization promise')
+    logger.info('Waiting for existing initialization promise')
     return initializationPromise
   }
 
-  console.log('[LaunchDarkly] Initializing new client...')
+  logger.info('Initializing new client...')
   initializationPromise = (async () => {
     try {
       const client = LaunchDarkly.init(sdkKey)
-      console.log('[LaunchDarkly] Client created, waiting for initialization...')
+      logger.info('Client created, waiting for initialization...')
       await client.waitForInitialization()
-      console.log('[LaunchDarkly] Client successfully initialized')
+      logger.info('Client successfully initialized')
       clientInstance = client
       return client
     } catch (error) {
-      console.error('[LaunchDarkly] Failed to initialize server client:', error)
+      logger.error('Failed to initialize server client:', error)
       initializationPromise = null
       return null
     }
@@ -121,22 +124,22 @@ export async function getServerFlag(flag: FeatureFlag): Promise<boolean> {
   const fallback = featureFlagDefaults[flag]
   const flagKey = featureFlagKeys[flag]
 
-  console.log(`[LaunchDarkly] Evaluating flag "${flag}" (key: ${flagKey})`)
+  logger.info(`Evaluating flag "${flag}" (key: ${flagKey})`)
 
   const client = await getClient()
 
   if (!client) {
-    console.warn(`[LaunchDarkly] No client available, returning fallback for "${flag}":`, fallback)
+    logger.warn(`No client available, returning fallback for "${flag}":`, fallback)
     return fallback
   }
 
   try {
     const context = await buildLdContext()
     const value = await client.variation(flagKey, context, fallback)
-    console.log(`[LaunchDarkly] Flag "${flag}" evaluated to:`, value, '(fallback was:', fallback + ')')
+    logger.info(`Flag "${flag}" evaluated to:`, value, '(fallback was:', fallback + ')')
     return Boolean(value)
   } catch (error) {
-    console.error(`[LaunchDarkly] Failed to evaluate flag "${flag}":`, error)
+    logger.error(`Failed to evaluate flag "${flag}":`, error)
     return fallback
   }
 }

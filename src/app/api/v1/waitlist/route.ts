@@ -3,6 +3,9 @@ import { getCollection } from '@/lib/mongodb'
 import { WaitlistSignup } from '@/types/waitlist'
 import { resend } from '@/config'
 import { WaitlistConfirmation } from '@/emails'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('WaitlistAPI')
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,7 +55,7 @@ export async function POST(request: NextRequest) {
         html: WaitlistConfirmation({ email }),
       })
     } catch (emailError) {
-      console.error('Failed to send confirmation email:', emailError)
+      logger.error('Failed to send confirmation email:', emailError)
     }
 
     return NextResponse.json(
@@ -60,7 +63,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    console.error('Waitlist signup error:', error)
+    logger.error('Waitlist signup error:', error)
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     const isDatabaseError = errorMessage.includes('Mongo') || errorMessage.includes('connect')

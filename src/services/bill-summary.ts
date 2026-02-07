@@ -1,6 +1,9 @@
 import { prismaClient } from '@/lib/db'
 import { getBill } from '@/lib/congress-api'
 import { summarizeBill } from '@/lib/gemini-api'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('BillSummary')
 
 export interface BillSummaryResult {
   summary: string
@@ -74,7 +77,7 @@ export async function getOrCreateBillSummary(
       generatedAt: new Date(),
     }
   } catch (error) {
-    console.error('Failed to generate AI summary:', error)
+    logger.error('Failed to generate AI summary:', error)
 
     if (bill.summaries && bill.summaries.length > 0) {
       const rawText = bill.summaries[0].text.replace(/<[^>]*>/g, '')

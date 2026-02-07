@@ -1,5 +1,8 @@
 import { getRedisClient, CacheTTL } from '@/config'
 import { CacheStatus, CacheMetadata, CachedData, CacheResponse } from '@/types/cache'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('Cache')
 
 /**
  * Generate cache key with namespace and version
@@ -64,7 +67,7 @@ export async function getCached<T>(key: string): Promise<CacheResponse<T>> {
       age,
     }
   } catch (error) {
-    console.error('[Cache] Error reading from cache:', error)
+    logger.error('Error reading from cache:', error)
     logCacheEvent('error', key, { error })
 
     return {
@@ -106,7 +109,7 @@ export async function setCached<T>(
 
     return true
   } catch (error) {
-    console.error('[Cache] Error writing to cache:', error)
+    logger.error('Error writing to cache:', error)
     logCacheEvent('error', key, { error })
 
     return false
@@ -128,7 +131,7 @@ export async function invalidateCache(key: string): Promise<boolean> {
     logCacheEvent('invalidate', key)
     return true
   } catch (error) {
-    console.error('[Cache] Error invalidating cache:', error)
+    logger.error('Error invalidating cache:', error)
     return false
   }
 }
@@ -165,7 +168,7 @@ export async function getOrFetch<T>(
         isStale: false,
       }
     } catch (error) {
-      console.error('[Cache] Error fetching fresh data:', error)
+      logger.error('Error fetching fresh data:', error)
 
       // If we have stale data, return it as fallback
       if (cached.data) {
@@ -185,7 +188,7 @@ export async function getOrFetch<T>(
     // Don't await - let refresh happen in background
     fetcher()
       .then((freshData) => setCached(key, freshData, ttl, version))
-      .catch((error) => console.error('[Cache] Background refresh failed:', error))
+      .catch((error) => logger.error('Background refresh failed:', error))
 
     return cached
   }
@@ -217,7 +220,7 @@ function logCacheEvent(
     ...metadata,
   }
 
-  console.log('[Cache]', JSON.stringify(logData))
+  logger.info(JSON.stringify(logData))
 }
 
 /**

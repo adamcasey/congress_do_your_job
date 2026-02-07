@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { resend } from '@/config'
 import { WaitlistConfirmation } from '@/emails'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('TestEmail')
 
 /**
  * Test endpoint for email templates
@@ -37,7 +40,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('[Test Email] Sending to:', to)
+    logger.info('Sending to:', to)
 
     const result = await resend.emails.send({
       from: 'CongressDoYourJob <no-reply@congressdoyourjob.com>',
@@ -46,7 +49,7 @@ export async function POST(request: NextRequest) {
       html: WaitlistConfirmation({ email: to }),
     })
 
-    console.log('[Test Email] Sent successfully:', result)
+    logger.info('Sent successfully:', result)
 
     return NextResponse.json({
       success: true,
@@ -55,7 +58,7 @@ export async function POST(request: NextRequest) {
       to,
     })
   } catch (error) {
-    console.error('[Test Email] Error:', error)
+    logger.error('Error:', error)
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 

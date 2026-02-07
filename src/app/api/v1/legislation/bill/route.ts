@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getBill, getBillSummaries, CongressApiError, getCurrentCongress } from '@/lib/congress-api'
 import { getOrFetch, buildCacheKey, CacheTTL } from '@/lib/cache'
 import { Bill } from '@/types/congress'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('BillDetailsAPI')
 
 /**
  * Bill details API endpoint
@@ -38,7 +41,7 @@ export async function GET(request: NextRequest) {
           bill.summaries = summariesResponse.summaries
         }
       } catch (error) {
-        console.warn('Failed to fetch bill summaries:', error)
+        logger.warn('Failed to fetch bill summaries:', error)
       }
 
       return bill
@@ -65,7 +68,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Bill details API error:', error)
+    logger.error('Bill details API error:', error)
 
     if (error instanceof CongressApiError) {
       return NextResponse.json(

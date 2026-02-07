@@ -6,12 +6,15 @@ import { useBillSummary } from '@/hooks/useBillSummary'
 import { Bill } from '@/types/congress'
 import { formatDate, stripHtmlTags, extractSentences } from '@/utils/dates'
 import { Modal } from '@/components/ui/Modal'
+import { createLogger } from '@/lib/logger'
 import { BillTimeline } from './BillTimeline'
 
 interface RecentBillsProps {
   limit?: number
   days?: number
 }
+
+const logger = createLogger('RecentBills')
 
 export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
   const { data, loading, error } = useRecentLegislation({ limit, days })
@@ -40,7 +43,7 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
         setBillDetails(details)
       }
     } catch (err) {
-      console.error('Failed to load bill details:', err)
+      logger.error('Failed to load bill details:', err)
     } finally {
       setLoadingDetails(false)
     }

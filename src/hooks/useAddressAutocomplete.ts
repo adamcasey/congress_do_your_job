@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { createLogger } from '@/lib/logger'
 
 interface AddressPrediction {
   description: string
@@ -13,6 +14,7 @@ interface UseAddressAutocompleteReturn {
 }
 
 export function useAddressAutocomplete(): UseAddressAutocompleteReturn {
+  const logger = createLogger('AddressAutocomplete')
   const [predictions, setPredictions] = useState<AddressPrediction[]>([])
   const [loading, setLoading] = useState(false)
   const debounceTimer = useRef<NodeJS.Timeout | null>(null)
@@ -37,7 +39,7 @@ export function useAddressAutocomplete(): UseAddressAutocompleteReturn {
         const data = await response.json()
         setPredictions(data.predictions || [])
       } catch (error) {
-        console.error('Autocomplete error:', error)
+        logger.error('Autocomplete error:', error)
         setPredictions([])
       } finally {
         setLoading(false)

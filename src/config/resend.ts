@@ -1,12 +1,15 @@
 import { Resend } from 'resend'
 import { getEnvValue } from './env'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('Resend')
 
 let _resendClient: Resend | null = null
 
 export function getResendClient(): Resend {
   if (_resendClient) return _resendClient
 
-  console.log('[Resend] Environment configuration:', {
+  logger.info('Environment configuration:', {
     nodeEnv: process.env.NODE_ENV,
     hasDevKey: !!process.env.RESEND_API_KEY_DEV,
     hasProductionKey: !!process.env.RESEND_API_KEY_PRODUCTION,
@@ -20,11 +23,11 @@ export function getResendClient(): Resend {
   })
 
   if (!API_KEY) {
-    console.error('[Resend] Failed to get API key. Selected value:', API_KEY)
+    logger.error('Failed to get API key. Selected value:', API_KEY)
     throw new Error('Resend API key not found for current environment')
   }
 
-  console.log('[Resend] Successfully initialized client')
+  logger.info('Successfully initialized client')
   _resendClient = new Resend(API_KEY)
   return _resendClient
 }

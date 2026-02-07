@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getOrFetch, buildCacheKey, CacheTTL } from '@/lib/cache'
 import { getOrCreateBillSummary } from '@/services/bill-summary'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('BillSummaryAPI')
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,7 +46,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Bill summary API error:', error)
+    logger.error('Bill summary API error:', error)
 
     return NextResponse.json(
       { error: 'Failed to fetch bill summary' },

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getNextHouseElection, formatElectionDate } from '@/lib/elections'
 import { stateAbbrToFips } from '@/lib/states'
 import { getOrFetch, buildCacheKey, CacheTTL } from '@/lib/cache'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('DistrictAPI')
 
 /**
  * District data API endpoint
@@ -76,14 +79,14 @@ export async function GET(request: NextRequest) {
 
       if (!censusResponse.ok) {
         const errorText = await censusResponse.text()
-        console.error('Census API error:', censusResponse.status, errorText, 'URL:', censusUrl.toString())
+        logger.error('Census API error:', censusResponse.status, errorText, 'URL:', censusUrl.toString())
         throw new Error('District not found or no data available')
       }
 
       const responseText = await censusResponse.text()
 
       if (!responseText || responseText.trim().length === 0) {
-        console.error('Census API returned empty response, URL:', censusUrl.toString())
+        logger.error('Census API returned empty response, URL:', censusUrl.toString())
         throw new Error('District not found or no data available')
       }
 
@@ -91,7 +94,7 @@ export async function GET(request: NextRequest) {
       try {
         censusData = JSON.parse(responseText)
       } catch (parseError) {
-        console.error('Census API JSON parse error:', parseError, 'Response:', responseText.substring(0, 200))
+        logger.error('Census API JSON parse error:', parseError, 'Response:', responseText.substring(0, 200))
         throw new Error('Invalid JSON response from Census API')
       }
 
@@ -147,7 +150,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('District API error:', error)
+    logger.error('District API error:', error)
     return NextResponse.json({
       error: 'Failed to fetch district data',
     }, { status: 500 })

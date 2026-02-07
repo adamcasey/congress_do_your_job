@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { RepresentativeResponse } from '@/types/representative'
 import { getOrFetch, buildCacheKey, hashIdentifier, CacheTTL, CacheStatus } from '@/lib/cache'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('RepresentativesAPI')
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +21,7 @@ export async function GET(request: NextRequest) {
     const apiUrl = process.env.FIVE_CALLS_API_URL
 
     if (!apiKey) {
-      console.error('5 Calls API key not configured')
+      logger.error('5 Calls API key not configured')
       return NextResponse.json(
         { error: 'API configuration error' },
         { status: 500 }
@@ -26,7 +29,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!apiUrl) {
-      console.error('5 Calls API URL not configured')
+      logger.error('5 Calls API URL not configured')
       return NextResponse.json(
         { error: 'API configuration error' },
         { status: 500 }
@@ -51,7 +54,7 @@ export async function GET(request: NextRequest) {
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('5 Calls API error:', response.status, errorText)
+        logger.error('5 Calls API error:', response.status, errorText)
 
         if (response.status === 404) {
           throw new Error('No representatives found for this address. Please check the address and try again.')
@@ -95,7 +98,7 @@ export async function GET(request: NextRequest) {
     )
 
   } catch (error) {
-    console.error('Representatives API error:', error)
+    logger.error('Representatives API error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch representatives. Please try again.' },
       { status: 500 }

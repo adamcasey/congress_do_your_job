@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getBills, CongressApiError } from '@/lib/congress-api'
 import { getOrFetch, buildCacheKey, CacheTTL } from '@/lib/cache'
 import { Bill } from '@/types/congress'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('RecentBillsAPI')
 
 /**
  * Recent legislation API endpoint
@@ -85,7 +88,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Recent bills API error:', error)
+    logger.error('Recent bills API error:', error)
 
     if (error instanceof CongressApiError) {
       return NextResponse.json(

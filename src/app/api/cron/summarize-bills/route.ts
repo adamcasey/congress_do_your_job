@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prismaClient } from '@/lib/db'
 import { getBills } from '@/lib/congress-api'
 import { getOrCreateBillSummary } from '@/services/bill-summary'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('SummarizeBillsCron')
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -68,10 +71,7 @@ export async function GET(request: NextRequest) {
         await getOrCreateBillSummary(bill.type, bill.number, bill.congress)
         stats.created++
       } catch (error) {
-        console.error(
-          `Failed to generate summary for ${bill.type} ${bill.number}:`,
-          error
-        )
+        logger.error(`Failed to generate summary for ${bill.type} ${bill.number}:`, error)
         stats.errors++
       }
     }
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
       stats,
     })
   } catch (error) {
-    console.error('Cron job error:', error)
+    logger.error('Cron job error:', error)
 
     return NextResponse.json(
       {

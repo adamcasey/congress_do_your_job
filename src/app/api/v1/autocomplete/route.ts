@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('AutocompleteAPI')
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,7 +16,7 @@ export async function GET(request: NextRequest) {
     const apiUrl = process.env.GOOGLE_PLACES_API_URL
 
     if (!apiKey) {
-      console.error('Google API key not configured')
+      logger.error('Google API key not configured')
       return NextResponse.json(
         { error: 'API configuration error' },
         { status: 500 }
@@ -21,7 +24,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!apiUrl) {
-      console.error('Google Places API URL not configured')
+      logger.error('Google Places API URL not configured')
       return NextResponse.json(
         { error: 'API configuration error' },
         { status: 500 }
@@ -43,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Google Places API error:', response.status, errorText)
+      logger.error('Google Places API error:', response.status, errorText)
       return NextResponse.json({ predictions: [] })
     }
 
@@ -58,7 +61,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Autocomplete API error:', error)
+    logger.error('Autocomplete API error:', error)
     return NextResponse.json({ predictions: [] })
   }
 }

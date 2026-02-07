@@ -7,6 +7,10 @@
  * Census API Documentation: https://www.census.gov/data/developers/data-sets.html
  */
 
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('CensusAPI')
+
 export interface CensusApiConfig {
   /** Base year for the dataset (e.g., '2022') */
   year: string
@@ -75,15 +79,15 @@ export async function fetchCensusData<T>(config: CensusApiConfig): Promise<T> {
     })
   } catch (networkError) {
     const errorMsg = networkError instanceof Error ? networkError.message : 'Network error'
-    console.error('Census API network error:', errorMsg, 'URL:', url.toString())
+    logger.error('Network error:', errorMsg, 'URL:', url.toString())
     throw new CensusApiException(503, errorMsg, 'Failed to connect to Census API')
   }
 
   // Handle non-200 responses
   if (!response.ok) {
     const errorText = await response.text()
-    console.error(
-      'Census API error:',
+    logger.error(
+      'API error:',
       response.status,
       errorText,
       'URL:',
@@ -98,13 +102,13 @@ export async function fetchCensusData<T>(config: CensusApiConfig): Promise<T> {
     responseText = await response.text()
   } catch (readError) {
     const errorMsg = readError instanceof Error ? readError.message : 'Read error'
-    console.error('Census API read error:', errorMsg, 'URL:', url.toString())
+    logger.error('Read error:', errorMsg, 'URL:', url.toString())
     throw new CensusApiException(500, errorMsg, 'Failed to read Census API response')
   }
 
   // Handle empty responses
   if (!responseText || responseText.trim().length === 0) {
-    console.error('Census API returned empty response, URL:', url.toString())
+    logger.error('Returned empty response, URL:', url.toString())
     throw new CensusApiException(404, 'Empty response body')
   }
 
@@ -113,8 +117,8 @@ export async function fetchCensusData<T>(config: CensusApiConfig): Promise<T> {
     return JSON.parse(responseText) as T
   } catch (parseError) {
     const errorMsg = parseError instanceof Error ? parseError.message : 'JSON parse error'
-    console.error(
-      'Census API JSON parse error:',
+    logger.error(
+      'JSON parse error:',
       errorMsg,
       'Response:',
       responseText.substring(0, 200),

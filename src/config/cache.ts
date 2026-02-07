@@ -1,4 +1,7 @@
 import { Redis } from '@upstash/redis'
+import { createLogger } from '@/lib/logger'
+
+const logger = createLogger('Cache')
 
 /**
  * Cache TTL (Time To Live) configurations in seconds
@@ -25,7 +28,7 @@ export function getRedisClient(): Redis | null {
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
 
   if (!url || !token) {
-    console.warn('[Cache] Upstash Redis credentials not configured. Cache disabled.')
+    logger.warn('Upstash Redis credentials not configured. Cache disabled.')
     return null
   }
 
@@ -34,7 +37,7 @@ export function getRedisClient(): Redis | null {
       url,
       token,
     })
-    console.log('[Cache] Redis client initialized')
+    logger.info('Redis client initialized')
   }
 
   return _redisClient
