@@ -96,9 +96,9 @@ async function fetchCongressApi<T>(
 }
 
 /**
- * Get recent bills with optional filtering
+ * Get list of bills with optional filtering
  */
-export async function getRecentBills(
+export async function getBills(
   options: FetchOptions = {}
 ): Promise<CongressApiResponse<Bill>> {
   const {
@@ -119,26 +119,22 @@ export async function getRecentBills(
 }
 
 /**
- * Get specific bill details
+ * Get specific bill details (single bill)
  */
 export async function getBill(
   billType: string,
   billNumber: string,
   congress: number = CURRENT_CONGRESS
 ): Promise<Bill> {
-  const response = await fetchCongressApi<any>(
+  const response = await fetchCongressApi<Bill>(
     `/bill/${congress}/${billType.toLowerCase()}/${billNumber}`
   )
 
-  if (response.bill) {
-    return response.bill
+  if (!response.bill) {
+    throw new CongressApiError(`Bill ${billType} ${billNumber} not found`, 404)
   }
 
-  if (response.bills && response.bills.length > 0) {
-    return response.bills[0]
-  }
-
-  throw new CongressApiError(`Bill ${billType} ${billNumber} not found`, 404)
+  return response.bill
 }
 
 /**

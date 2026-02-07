@@ -4,7 +4,9 @@
  */
 
 export interface CongressApiResponse<T> {
+  bill?: T
   bills?: T[]
+  summaries?: Summary[]
   amendments?: T[]
   members?: T[]
   pagination?: Pagination

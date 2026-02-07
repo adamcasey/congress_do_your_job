@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getRecentBills, CongressApiError } from '@/lib/congress-api'
+import { getBills, CongressApiError } from '@/lib/congress-api'
 import { getOrFetch, buildCacheKey, CacheTTL } from '@/lib/cache'
 import { Bill } from '@/types/congress'
 
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     // Fetcher function for cache miss
     const fetchRecentBills = async (): Promise<RecentBillsResponse> => {
-      const response = await getRecentBills({
+      const response = await getBills({
         limit,
         fromDateTime,
         toDateTime,
