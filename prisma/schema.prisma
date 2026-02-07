@@ -281,3 +281,37 @@ type DigestSection {
   items           Json[]
   order           Int
 }
+
+// ============================================================================
+// LEGISLATION MODELS (Bill Summaries & Analysis)
+// ============================================================================
+
+model BillSummary {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Bill identification (composite key for uniqueness)
+  billType        String
+  billNumber      String
+  congress        Int
+
+  // AI-generated summary
+  summary         String
+  model           String
+  generatedAt     DateTime @default(now())
+
+  // Original bill data (cached for reference)
+  title           String
+  introducedDate  DateTime?
+  sponsors        Json?
+
+  // Full bill text (for context)
+  fullTextUrl     String?
+
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("bill_summaries")
+  @@unique([billType, billNumber, congress])
+  @@index([congress, updatedAt])
+}
