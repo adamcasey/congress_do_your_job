@@ -50,3 +50,5 @@ generated/
 .idea/
 *.swp
 *.swo
+.env.local
+.env*.local
