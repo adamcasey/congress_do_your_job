@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ApiResponse } from '@/lib/api-response'
 import { Representative } from '@/types/representative'
 
 interface UseRepresentativeLookupReturn {
@@ -30,16 +31,22 @@ export function useRepresentativeLookup(): UseRepresentativeLookupReturn {
 
     try {
       const response = await fetch(`/api/v1/representatives?address=${encodeURIComponent(address)}`)
-      const data = await response.json()
+      const result = (await response.json()) as ApiResponse<{
+        representatives: Representative[]
+        location: string
+        state: string
+        district: string
+      }>
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch representatives')
+      if (!response.ok || !result.success) {
+        const errorMessage = !result.success ? result.error : 'Failed to fetch representatives'
+        throw new Error(errorMessage || 'Failed to fetch representatives')
       }
 
-      setRepresentatives(data.representatives || [])
-      setLocation(data.location || '')
-      setState(data.state || '')
-      setDistrict(data.district || '')
+      setRepresentatives(result.data.representatives || [])
+      setLocation(result.data.location || '')
+      setState(result.data.state || '')
+      setDistrict(result.data.district || '')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to lookup representatives')
     } finally {

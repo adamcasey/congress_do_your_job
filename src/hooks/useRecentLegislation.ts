@@ -4,6 +4,7 @@ import {
   UseRecentLegislationArgs,
   UseRecentLegislationReturn,
 } from '@/types/legislation'
+import type { ApiResponse } from '@/lib/api-response'
 
 export function useRecentLegislation({
   limit = 20,
@@ -35,13 +36,16 @@ export function useRecentLegislation({
 
         if (!isActive) return
 
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || 'Failed to fetch recent legislation')
+        const result = (await response.json()) as ApiResponse<RecentLegislationData>
+
+        if (!response.ok || !result.success) {
+          const errorMessage = !result.success
+            ? result.error
+            : 'Failed to fetch recent legislation'
+          throw new Error(errorMessage || 'Failed to fetch recent legislation')
         }
 
-        const result = await response.json()
-        setData(result)
+        setData(result.data)
       } catch (err) {
         if (!isActive || (err instanceof DOMException && err.name === 'AbortError')) {
           return

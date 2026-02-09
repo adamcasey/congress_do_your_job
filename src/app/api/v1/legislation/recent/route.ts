@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getBills, CongressApiError } from '@/lib/congress-api'
 import { getOrFetch, buildCacheKey, CacheTTL } from '@/lib/cache'
 import { Bill } from '@/types/congress'
 import { createLogger } from '@/lib/logger'
+import { jsonError, jsonSuccess } from '@/lib/api-response'
 
 const logger = createLogger('RecentBillsAPI')
 
@@ -73,14 +74,11 @@ export async function GET(request: NextRequest) {
     )
 
     if (!cached.data) {
-      return NextResponse.json(
-        { error: 'Failed to fetch recent bills' },
-        { status: 500 }
-      )
+      return jsonError('Failed to fetch recent bills', 500)
     }
 
     // Return data with cache status headers
-    return NextResponse.json(cached.data, {
+    return jsonSuccess(cached.data, {
       headers: {
         'X-Cache-Status': cached.status,
         'X-Cache-Stale': cached.isStale ? 'true' : 'false',
@@ -91,18 +89,11 @@ export async function GET(request: NextRequest) {
     logger.error('Recent bills API error:', error)
 
     if (error instanceof CongressApiError) {
-      return NextResponse.json(
-        {
-          error: error.message,
-          statusCode: error.statusCode,
-        },
-        { status: error.statusCode || 500 }
-      )
+      return jsonError(error.message, error.statusCode || 500, {
+        statusCode: error.statusCode,
+      })
     }
 
-    return NextResponse.json(
-      { error: 'Failed to fetch recent bills' },
-      { status: 500 }
-    )
+    return jsonError('Failed to fetch recent bills', 500)
   }
 }

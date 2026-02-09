@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getOrFetch, buildCacheKey, CacheTTL } from '@/lib/cache'
 import { getOrCreateBillSummary } from '@/services/bill-summary'
 import { createLogger } from '@/lib/logger'
+import { jsonError, jsonSuccess } from '@/lib/api-response'
 
 const logger = createLogger('BillSummaryAPI')
 
@@ -13,10 +14,7 @@ export async function GET(request: NextRequest) {
     const congress = Number(searchParams.get('congress')) || 119
 
     if (!billType || !billNumber) {
-      return NextResponse.json(
-        { error: 'Bill type and number are required' },
-        { status: 400 }
-      )
+      return jsonError('Bill type and number are required', 400)
     }
 
     const cacheKey = buildCacheKey(
@@ -32,13 +30,10 @@ export async function GET(request: NextRequest) {
     )
 
     if (!cached.data) {
-      return NextResponse.json(
-        { error: 'Failed to fetch bill summary' },
-        { status: 500 }
-      )
+      return jsonError('Failed to fetch bill summary', 500)
     }
 
-    return NextResponse.json(cached.data, {
+    return jsonSuccess(cached.data, {
       headers: {
         'X-Cache-Status': cached.status,
         'X-Cache-Stale': cached.isStale ? 'true' : 'false',
@@ -48,9 +43,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     logger.error('Bill summary API error:', error)
 
-    return NextResponse.json(
-      { error: 'Failed to fetch bill summary' },
-      { status: 500 }
-    )
+    return jsonError('Failed to fetch bill summary', 500)
   }
 }

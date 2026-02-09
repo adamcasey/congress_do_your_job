@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { createLogger } from '@/lib/logger'
+import { jsonError, jsonSuccess } from '@/lib/api-response'
 
 const logger = createLogger('AutocompleteAPI')
 
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest) {
     const input = searchParams.get('input')
 
     if (!input || input.length < 3) {
-      return NextResponse.json({ predictions: [] })
+      return jsonSuccess({ predictions: [] })
     }
 
     const apiKey = process.env.GOOGLE_API_KEY
@@ -17,18 +18,12 @@ export async function GET(request: NextRequest) {
 
     if (!apiKey) {
       logger.error('Google API key not configured')
-      return NextResponse.json(
-        { error: 'API configuration error' },
-        { status: 500 }
-      )
+      return jsonError('API configuration error', 500)
     }
 
     if (!apiUrl) {
       logger.error('Google Places API URL not configured')
-      return NextResponse.json(
-        { error: 'API configuration error' },
-        { status: 500 }
-      )
+      return jsonError('API configuration error', 500)
     }
 
     // Use new Places API (New) format
@@ -47,13 +42,13 @@ export async function GET(request: NextRequest) {
     if (!response.ok) {
       const errorText = await response.text()
       logger.error('Google Places API error:', response.status, errorText)
-      return NextResponse.json({ predictions: [] })
+      return jsonError('Google Places API error', response.status)
     }
 
     const data = await response.json()
 
     // Transform new API format to match our existing interface
-    return NextResponse.json({
+    return jsonSuccess({
       predictions: data.suggestions?.map((suggestion: any) => ({
         description: suggestion.placePrediction?.text?.text || suggestion.queryPrediction?.text?.text || '',
         placeId: suggestion.placePrediction?.placeId || suggestion.queryPrediction?.text?.text || '',
@@ -62,6 +57,6 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     logger.error('Autocomplete API error:', error)
-    return NextResponse.json({ predictions: [] })
+    return jsonError('Autocomplete API error', 500)
   }
 }

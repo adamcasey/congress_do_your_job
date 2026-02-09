@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { prismaClient } from '@/lib/db'
 import { getBills } from '@/lib/congress-api'
 import { getOrCreateBillSummary } from '@/services/bill-summary'
 import { createLogger } from '@/lib/logger'
+import { jsonError, jsonSuccess } from '@/lib/api-response'
 
 const logger = createLogger('SummarizeBillsCron')
 
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
 
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return jsonError('Unauthorized', 401)
   }
 
   const stats = {
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (!response.bills || response.bills.length === 0) {
-      return NextResponse.json({
+      return jsonSuccess({
         message: 'No new bills found',
         stats,
       })
@@ -76,19 +77,13 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
+    return jsonSuccess({
       message: 'Bill summaries processed',
       stats,
     })
   } catch (error) {
     logger.error('Cron job error:', error)
 
-    return NextResponse.json(
-      {
-        error: 'Failed to process bill summaries',
-        stats,
-      },
-      { status: 500 }
-    )
+    return jsonError('Failed to process bill summaries', 500, { stats })
   }
 }

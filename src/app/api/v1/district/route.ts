@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getNextHouseElection, formatElectionDate } from '@/lib/elections'
 import { stateAbbrToFips } from '@/lib/states'
 import { getOrFetch, buildCacheKey, CacheTTL } from '@/lib/cache'
 import { createLogger } from '@/lib/logger'
+import { jsonError, jsonSuccess } from '@/lib/api-response'
 
 const logger = createLogger('DistrictAPI')
 
@@ -32,10 +33,7 @@ export async function GET(request: NextRequest) {
     const district = searchParams.get('district')
 
     if (!stateParam || !district) {
-      return NextResponse.json(
-        { error: 'State and district parameters are required' },
-        { status: 400 }
-      )
+      return jsonError('State and district parameters are required', 400)
     }
 
     // Convert state abbreviation to FIPS code if needed
@@ -134,14 +132,11 @@ export async function GET(request: NextRequest) {
     )
 
     if (!cached.data) {
-      return NextResponse.json(
-        { error: 'Failed to fetch district data' },
-        { status: 500 }
-      )
+      return jsonError('Failed to fetch district data', 500)
     }
 
     // Return data with cache status headers
-    return NextResponse.json(cached.data, {
+    return jsonSuccess(cached.data, {
       headers: {
         'X-Cache-Status': cached.status,
         'X-Cache-Stale': cached.isStale ? 'true' : 'false',
@@ -151,8 +146,6 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     logger.error('District API error:', error)
-    return NextResponse.json({
-      error: 'Failed to fetch district data',
-    }, { status: 500 })
+    return jsonError('Failed to fetch district data', 500)
   }
 }

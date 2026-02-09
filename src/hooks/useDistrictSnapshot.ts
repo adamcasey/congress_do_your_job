@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { ApiResponse } from '@/lib/api-response'
 
 export interface DistrictData {
   districtName: string
@@ -56,23 +57,24 @@ export function useDistrictSnapshot({
           `/api/v1/district?state=${encodeURIComponent(state)}&district=${encodeURIComponent(district)}`,
           { signal: controller.signal }
         )
-        const result = await response.json()
+        const result = (await response.json()) as ApiResponse<DistrictData>
 
         if (!isActive) {
           return
         }
 
-        if (response.ok) {
-          setData(result)
-        } else {
+        if (!response.ok || !result.success) {
           setData({
             districtName: `District ${district}`,
             population: null,
             medianAge: null,
             nextElection: null,
-            error: result.error || 'Unable to load district data',
+            error: result.success ? 'Unable to load district data' : result.error || 'Unable to load district data',
           })
+          return
         }
+
+        setData(result.data)
       } catch (error) {
         if (!isActive || (error instanceof DOMException && error.name === 'AbortError')) {
           return

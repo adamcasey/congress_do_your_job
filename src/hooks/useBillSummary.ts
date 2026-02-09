@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { ApiResponse } from '@/lib/api-response'
 
 export interface BillSummaryData {
   summary: string
@@ -52,13 +53,15 @@ export function useBillSummary({
           return
         }
 
-        if (response.ok) {
-          const result = await response.json()
-          setData(result)
-        } else {
-          const errorData = await response.json()
-          setError(errorData.error || 'Failed to load bill summary')
+        const result = (await response.json()) as ApiResponse<BillSummaryData>
+
+        if (!response.ok || !result.success) {
+          const errorMessage = !result.success ? result.error : 'Failed to load bill summary'
+          setError(errorMessage || 'Failed to load bill summary')
+          return
         }
+
+        setData(result.data)
       } catch (err) {
         if (!isActive || (err instanceof DOMException && err.name === 'AbortError')) {
           return

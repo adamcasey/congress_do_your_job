@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ApiResponse } from '@/lib/api-response'
 
 interface UseWaitlistSignupReturn {
   loading: boolean
@@ -24,10 +25,11 @@ export function useWaitlistSignup(): UseWaitlistSignupReturn {
         body: JSON.stringify({ email }),
       })
 
-      const data = await response.json()
+      const result = (await response.json()) as ApiResponse<{ message: string }>
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Something went wrong')
+      if (!response.ok || !result.success) {
+        const errorMessage = !result.success ? result.error : 'Something went wrong'
+        throw new Error(errorMessage || 'Something went wrong')
       }
 
       setSuccess(true)

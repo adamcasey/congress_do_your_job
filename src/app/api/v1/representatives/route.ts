@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { RepresentativeResponse } from '@/types/representative'
-import { getOrFetch, buildCacheKey, hashIdentifier, CacheTTL, CacheStatus } from '@/lib/cache'
+import { getOrFetch, buildCacheKey, hashIdentifier, CacheTTL } from '@/lib/cache'
 import { createLogger } from '@/lib/logger'
+import { jsonError, jsonSuccess } from '@/lib/api-response'
 
 const logger = createLogger('RepresentativesAPI')
 
@@ -11,10 +12,7 @@ export async function GET(request: NextRequest) {
     const address = searchParams.get('address')
 
     if (!address) {
-      return NextResponse.json(
-        { error: 'Address parameter is required' },
-        { status: 400 }
-      )
+      return jsonError('Address parameter is required', 400)
     }
 
     const apiKey = process.env.FIVE_CALLS_API_KEY
@@ -22,18 +20,12 @@ export async function GET(request: NextRequest) {
 
     if (!apiKey) {
       logger.error('5 Calls API key not configured')
-      return NextResponse.json(
-        { error: 'API configuration error' },
-        { status: 500 }
-      )
+      return jsonError('API configuration error', 500)
     }
 
     if (!apiUrl) {
       logger.error('5 Calls API URL not configured')
-      return NextResponse.json(
-        { error: 'API configuration error' },
-        { status: 500 }
-      )
+      return jsonError('API configuration error', 500)
     }
 
     // Build cache key with hashed address for privacy
@@ -74,14 +66,11 @@ export async function GET(request: NextRequest) {
     )
 
     if (!cached.data) {
-      return NextResponse.json(
-        { error: 'Failed to fetch representatives' },
-        { status: 500 }
-      )
+      return jsonError('Failed to fetch representatives', 500)
     }
 
     // Return data with cache status headers
-    return NextResponse.json(
+    return jsonSuccess(
       {
         location: cached.data.location,
         state: cached.data.state,
@@ -99,9 +88,6 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     logger.error('Representatives API error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch representatives. Please try again.' },
-      { status: 500 }
-    )
+    return jsonError('Failed to fetch representatives. Please try again.', 500)
   }
 }

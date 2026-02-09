@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { createLogger } from '@/lib/logger'
+import { jsonError, jsonSuccess } from '@/lib/api-response'
 
 const logger = createLogger('CensusTest')
 
@@ -72,16 +73,19 @@ export async function GET(request: NextRequest) {
       const errorText = await response.text()
       logger.error('Census API error:', response.status, errorText)
 
-      return NextResponse.json({
-        state,
-        district: formattedDistrict,
-        population: null,
-        medianAge: null,
-        error: `Census API returned ${response.status}: ${errorText}`,
-        hint: response.status === 400
-          ? 'Invalid state or district code. Use FIPS codes (e.g., state=29 for Missouri, district=02 for 2nd district)'
-          : 'Check Census API status at https://api.census.gov/data.html'
-      } as CensusResponse, { status: response.status })
+      return jsonError(
+        `Census API returned ${response.status}: ${errorText}`,
+        response.status,
+        {
+          state,
+          district: formattedDistrict,
+          population: null,
+          medianAge: null,
+          hint: response.status === 400
+            ? 'Invalid state or district code. Use FIPS codes (e.g., state=29 for Missouri, district=02 for 2nd district)'
+            : 'Check Census API status at https://api.census.gov/data.html',
+        }
+      )
     }
 
     const data = await response.json()
@@ -95,14 +99,13 @@ export async function GET(request: NextRequest) {
     logger.info('✅ Census API Response:', JSON.stringify(data, null, 2))
 
     if (!Array.isArray(data) || data.length < 2) {
-      return NextResponse.json({
+      return jsonError('Unexpected response format from Census API', 500, {
         state,
         district: formattedDistrict,
         population: null,
         medianAge: null,
-        error: 'Unexpected response format from Census API',
         rawData: data,
-      } as CensusResponse, { status: 500 })
+      })
     }
 
     const headers = data[0]
@@ -130,13 +133,14 @@ export async function GET(request: NextRequest) {
       },
     }
 
-    return NextResponse.json(result, { status: 200 })
+    return jsonSuccess(result)
 
   } catch (error) {
     logger.error('Census API test error:', error)
-    return NextResponse.json({
-      error: 'Failed to fetch Census data',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    } as CensusResponse, { status: 500 })
+    return jsonError(
+      'Failed to fetch Census data',
+      500,
+      error instanceof Error ? error.message : 'Unknown error'
+    )
   }
 }

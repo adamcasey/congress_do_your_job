@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { resend } from '@/config'
 import { WaitlistConfirmation } from '@/emails'
 import { createLogger } from '@/lib/logger'
+import { jsonError, jsonSuccess } from '@/lib/api-response'
 
 const logger = createLogger('TestEmail')
 
@@ -15,10 +16,7 @@ const logger = createLogger('TestEmail')
 export async function POST(request: NextRequest) {
   // Only allow in development
   if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json(
-      { error: 'Test endpoint not available in production' },
-      { status: 403 }
-    )
+    return jsonError('Test endpoint not available in production', 403)
   }
 
   try {
@@ -26,18 +24,12 @@ export async function POST(request: NextRequest) {
     const { to } = body
 
     if (!to) {
-      return NextResponse.json(
-        { error: 'Email address required. Send { "to": "your@email.com" }' },
-        { status: 400 }
-      )
+      return jsonError('Email address required. Send { "to": "your@email.com" }', 400)
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(to)) {
-      return NextResponse.json(
-        { error: 'Invalid email address' },
-        { status: 400 }
-      )
+      return jsonError('Invalid email address', 400)
     }
 
     logger.info('Sending to:', to)
@@ -51,8 +43,7 @@ export async function POST(request: NextRequest) {
 
     logger.info('Sent successfully:', result)
 
-    return NextResponse.json({
-      success: true,
+    return jsonSuccess({
       message: 'Test email sent successfully',
       emailId: result.data?.id,
       to,
@@ -62,9 +53,6 @@ export async function POST(request: NextRequest) {
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 
-    return NextResponse.json(
-      { error: 'Failed to send test email', details: errorMessage },
-      { status: 500 }
-    )
+    return jsonError('Failed to send test email', 500, errorMessage)
   }
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import type { ApiResponse } from '@/lib/api-response'
 import { createLogger } from '@/lib/logger'
 
 interface AddressPrediction {
@@ -36,8 +37,12 @@ export function useAddressAutocomplete(): UseAddressAutocompleteReturn {
       setLoading(true)
       try {
         const response = await fetch(`/api/v1/autocomplete?input=${encodeURIComponent(input)}`)
-        const data = await response.json()
-        setPredictions(data.predictions || [])
+        const result = (await response.json()) as ApiResponse<{ predictions: AddressPrediction[] }>
+        if (!response.ok || !result.success) {
+          setPredictions([])
+          return
+        }
+        setPredictions(result.data.predictions || [])
       } catch (error) {
         logger.error('Autocomplete error:', error)
         setPredictions([])

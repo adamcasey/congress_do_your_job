@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getBill, getBillSummaries, CongressApiError, getCurrentCongress } from '@/lib/congress-api'
 import { getOrFetch, buildCacheKey, CacheTTL } from '@/lib/cache'
 import { Bill } from '@/types/congress'
 import { createLogger } from '@/lib/logger'
+import { jsonError, jsonSuccess } from '@/lib/api-response'
 
 const logger = createLogger('BillDetailsAPI')
 
@@ -24,10 +25,7 @@ export async function GET(request: NextRequest) {
     const congress = Number(searchParams.get('congress')) || getCurrentCongress()
 
     if (!billType || !billNumber) {
-      return NextResponse.json(
-        { error: 'Bill type and number parameters are required' },
-        { status: 400 }
-      )
+      return jsonError('Bill type and number parameters are required', 400)
     }
 
     const cacheKey = buildCacheKey('congress', 'bill-full', `${congress}-${billType}-${billNumber}`)
@@ -54,13 +52,10 @@ export async function GET(request: NextRequest) {
     )
 
     if (!cached.data) {
-      return NextResponse.json(
-        { error: 'Failed to fetch bill details' },
-        { status: 500 }
-      )
+      return jsonError('Failed to fetch bill details', 500)
     }
 
-    return NextResponse.json(cached.data, {
+    return jsonSuccess(cached.data, {
       headers: {
         'X-Cache-Status': cached.status,
         'X-Cache-Stale': cached.isStale ? 'true' : 'false',
@@ -71,18 +66,11 @@ export async function GET(request: NextRequest) {
     logger.error('Bill details API error:', error)
 
     if (error instanceof CongressApiError) {
-      return NextResponse.json(
-        {
-          error: error.message,
-          statusCode: error.statusCode,
-        },
-        { status: error.statusCode || 500 }
-      )
+      return jsonError(error.message, error.statusCode || 500, {
+        statusCode: error.statusCode,
+      })
     }
 
-    return NextResponse.json(
-      { error: 'Failed to fetch bill details' },
-      { status: 500 }
-    )
+    return jsonError('Failed to fetch bill details', 500)
   }
 }
