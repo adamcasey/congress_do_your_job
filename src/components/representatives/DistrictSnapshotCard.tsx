@@ -1,6 +1,6 @@
 'use client'
 
-import { useDistrictSnapshot } from '@/hooks/useDistrictSnapshot'
+import { useDistrictSnapshot } from '@/hooks'
 
 interface DistrictSnapshotCardProps {
   state?: string

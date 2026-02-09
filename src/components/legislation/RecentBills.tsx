@@ -1,12 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useRecentLegislation } from '@/hooks/useRecentLegislation'
-import { useBillSummary } from '@/hooks/useBillSummary'
+import { useBillDetails, useBillSummary, useRecentLegislation } from '@/hooks'
 import { Bill } from '@/types/congress'
 import { formatDate, stripHtmlTags, extractSentences } from '@/utils/dates'
 import { Modal } from '@/components/ui/Modal'
-import { createLogger } from '@/lib/logger'
 import { BillTimeline } from './BillTimeline'
 
 interface RecentBillsProps {
@@ -14,13 +12,15 @@ interface RecentBillsProps {
   days?: number
 }
 
-const logger = createLogger('RecentBills')
-
 export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
   const { data, loading, error } = useRecentLegislation({ limit, days })
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null)
-  const [billDetails, setBillDetails] = useState<Bill | null>(null)
-  const [loadingDetails, setLoadingDetails] = useState(false)
+  const { data: billDetails, loading: loadingDetails } = useBillDetails({
+    billType: selectedBill?.type,
+    billNumber: selectedBill?.number,
+    congress: selectedBill?.congress,
+    enabled: !!selectedBill,
+  })
 
   const { data: summaryData, loading: summaryLoading } = useBillSummary({
     billType: selectedBill?.type,
@@ -29,29 +29,12 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
     enabled: !!selectedBill,
   })
 
-  const handleExplainClick = async (bill: Bill) => {
+  const handleExplainClick = (bill: Bill) => {
     setSelectedBill(bill)
-    setLoadingDetails(true)
-
-    try {
-      const response = await fetch(
-        `/api/v1/legislation/bill?type=${bill.type}&number=${bill.number}&congress=${bill.congress}`
-      )
-
-      if (response.ok) {
-        const details = await response.json()
-        setBillDetails(details)
-      }
-    } catch (err) {
-      logger.error('Failed to load bill details:', err)
-    } finally {
-      setLoadingDetails(false)
-    }
   }
 
   const handleCloseModal = () => {
     setSelectedBill(null)
-    setBillDetails(null)
   }
 
   const getBillStatus = (bill: Bill): { label: string; classes: string } => {

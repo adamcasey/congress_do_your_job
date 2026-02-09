@@ -1,3 +1,7 @@
 export { useWaitlistSignup } from './useWaitlistSignup'
 export { useRepresentativeLookup } from './useRepresentativeLookup'
 export { useAddressAutocomplete } from './useAddressAutocomplete'
+export { useRecentLegislation } from './useRecentLegislation'
+export { useDistrictSnapshot } from './useDistrictSnapshot'
+export { useBillSummary } from './useBillSummary'
+export { useBillDetails } from './useBillDetails'
