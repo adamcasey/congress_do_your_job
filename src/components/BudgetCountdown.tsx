@@ -1,26 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { freePressFont } from '@/styles/fonts'
 
 export function BudgetCountdown() {
-  const [daysSince, setDaysSince] = useState<number | null>(null)
-
-  useEffect(() => {
+  const daysSince = (() => {
     // Date should be set via NEXT_PUBLIC_LAST_BUDGET_DATE env var
     // Format: YYYY-MM-DD
     const lastBudgetDateStr = process.env.NEXT_PUBLIC_LAST_BUDGET_DATE || '1997-09-30'
     const lastBudgetDate = new Date(lastBudgetDateStr)
     const today = new Date()
     const diffTime = Math.abs(today.getTime() - lastBudgetDate.getTime())
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-
-    setDaysSince(diffDays)
-  }, [])
-
-  if (daysSince === null) {
-    return null
-  }
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24))
+  })()
 
   return (
     <div className="mb-6">

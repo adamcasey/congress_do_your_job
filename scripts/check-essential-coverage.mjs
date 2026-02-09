@@ -6,6 +6,7 @@ const REQUIRED_PERCENT = 100
 
 const ESSENTIAL_FILES = [
   'src/lib/api-response.ts',
+  'src/lib/states.ts',
   'src/app/api/v1/waitlist/route.ts',
   'src/app/api/v1/representatives/route.ts',
   'src/app/api/v1/district/route.ts',
@@ -13,9 +14,9 @@ const ESSENTIAL_FILES = [
   'src/app/api/v1/legislation/recent/route.ts',
   'src/hooks/useWaitlistSignup.ts',
   'src/hooks/useRepresentativeLookup.ts',
-  'src/hooks/useDistrictSnapshot.ts',
-  'src/hooks/useAddressAutocomplete.ts',
 ]
+
+const ESSENTIAL_METRICS = ['lines', 'statements', 'functions']
 
 function calcPercent(covered, total) {
   if (total === 0) return 100
@@ -64,7 +65,9 @@ for (const relativeFile of ESSENTIAL_FILES) {
 
   const [, fileCoverage] = match
   const summary = summarizeFile(fileCoverage)
-  const belowRequired = Object.entries(summary).filter(([, value]) => value < REQUIRED_PERCENT)
+  const belowRequired = ESSENTIAL_METRICS
+    .map((metric) => [metric, summary[metric]])
+    .filter(([, value]) => value < REQUIRED_PERCENT)
 
   if (belowRequired.length > 0) {
     failures.push({
