@@ -32,6 +32,10 @@ interface CensusResponse {
 }
 
 export async function GET(request: NextRequest) {
+  if (process.env.NODE_ENV === 'production') {
+    return jsonError('Test endpoint not available in production', 403)
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams
     const state = searchParams.get('state') || '29' // Default: Missouri
