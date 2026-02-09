@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getNextHouseElection, formatElectionDate } from '@/lib/elections'
 import { stateAbbrToFips } from '@/lib/states'
 import { getOrFetch, buildCacheKey, CacheTTL } from '@/lib/cache'
