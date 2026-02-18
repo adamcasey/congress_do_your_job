@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { GET } from '@/app/api/v1/representatives/route'
 
 const { buildCacheKeyMock, getOrFetchMock, hashIdentifierMock } = vi.hoisted(() => ({
@@ -31,6 +31,10 @@ describe('GET /api/v1/representatives', () => {
     hashIdentifierMock.mockResolvedValue('address-hash')
   })
 
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('returns 400 when address is missing', async () => {
     const response = await GET(createRequest('https://app.test/api/v1/representatives'))
     expect(response.status).toBe(400)
@@ -48,6 +52,85 @@ describe('GET /api/v1/representatives', () => {
     await expect(response.json()).resolves.toEqual({
       success: false,
       error: 'API configuration error',
+    })
+  })
+
+  it('returns 500 when API URL is missing', async () => {
+    delete process.env.FIVE_CALLS_API_URL
+    const response = await GET(createRequest('https://app.test/api/v1/representatives?address=123%20Main'))
+    expect(response.status).toBe(500)
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: 'API configuration error',
+    })
+  })
+
+  it('fetches and returns representatives on cache miss', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({
+        location: 'Springfield',
+        state: 'MO',
+        district: '02',
+        representatives: [{ id: '1', name: 'Rep One', phone: '202-555-0100' }],
+      }),
+    }))
+    getOrFetchMock.mockImplementation(async (_key, fetcher) => ({
+      data: await fetcher(),
+      status: 'MISS',
+      isStale: false,
+    }))
+
+    const response = await GET(createRequest('https://app.test/api/v1/representatives?address=123%20Main'))
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({
+      success: true,
+      data: {
+        location: 'Springfield',
+        state: 'MO',
+        district: '02',
+        representatives: [{ id: '1', name: 'Rep One', phone: '202-555-0100' }],
+      },
+    })
+  })
+
+  it('returns 500 when upstream lookup returns 404', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      text: vi.fn().mockResolvedValue('not found'),
+    }))
+    getOrFetchMock.mockImplementation(async (_key, fetcher) => ({
+      data: await fetcher(),
+      status: 'MISS',
+      isStale: false,
+    }))
+
+    const response = await GET(createRequest('https://app.test/api/v1/representatives?address=bad'))
+    expect(response.status).toBe(500)
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: 'Failed to fetch representatives. Please try again.',
+    })
+  })
+
+  it('returns 500 when upstream lookup fails with non-404 status', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: vi.fn().mockResolvedValue('server error'),
+    }))
+    getOrFetchMock.mockImplementation(async (_key, fetcher) => ({
+      data: await fetcher(),
+      status: 'MISS',
+      isStale: false,
+    }))
+
+    const response = await GET(createRequest('https://app.test/api/v1/representatives?address=bad'))
+    expect(response.status).toBe(500)
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: 'Failed to fetch representatives. Please try again.',
     })
   })
 
@@ -92,6 +175,21 @@ describe('GET /api/v1/representatives', () => {
     await expect(response.json()).resolves.toEqual({
       success: false,
       error: 'Failed to fetch representatives. Please try again.',
+    })
+  })
+
+  it('returns 500 when cache lookup has no data', async () => {
+    getOrFetchMock.mockResolvedValue({
+      data: null,
+      status: 'MISS',
+      isStale: false,
+    })
+
+    const response = await GET(createRequest('https://app.test/api/v1/representatives?address=123%20Main'))
+    expect(response.status).toBe(500)
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: 'Failed to fetch representatives',
     })
   })
 })

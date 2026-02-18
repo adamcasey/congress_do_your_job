@@ -109,6 +109,21 @@ describe('GET /api/v1/legislation/recent', () => {
     })
   })
 
+  it('returns 500 when cache responds without data', async () => {
+    getOrFetchMock.mockResolvedValue({
+      data: null,
+      status: 'MISS',
+      isStale: false,
+    })
+
+    const response = await GET(createRequest('https://app.test/api/v1/legislation/recent'))
+    expect(response.status).toBe(500)
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: 'Failed to fetch recent bills',
+    })
+  })
+
   it('returns 500 on unexpected errors', async () => {
     getOrFetchMock.mockRejectedValue(new Error('boom'))
 

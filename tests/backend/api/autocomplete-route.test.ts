@@ -37,6 +37,16 @@ describe('GET /api/v1/autocomplete', () => {
     })
   })
 
+  it('returns 500 when places API URL is missing', async () => {
+    delete process.env.GOOGLE_PLACES_API_URL
+    const response = await GET(createRequest('https://app.test/api/v1/autocomplete?input=123%20Main'))
+    expect(response.status).toBe(500)
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: 'API configuration error',
+    })
+  })
+
   it('maps places suggestions into frontend prediction format', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

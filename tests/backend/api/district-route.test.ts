@@ -41,6 +41,7 @@ function createRequest(url: string) {
 describe('GET /api/v1/district', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    delete process.env.CENSUS_API_KEY
     getNextHouseElectionMock.mockReturnValue(new Date('2026-11-03T12:00:00Z'))
     formatElectionDateMock.mockReturnValue('Nov 2026')
     buildCacheKeyMock.mockReturnValue('cache:key')
@@ -102,6 +103,28 @@ describe('GET /api/v1/district', () => {
     })
   })
 
+  it('adds census API key when configured', async () => {
+    process.env.CENSUS_API_KEY = 'census-key'
+    stateAbbrToFipsMock.mockReturnValue('29')
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      text: vi.fn().mockResolvedValue(JSON.stringify([
+        ['NAME', 'B01003_001E', 'B01002_001E'],
+        ['Missouri Congressional District 2', '766000', '38.2'],
+      ])),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    getOrFetchMock.mockImplementation(async (_key, fetcher) => ({
+      data: await fetcher(),
+      status: 'MISS',
+      isStale: false,
+    }))
+
+    await GET(createRequest('https://app.test/api/v1/district?state=MO&district=2'))
+    const [fetchUrl] = fetchMock.mock.calls[0]
+    expect(fetchUrl).toContain('key=census-key')
+  })
+
   it('normalizes at-large district labels', async () => {
     stateAbbrToFipsMock.mockReturnValue('02')
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
@@ -138,6 +161,82 @@ describe('GET /api/v1/district', () => {
       status: 'MISS',
       isStale: false,
     }))
+
+    const response = await GET(createRequest('https://app.test/api/v1/district?state=MO&district=2'))
+    expect(response.status).toBe(500)
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: 'Failed to fetch district data',
+    })
+  })
+
+  it('returns 500 when census returns empty payload', async () => {
+    stateAbbrToFipsMock.mockReturnValue('29')
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      text: vi.fn().mockResolvedValue('   '),
+    }))
+    getOrFetchMock.mockImplementation(async (_key, fetcher) => ({
+      data: await fetcher(),
+      status: 'MISS',
+      isStale: false,
+    }))
+
+    const response = await GET(createRequest('https://app.test/api/v1/district?state=MO&district=2'))
+    expect(response.status).toBe(500)
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: 'Failed to fetch district data',
+    })
+  })
+
+  it('returns 500 for invalid JSON payloads', async () => {
+    stateAbbrToFipsMock.mockReturnValue('29')
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      text: vi.fn().mockResolvedValue('not-json'),
+    }))
+    getOrFetchMock.mockImplementation(async (_key, fetcher) => ({
+      data: await fetcher(),
+      status: 'MISS',
+      isStale: false,
+    }))
+
+    const response = await GET(createRequest('https://app.test/api/v1/district?state=MO&district=2'))
+    expect(response.status).toBe(500)
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: 'Failed to fetch district data',
+    })
+  })
+
+  it('returns 500 for malformed census data arrays', async () => {
+    stateAbbrToFipsMock.mockReturnValue('29')
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      text: vi.fn().mockResolvedValue(JSON.stringify([['NAME', 'B01003_001E']])),
+    }))
+    getOrFetchMock.mockImplementation(async (_key, fetcher) => ({
+      data: await fetcher(),
+      status: 'MISS',
+      isStale: false,
+    }))
+
+    const response = await GET(createRequest('https://app.test/api/v1/district?state=MO&district=2'))
+    expect(response.status).toBe(500)
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: 'Failed to fetch district data',
+    })
+  })
+
+  it('returns 500 when cache lookup returns no data', async () => {
+    stateAbbrToFipsMock.mockReturnValue('29')
+    getOrFetchMock.mockResolvedValue({
+      data: null,
+      status: 'MISS',
+      isStale: false,
+    })
 
     const response = await GET(createRequest('https://app.test/api/v1/district?state=MO&district=2'))
     expect(response.status).toBe(500)
