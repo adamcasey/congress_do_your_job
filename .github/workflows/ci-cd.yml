@@ -11,6 +11,9 @@ on:
       - dev
       - 'codex/**'
 
+env:
+  MONGODB_URI: mongodb://127.0.0.1:27017/congress_do_your_job_ci
+
 jobs:
   quality:
     name: Quality Gates
