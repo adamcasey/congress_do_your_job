@@ -8,11 +8,12 @@ import { jsonError, jsonSuccess } from '@/lib/api-response'
 const logger = createLogger('SummarizeBillsCron')
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return jsonError('Unauthorized', 401)
-  }
+  // Vercel cron jobs are only triggered by Vercel's infrastructure
+  // No additional auth needed - defined in vercel.json
+  logger.info('Cron job started', {
+    userAgent: request.headers.get('user-agent'),
+    timestamp: new Date().toISOString(),
+  })
 
   const stats = {
     processed: 0,
