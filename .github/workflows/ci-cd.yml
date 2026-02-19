@@ -9,7 +9,7 @@ on:
     branches:
       - main
       - dev
-      - 'codex/**'
+      - "codex/**"
 
 env:
   MONGODB_URI: mongodb://127.0.0.1:27017/congress_do_your_job_ci
@@ -54,6 +54,8 @@ jobs:
     name: Production Build
     runs-on: ubuntu-latest
     needs: quality
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
     steps:
       - name: Checkout
