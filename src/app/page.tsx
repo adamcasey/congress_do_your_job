@@ -1,13 +1,13 @@
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import Link from 'next/link'
-import { FeatureFlag } from '@/lib/feature-flags'
-import { getServerFlag } from '@/lib/launchdarkly-server'
+import { FeatureFlag, featureFlagDefaults, featureFlagKeys } from '@/lib/feature-flags'
+import { useLaunchDarkly } from '@/config/launchdarkly'
 import { freePressFont, latoFont } from '@/styles/fonts'
 import { BudgetCountdown } from '@/components/BudgetCountdown'
 import { RecentBills } from '@/components/legislation/RecentBills'
-
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
 
 const DAY_MS = 1000 * 60 * 60 * 24
 
@@ -267,15 +267,28 @@ function SectionHeader({ title, eyebrow, description }: { title: string; eyebrow
   )
 }
 
-export default async function Home() {
-  const showComingSoon = await getServerFlag(FeatureFlag.COMING_SOON_LANDING_PAGE)
+export default function Home() {
+  const router = useRouter()
+  const { flags, hasLdState } = useLaunchDarkly()
 
-  if (showComingSoon) {
-    redirect('/coming-soon')
-  }
+  const comingSoonFlagKey = featureFlagKeys[FeatureFlag.COMING_SOON_LANDING_PAGE]
+  const budgetTimerFlagKey = featureFlagKeys[FeatureFlag.BUDGET_BILL_TIMER]
 
-  const showBudgetTimer = await getServerFlag(FeatureFlag.BUDGET_BILL_TIMER)
-  const lastBudgetDate = process.env.BUDGET_LAST_PASSED_DATE ?? '2024-03-23'
+  const showComingSoon = hasLdState && comingSoonFlagKey in flags
+    ? Boolean(flags[comingSoonFlagKey])
+    : featureFlagDefaults[FeatureFlag.COMING_SOON_LANDING_PAGE]
+
+  const showBudgetTimer = hasLdState && budgetTimerFlagKey in flags
+    ? Boolean(flags[budgetTimerFlagKey])
+    : featureFlagDefaults[FeatureFlag.BUDGET_BILL_TIMER]
+
+  useEffect(() => {
+    if (hasLdState && showComingSoon) {
+      router.push('/coming-soon')
+    }
+  }, [hasLdState, showComingSoon, router])
+
+  const lastBudgetDate = process.env.NEXT_PUBLIC_BUDGET_LAST_PASSED_DATE ?? '2024-03-23'
   const { daysSinceBudget, lastBudgetDateLabel } = getBudgetStats(lastBudgetDate)
 
   const heroMetrics = [

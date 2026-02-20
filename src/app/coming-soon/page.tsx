@@ -1,11 +1,18 @@
+'use client'
+
 import { WaitlistForm } from '@/components/forms/WaitlistForm'
 import { BudgetCountdown } from '@/components/BudgetCountdown'
 import { freePressFont } from '@/styles/fonts'
-import { getServerFlag } from '@/lib/launchdarkly-server'
-import { FeatureFlag } from '@/lib/feature-flags'
+import { useLaunchDarkly } from '@/config/launchdarkly'
+import { FeatureFlag, featureFlagDefaults, featureFlagKeys } from '@/lib/feature-flags'
 
-export default async function ComingSoon() {
-  const showBudgetTimer = await getServerFlag(FeatureFlag.BUDGET_BILL_TIMER)
+export default function ComingSoon() {
+  const { flags, hasLdState } = useLaunchDarkly()
+
+  const budgetTimerFlagKey = featureFlagKeys[FeatureFlag.BUDGET_BILL_TIMER]
+  const showBudgetTimer = hasLdState && budgetTimerFlagKey in flags
+    ? Boolean(flags[budgetTimerFlagKey])
+    : featureFlagDefaults[FeatureFlag.BUDGET_BILL_TIMER]
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#e4f0f9] via-[#e4f0f9] to-[#fde3e0]">
