@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { ReactNode, useEffect } from 'react'
-import { FeatureFlag, featureFlagDefaults, featureFlagKeys } from '@/lib/feature-flags'
+import { FeatureFlag, featureFlagDefaults } from '@/lib/feature-flags'
 import { useLaunchDarkly } from '@/config/launchdarkly'
 
 type FlagGateProps = {
@@ -27,10 +27,8 @@ export function FlagGate({
   const { flags, hasLdState } = useLaunchDarkly()
   const router = useRouter()
 
-  const flagKey = featureFlagKeys[flag]
   const fallback = featureFlagDefaults[flag]
-
-  const flagValue = hasLdState && flagKey in flags ? Boolean(flags[flagKey]) : fallback
+  const flagValue = hasLdState && flag in flags ? Boolean(flags[flag]) : fallback
   const shouldRedirect = invert ? !flagValue : flagValue
 
   useEffect(() => {
