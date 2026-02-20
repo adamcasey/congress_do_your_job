@@ -4,14 +4,13 @@ import { WaitlistForm } from '@/components/forms/WaitlistForm'
 import { BudgetCountdown } from '@/components/BudgetCountdown'
 import { freePressFont } from '@/styles/fonts'
 import { useLaunchDarkly } from '@/config/launchdarkly'
-import { FeatureFlag, featureFlagDefaults, featureFlagKeys } from '@/lib/feature-flags'
+import { FeatureFlag, featureFlagDefaults } from '@/lib/feature-flags'
 
 export default function ComingSoon() {
   const { flags, hasLdState } = useLaunchDarkly()
 
-  const budgetTimerFlagKey = featureFlagKeys[FeatureFlag.BUDGET_BILL_TIMER]
-  const showBudgetTimer = hasLdState && budgetTimerFlagKey in flags
-    ? Boolean(flags[budgetTimerFlagKey])
+  const showBudgetTimer = hasLdState && FeatureFlag.BUDGET_BILL_TIMER in flags
+    ? Boolean(flags[FeatureFlag.BUDGET_BILL_TIMER])
     : featureFlagDefaults[FeatureFlag.BUDGET_BILL_TIMER]
 
   return (

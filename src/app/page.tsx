@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import Link from 'next/link'
-import { FeatureFlag, featureFlagDefaults, featureFlagKeys } from '@/lib/feature-flags'
+import { FeatureFlag, featureFlagDefaults } from '@/lib/feature-flags'
 import { useLaunchDarkly } from '@/config/launchdarkly'
 import { freePressFont, latoFont } from '@/styles/fonts'
 import { BudgetCountdown } from '@/components/BudgetCountdown'
@@ -271,15 +271,12 @@ export default function Home() {
   const router = useRouter()
   const { flags, hasLdState } = useLaunchDarkly()
 
-  const comingSoonFlagKey = featureFlagKeys[FeatureFlag.COMING_SOON_LANDING_PAGE]
-  const budgetTimerFlagKey = featureFlagKeys[FeatureFlag.BUDGET_BILL_TIMER]
-
-  const showComingSoon = hasLdState && comingSoonFlagKey in flags
-    ? Boolean(flags[comingSoonFlagKey])
+  const showComingSoon = hasLdState && FeatureFlag.COMING_SOON_LANDING_PAGE in flags
+    ? Boolean(flags[FeatureFlag.COMING_SOON_LANDING_PAGE])
     : featureFlagDefaults[FeatureFlag.COMING_SOON_LANDING_PAGE]
 
-  const showBudgetTimer = hasLdState && budgetTimerFlagKey in flags
-    ? Boolean(flags[budgetTimerFlagKey])
+  const showBudgetTimer = hasLdState && FeatureFlag.BUDGET_BILL_TIMER in flags
+    ? Boolean(flags[FeatureFlag.BUDGET_BILL_TIMER])
     : featureFlagDefaults[FeatureFlag.BUDGET_BILL_TIMER]
 
   useEffect(() => {
