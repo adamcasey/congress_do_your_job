@@ -1,6 +1,6 @@
 import { BackButton } from '@/components/ui'
 import { RepresentativeLookup } from '@/components/representatives/RepresentativeLookup'
-import { FeatureFlagGuard } from '@/components/FeatureFlagGuard'
+import { FlagGate } from '@/components/FlagGate'
 import { FeatureFlag } from '@/lib/feature-flags'
 import { freePressFont } from '@/styles/fonts'
 
@@ -9,12 +9,9 @@ export const metadata = {
   description: 'Look up your federal representatives by address. Find your senators and house representatives.',
 }
 
-// Force dynamic rendering since we use headers() for LaunchDarkly IP targeting
-export const dynamic = 'force-dynamic'
-
 export default function RepresentativesPage() {
   return (
-    <FeatureFlagGuard flag={FeatureFlag.COMING_SOON_LANDING_PAGE}>
+    <FlagGate flag={FeatureFlag.COMING_SOON_LANDING_PAGE}>
       <main className="min-h-screen bg-gradient-to-br from-[#e4f0f9] via-[#e4f0f9] to-[#fde3e0]">
         <div className="mx-auto max-w-5xl px-6 py-12 md:py-16">
           <BackButton href="/">Back to Dashboard</BackButton>
@@ -42,6 +39,6 @@ export default function RepresentativesPage() {
           </footer>
         </div>
       </main>
-    </FeatureFlagGuard>
+    </FlagGate>
   )
 }
