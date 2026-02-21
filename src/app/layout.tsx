@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Congress Do Your Job',
     description: 'Less theater. More legislation.',
-    images: ['/og-image.png'],
+    images: ['/og-image-2.png'],
   },
 }
 
