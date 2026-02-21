@@ -279,16 +279,14 @@ export default function Home() {
     ? Boolean(flags[FeatureFlag.BUDGET_BILL_TIMER])
     : featureFlagDefaults[FeatureFlag.BUDGET_BILL_TIMER]
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[LD Debug] hasLdState:', hasLdState)
-    console.log('[LD Debug] flags:', flags)
-    console.log('[LD Debug] COMING_SOON_LANDING_PAGE key:', FeatureFlag.COMING_SOON_LANDING_PAGE)
-    console.log('[LD Debug] COMING_SOON_LANDING_PAGE in flags:', FeatureFlag.COMING_SOON_LANDING_PAGE in flags)
-    console.log('[LD Debug] showComingSoon:', showComingSoon)
-    console.log('[LD Debug] BUDGET_BILL_TIMER key:', FeatureFlag.BUDGET_BILL_TIMER)
-    console.log('[LD Debug] BUDGET_BILL_TIMER in flags:', FeatureFlag.BUDGET_BILL_TIMER in flags)
-    console.log('[LD Debug] showBudgetTimer:', showBudgetTimer)
-  }
+  console.log('[LD Debug] hasLdState:', hasLdState)
+  console.log('[LD Debug] flags:', flags)
+  console.log('[LD Debug] COMING_SOON_LANDING_PAGE key:', FeatureFlag.COMING_SOON_LANDING_PAGE)
+  console.log('[LD Debug] COMING_SOON_LANDING_PAGE in flags:', FeatureFlag.COMING_SOON_LANDING_PAGE in flags)
+  console.log('[LD Debug] showComingSoon:', showComingSoon)
+  console.log('[LD Debug] BUDGET_BILL_TIMER key:', FeatureFlag.BUDGET_BILL_TIMER)
+  console.log('[LD Debug] BUDGET_BILL_TIMER in flags:', FeatureFlag.BUDGET_BILL_TIMER in flags)
+  console.log('[LD Debug] showBudgetTimer:', showBudgetTimer)
 
   useEffect(() => {
     if (hasLdState && showComingSoon) {
