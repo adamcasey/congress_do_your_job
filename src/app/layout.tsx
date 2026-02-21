@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: 'Congress Do Your Job',
   description: 'A calm, plain-English dashboard for what Congress actually did this week. Non-partisan civic engagement with weekly briefings and accountability scorecards.',
   metadataBase: new URL('https://congressdoyourjob.com'),
+  icons: {
+    icon: '/logos/figma/figma_logo_favicon.svg',
+  },
   openGraph: {
     title: 'Congress Do Your Job',
     description: 'Less theater. More legislation. Track what elected officials actually do.',
