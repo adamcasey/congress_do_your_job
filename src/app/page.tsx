@@ -289,7 +289,7 @@ export default function Home() {
   console.log('[LD Debug] showBudgetTimer:', showBudgetTimer)
 
   useEffect(() => {
-    if (hasLdState && showComingSoon) {
+    if (process.env.NODE_ENV === 'production') {
       router.push('/coming-soon')
     }
   }, [hasLdState, showComingSoon, router])
