@@ -281,7 +281,7 @@ export default function Home() {
     : featureFlagDefaults[FeatureFlag.BUDGET_BILL_TIMER]
 
   useEffect(() => {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production' && !showComingSoon) {
       router.push('/coming-soon')
     }
   }, [hasLdState, showComingSoon, router])
