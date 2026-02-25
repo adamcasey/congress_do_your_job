@@ -8,6 +8,7 @@ import { useLaunchDarkly } from '@/config/launchdarkly'
 import { freePressFont, latoFont } from '@/styles/fonts'
 import { BudgetCountdown } from '@/components/BudgetCountdown'
 import { RecentBills } from '@/components/legislation/RecentBills'
+import { WaitlistForm } from '@/components/forms/WaitlistForm'
 
 const DAY_MS = 1000 * 60 * 60 * 24
 
@@ -279,17 +280,8 @@ export default function Home() {
     ? Boolean(flags[FeatureFlag.BUDGET_BILL_TIMER])
     : featureFlagDefaults[FeatureFlag.BUDGET_BILL_TIMER]
 
-  console.log('[LD Debug] hasLdState:', hasLdState)
-  console.log('[LD Debug] flags:', flags)
-  console.log('[LD Debug] COMING_SOON_LANDING_PAGE key:', FeatureFlag.COMING_SOON_LANDING_PAGE)
-  console.log('[LD Debug] COMING_SOON_LANDING_PAGE in flags:', FeatureFlag.COMING_SOON_LANDING_PAGE in flags)
-  console.log('[LD Debug] showComingSoon:', showComingSoon)
-  console.log('[LD Debug] BUDGET_BILL_TIMER key:', FeatureFlag.BUDGET_BILL_TIMER)
-  console.log('[LD Debug] BUDGET_BILL_TIMER in flags:', FeatureFlag.BUDGET_BILL_TIMER in flags)
-  console.log('[LD Debug] showBudgetTimer:', showBudgetTimer)
-
   useEffect(() => {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production' && !showComingSoon) {
       router.push('/coming-soon')
     }
   }, [hasLdState, showComingSoon, router])
@@ -579,28 +571,11 @@ export default function Home() {
                 </span>
               </div>
             </div>
-            <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
-              <label className="text-sm font-semibold text-slate-800" htmlFor="email">
-                Get the Monday briefing
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-inner focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-200"
-              />
-              <button
-                type="button"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-lg shadow-slate-400/40 transition hover:-translate-y-[1px] hover:shadow-xl"
-              >
-                Join the list
-                <span aria-hidden>&rarr;</span>
-              </button>
-              <p className="text-xs text-slate-500">
-                TODO: wire up to email service (Resend or Mailgun). No spam, ever.
-              </p>
-            </form>
+            <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
+              <p className="text-sm font-semibold text-slate-800">Get the Monday briefing</p>
+              <WaitlistForm />
+              <p className="text-xs text-slate-500">No spam, ever. Unsubscribe anytime.</p>
+            </div>
           </div>
         </section>
       </div>
