@@ -1,49 +1,49 @@
-'use client'
+"use client";
 
-import { useState, FormEvent, ChangeEvent, useRef, useEffect } from 'react'
-import Image from 'next/image'
-import { useRepresentativeLookup, useAddressAutocomplete } from '@/hooks'
-import { EmptyState } from '@/components/ui'
+import { useState, FormEvent, ChangeEvent, useRef, useEffect } from "react";
+import Image from "next/image";
+import { useRepresentativeLookup, useAddressAutocomplete } from "@/hooks";
+import { EmptyState } from "@/components/ui";
 
 export function AddressLookupForm() {
-  const [address, setAddress] = useState('')
-  const [showAutocomplete, setShowAutocomplete] = useState(false)
-  const { loading, representatives, lookupByAddress } = useRepresentativeLookup()
-  const { predictions, fetchPredictions, clearPredictions } = useAddressAutocomplete()
-  const [hasSearched, setHasSearched] = useState(false)
-  const autocompleteRef = useRef<HTMLDivElement>(null)
+  const [address, setAddress] = useState("");
+  const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const { loading, representatives, lookupByAddress } = useRepresentativeLookup();
+  const { predictions, fetchPredictions, clearPredictions } = useAddressAutocomplete();
+  const [hasSearched, setHasSearched] = useState(false);
+  const autocompleteRef = useRef<HTMLDivElement>(null);
 
   const handleAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setAddress(value)
-    fetchPredictions(value)
-    setShowAutocomplete(true)
-  }
+    const value = e.target.value;
+    setAddress(value);
+    fetchPredictions(value);
+    setShowAutocomplete(true);
+  };
 
   const handleSelectPrediction = (description: string) => {
-    setAddress(description)
-    setShowAutocomplete(false)
-    clearPredictions()
-  }
+    setAddress(description);
+    setShowAutocomplete(false);
+    clearPredictions();
+  };
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setHasSearched(true)
-    setShowAutocomplete(false)
-    await lookupByAddress(address)
-  }
+    e.preventDefault();
+    setHasSearched(true);
+    setShowAutocomplete(false);
+    await lookupByAddress(address);
+  };
 
   // Close autocomplete when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (autocompleteRef.current && !autocompleteRef.current.contains(event.target as Node)) {
-        setShowAutocomplete(false)
+        setShowAutocomplete(false);
       }
-    }
+    };
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -79,9 +79,7 @@ export function AddressLookupForm() {
             </div>
           )}
 
-          <p className="mt-2 text-xs text-slate-500">
-            We&apos;ll find your federal representatives (House & Senate)
-          </p>
+          <p className="mt-2 text-xs text-slate-500">We&apos;ll find your federal representatives (House & Senate)</p>
         </div>
 
         <button
@@ -89,14 +87,12 @@ export function AddressLookupForm() {
           disabled={loading || !address.trim()}
           className="inline-flex h-12 items-center justify-center rounded-lg bg-slate-900 px-8 text-base font-semibold text-white shadow-lg shadow-slate-900/30 transition hover:-translate-y-[1px] hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
         >
-          {loading ? 'Looking up...' : 'Find My Representatives'}
+          {loading ? "Looking up..." : "Find My Representatives"}
         </button>
       </form>
 
       {hasSearched && !loading && representatives.length === 0 && (
-        <EmptyState
-          message="No representatives found for this address. Please check that you've entered a complete address with city, state, and ZIP code."
-        />
+        <EmptyState message="No representatives found for this address. Please check that you've entered a complete address with city, state, and ZIP code." />
       )}
 
       {representatives.length > 0 && (
@@ -104,10 +100,7 @@ export function AddressLookupForm() {
           <h3 className="text-lg font-semibold text-slate-900">Your Representatives</h3>
           <div className="grid gap-4 md:grid-cols-2">
             {representatives.map((rep) => (
-              <div
-                key={rep.id}
-                className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
-              >
+              <div key={rep.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex items-start gap-4">
                   {rep.photoURL && (
                     <Image
@@ -122,9 +115,7 @@ export function AddressLookupForm() {
                   <div className="flex-1">
                     <h4 className="font-semibold text-slate-900">{rep.name}</h4>
                     <p className="text-sm text-slate-600">{rep.area}</p>
-                    {rep.phone && (
-                      <p className="text-sm text-slate-700 mt-2">{rep.phone}</p>
-                    )}
+                    {rep.phone && <p className="text-sm text-slate-700 mt-2">{rep.phone}</p>}
                     {rep.url && (
                       <a
                         href={rep.url}
@@ -143,5 +134,5 @@ export function AddressLookupForm() {
         </div>
       )}
     </div>
-  )
+  );
 }

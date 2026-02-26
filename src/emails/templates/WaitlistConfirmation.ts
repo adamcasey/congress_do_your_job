@@ -1,4 +1,4 @@
-import { BaseEmailLayout } from '../layouts/BaseEmailLayout'
+import { BaseEmailLayout } from "../layouts/BaseEmailLayout";
 
 /**
  * Waitlist confirmation email template
@@ -6,7 +6,7 @@ import { BaseEmailLayout } from '../layouts/BaseEmailLayout'
  */
 
 interface WaitlistConfirmationProps {
-  email: string
+  email: string;
 }
 
 export function WaitlistConfirmation({ email }: WaitlistConfirmationProps): string {
@@ -177,10 +177,10 @@ export function WaitlistConfirmation({ email }: WaitlistConfirmationProps): stri
         </td>
       </tr>
     </table>
-  `
+  `;
 
   return BaseEmailLayout({
     content,
     preheader: "You're on the list! We'll notify you when Congress Do Your Job launches.",
-  })
+  });
 }

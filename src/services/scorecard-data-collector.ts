@@ -23,38 +23,38 @@ import {
   CommitteeWorkData,
   CivilityData,
   TheaterRatioData,
-} from '@/types/scorecard'
+} from "@/types/scorecard";
 import {
   getMember,
   getMemberSponsoredLegislation,
   getMemberCosponsoredLegislation,
   CongressApiError,
-} from '@/lib/congress-api'
-import { Bill, Member, Cosponsor } from '@/types/congress'
-import { buildCacheKey, getOrFetch, CacheTTL } from '@/lib/cache'
-import { createLogger } from '@/lib/logger'
+} from "@/lib/congress-api";
+import { Bill, Member, Cosponsor } from "@/types/congress";
+import { buildCacheKey, getOrFetch, CacheTTL } from "@/lib/cache";
+import { createLogger } from "@/lib/logger";
 
-const logger = createLogger('ScorecardDataCollector')
+const logger = createLogger("ScorecardDataCollector");
 
 export interface CollectionResult {
-  input: ScoringInput
-  dataSources: DataSourceReport
+  input: ScoringInput;
+  dataSources: DataSourceReport;
 }
 
 export interface DataSourceReport {
-  attendance: DataSourceStatus
-  legislation: DataSourceStatus
-  bipartisanship: DataSourceStatus
-  committeeWork: DataSourceStatus
-  civility: DataSourceStatus
-  theaterRatio: DataSourceStatus
+  attendance: DataSourceStatus;
+  legislation: DataSourceStatus;
+  bipartisanship: DataSourceStatus;
+  committeeWork: DataSourceStatus;
+  civility: DataSourceStatus;
+  theaterRatio: DataSourceStatus;
 }
 
-export type DataSourceStatus = 'live' | 'partial' | 'default'
+export type DataSourceStatus = "live" | "partial" | "default";
 
 interface CollectionOptions {
-  congress?: number
-  skipCache?: boolean
+  congress?: number;
+  skipCache?: boolean;
 }
 
 /**
@@ -68,59 +68,59 @@ export async function collectScorecardData(
   bioguideId: string,
   periodStart: Date,
   periodEnd: Date,
-  options: CollectionOptions = {}
+  options: CollectionOptions = {},
 ): Promise<CollectionResult> {
   const cacheKey = buildCacheKey(
-    'scorecard',
-    'collection',
-    `${bioguideId}:${periodStart.toISOString().slice(0, 10)}:${periodEnd.toISOString().slice(0, 10)}`
-  )
+    "scorecard",
+    "collection",
+    `${bioguideId}:${periodStart.toISOString().slice(0, 10)}:${periodEnd.toISOString().slice(0, 10)}`,
+  );
 
   if (!options.skipCache) {
     const cached = await getOrFetch<CollectionResult>(
       cacheKey,
       () => fetchAndAssembleData(bioguideId, periodStart, periodEnd, options),
-      CacheTTL.SCORECARD
-    )
-    return cached.data!
+      CacheTTL.SCORECARD,
+    );
+    return cached.data!;
   }
 
-  return fetchAndAssembleData(bioguideId, periodStart, periodEnd, options)
+  return fetchAndAssembleData(bioguideId, periodStart, periodEnd, options);
 }
 
 async function fetchAndAssembleData(
   bioguideId: string,
   periodStart: Date,
   periodEnd: Date,
-  options: CollectionOptions
+  options: CollectionOptions,
 ): Promise<CollectionResult> {
-  logger.info(`Collecting scorecard data for ${bioguideId} (${periodStart.toISOString().slice(0, 10)} to ${periodEnd.toISOString().slice(0, 10)})`)
+  logger.info(
+    `Collecting scorecard data for ${bioguideId} (${periodStart.toISOString().slice(0, 10)} to ${periodEnd.toISOString().slice(0, 10)})`,
+  );
 
   // Fetch member profile, sponsored bills, and cosponsored bills in parallel
   const [member, sponsoredResponse, cosponsoredResponse] = await Promise.all([
     getMember(bioguideId),
     getMemberSponsoredLegislation(bioguideId, { limit: 250 }),
     getMemberCosponsoredLegislation(bioguideId, { limit: 250 }),
-  ])
+  ]);
 
-  const sponsoredBills = (sponsoredResponse.bills ?? [])
-    .filter(bill => isWithinPeriod(bill, periodStart, periodEnd))
+  const sponsoredBills = (sponsoredResponse.bills ?? []).filter((bill) => isWithinPeriod(bill, periodStart, periodEnd));
 
-  const cosponsoredBills = (cosponsoredResponse.bills ?? [])
-    .filter(bill => isWithinPeriod(bill, periodStart, periodEnd))
+  const cosponsoredBills = (cosponsoredResponse.bills ?? []).filter((bill) => isWithinPeriod(bill, periodStart, periodEnd));
 
   const dataSources: DataSourceReport = {
-    attendance: 'default',
-    legislation: 'live',
-    bipartisanship: 'partial',
-    committeeWork: 'partial',
-    civility: 'default',
-    theaterRatio: 'default',
-  }
+    attendance: "default",
+    legislation: "live",
+    bipartisanship: "partial",
+    committeeWork: "partial",
+    civility: "default",
+    theaterRatio: "default",
+  };
 
-  const legislation = buildLegislationData(sponsoredBills, cosponsoredBills)
-  const bipartisanship = buildBipartisanshipData(sponsoredBills, cosponsoredBills, member)
-  const committeeWork = buildCommitteeWorkData(member)
+  const legislation = buildLegislationData(sponsoredBills, cosponsoredBills);
+  const bipartisanship = buildBipartisanshipData(sponsoredBills, cosponsoredBills, member);
+  const committeeWork = buildCommitteeWorkData(member);
 
   const input: ScoringInput = {
     bioguideId,
@@ -132,11 +132,11 @@ async function fetchAndAssembleData(
     committeeWork,
     civility: buildDefaultCivilityData(),
     theaterRatio: buildDefaultTheaterRatioData(),
-  }
+  };
 
-  logger.info(`Data collection complete for ${bioguideId}: ${JSON.stringify(dataSources)}`)
+  logger.info(`Data collection complete for ${bioguideId}: ${JSON.stringify(dataSources)}`);
 
-  return { input, dataSources }
+  return { input, dataSources };
 }
 
 /**
@@ -145,39 +145,36 @@ async function fetchAndAssembleData(
  * Maps Congress.gov bill data to the LegislationData interface by
  * analyzing bill actions and status to determine advancement stage.
  */
-function buildLegislationData(
-  sponsoredBills: Bill[],
-  cosponsoredBills: Bill[]
-): LegislationData {
-  let billsAdvancedPastCommittee = 0
-  let billsPassedChamber = 0
-  let billsEnactedIntoLaw = 0
-  let amendmentsProposed = 0
-  let amendmentsAdopted = 0
+function buildLegislationData(sponsoredBills: Bill[], cosponsoredBills: Bill[]): LegislationData {
+  let billsAdvancedPastCommittee = 0;
+  let billsPassedChamber = 0;
+  let billsEnactedIntoLaw = 0;
+  let amendmentsProposed = 0;
+  let amendmentsAdopted = 0;
 
   for (const bill of sponsoredBills) {
-    const actionText = bill.latestAction?.text?.toLowerCase() ?? ''
+    const actionText = bill.latestAction?.text?.toLowerCase() ?? "";
 
     if (isEnacted(actionText)) {
-      billsEnactedIntoLaw++
-      billsPassedChamber++
-      billsAdvancedPastCommittee++
+      billsEnactedIntoLaw++;
+      billsPassedChamber++;
+      billsAdvancedPastCommittee++;
     } else if (isPassedChamber(actionText)) {
-      billsPassedChamber++
-      billsAdvancedPastCommittee++
+      billsPassedChamber++;
+      billsAdvancedPastCommittee++;
     } else if (isAdvancedPastCommittee(actionText)) {
-      billsAdvancedPastCommittee++
+      billsAdvancedPastCommittee++;
     }
 
     // Count amendments from bill actions if available
     if (bill.actions) {
       for (const action of bill.actions) {
-        const text = action.text?.toLowerCase() ?? ''
-        if (text.includes('amendment') && text.includes('proposed')) {
-          amendmentsProposed++
+        const text = action.text?.toLowerCase() ?? "";
+        if (text.includes("amendment") && text.includes("proposed")) {
+          amendmentsProposed++;
         }
-        if (text.includes('amendment') && (text.includes('agreed to') || text.includes('adopted'))) {
-          amendmentsAdopted++
+        if (text.includes("amendment") && (text.includes("agreed to") || text.includes("adopted"))) {
+          amendmentsAdopted++;
         }
       }
     }
@@ -191,7 +188,7 @@ function buildLegislationData(
     billsEnactedIntoLaw,
     amendmentsProposed,
     amendmentsAdopted,
-  }
+  };
 }
 
 /**
@@ -202,32 +199,26 @@ function buildLegislationData(
  *
  * A sponsored bill is "bipartisan" if it has at least one cosponsor from a different party.
  */
-function buildBipartisanshipData(
-  sponsoredBills: Bill[],
-  cosponsoredBills: Bill[],
-  member: Member
-): BipartisanshipData {
-  const memberParty = member.partyName
+function buildBipartisanshipData(sponsoredBills: Bill[], cosponsoredBills: Bill[], member: Member): BipartisanshipData {
+  const memberParty = member.partyName;
 
   // Count cross-party cosponsorships on bills we cosponsored
   // (i.e., cases where we cosponsored a bill from someone in the other party)
-  let crossPartyCosponsorships = 0
+  let crossPartyCosponsorships = 0;
   for (const bill of cosponsoredBills) {
-    const sponsorParty = bill.sponsors?.[0]?.party
+    const sponsorParty = bill.sponsors?.[0]?.party;
     if (sponsorParty && sponsorParty !== memberParty) {
-      crossPartyCosponsorships++
+      crossPartyCosponsorships++;
     }
   }
 
   // Count bipartisan bills we sponsored (bills with cross-party cosponsors)
-  let bipartisanBillsSponsored = 0
+  let bipartisanBillsSponsored = 0;
   for (const bill of sponsoredBills) {
-    const cosponsors = bill.cosponsors ?? []
-    const hasCrossPartyCosponsor = cosponsors.some(
-      (c: Cosponsor) => c.party && c.party !== memberParty
-    )
+    const cosponsors = bill.cosponsors ?? [];
+    const hasCrossPartyCosponsor = cosponsors.some((c: Cosponsor) => c.party && c.party !== memberParty);
     if (hasCrossPartyCosponsor) {
-      bipartisanBillsSponsored++
+      bipartisanBillsSponsored++;
     }
   }
 
@@ -236,7 +227,7 @@ function buildBipartisanshipData(
     crossPartyCosponsorships,
     bipartisanBillsSponsored,
     totalBillsSponsored: sponsoredBills.length,
-  }
+  };
 }
 
 /**
@@ -255,7 +246,7 @@ function buildCommitteeWorkData(member: Member): CommitteeWorkData {
     totalHearingsAvailable: 0, // Both zero = neutral score (50)
     markupsParticipated: 0,
     totalMarkups: 0, // Both zero = neutral score (50)
-  }
+  };
 }
 
 /**
@@ -269,7 +260,7 @@ function buildDefaultAttendanceData(): AttendanceData {
     votesParticipated: 0,
     totalHearings: 0,
     hearingsAttended: 0,
-  }
+  };
 }
 
 /**
@@ -284,7 +275,7 @@ function buildDefaultCivilityData(): CivilityData {
     ethicsComplaintsFiled: 0,
     bipartisanCaucusMemberships: 0,
     crossAisleCosponsorships: 0,
-  }
+  };
 }
 
 /**
@@ -298,38 +289,36 @@ function buildDefaultTheaterRatioData(): TheaterRatioData {
     socialMediaPostCount: 0,
     mediaAppearanceCount: 0,
     pressConferencesNonLegislative: 0,
-  }
+  };
 }
 
 // --- Bill status detection helpers ---
 
 function isWithinPeriod(bill: Bill, start: Date, end: Date): boolean {
-  const updateDate = new Date(bill.updateDate)
-  return updateDate >= start && updateDate <= end
+  const updateDate = new Date(bill.updateDate);
+  return updateDate >= start && updateDate <= end;
 }
 
 function isEnacted(actionText: string): boolean {
   return (
-    actionText.includes('became public law') ||
-    actionText.includes('signed by president') ||
-    actionText.includes('enacted')
-  )
+    actionText.includes("became public law") || actionText.includes("signed by president") || actionText.includes("enacted")
+  );
 }
 
 function isPassedChamber(actionText: string): boolean {
   return (
-    actionText.includes('passed house') ||
-    actionText.includes('passed senate') ||
-    actionText.includes('agreed to in house') ||
-    actionText.includes('agreed to in senate') ||
-    actionText.includes('resolution agreed to')
-  )
+    actionText.includes("passed house") ||
+    actionText.includes("passed senate") ||
+    actionText.includes("agreed to in house") ||
+    actionText.includes("agreed to in senate") ||
+    actionText.includes("resolution agreed to")
+  );
 }
 
 function isAdvancedPastCommittee(actionText: string): boolean {
   return (
-    actionText.includes('reported by') ||
-    actionText.includes('ordered to be reported') ||
-    actionText.includes('placed on calendar')
-  )
+    actionText.includes("reported by") ||
+    actionText.includes("ordered to be reported") ||
+    actionText.includes("placed on calendar")
+  );
 }

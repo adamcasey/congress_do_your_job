@@ -1,19 +1,16 @@
-import { latoFont, freePressFont } from '@/styles/fonts'
-import Link from 'next/link'
+import { latoFont, freePressFont } from "@/styles/fonts";
+import Link from "next/link";
 
 export const metadata = {
-  title: 'Privacy Policy | Congress Do Your Job',
-  description: 'Our privacy policy and data handling practices.',
-}
+  title: "Privacy Policy | Congress Do Your Job",
+  description: "Our privacy policy and data handling practices.",
+};
 
 export default function PrivacyPage() {
   return (
     <main className={`min-h-screen px-4 pb-20 pt-10 ${latoFont.className}`}>
       <div className="mx-auto max-w-4xl">
-        <Link
-          href="/"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-slate-900"
-        >
+        <Link href="/" className="mb-6 inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-slate-900">
           &larr; Back to home
         </Link>
 
@@ -25,8 +22,8 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-2xl font-semibold text-slate-900">Our Commitment</h2>
               <p>
-                Congress Do Your Job is committed to protecting your privacy. We collect minimal data, never sell
-                your information, and maintain transparency about our practices.
+                Congress Do Your Job is committed to protecting your privacy. We collect minimal data, never sell your
+                information, and maintain transparency about our practices.
               </p>
             </section>
 
@@ -65,8 +62,8 @@ export default function PrivacyPage() {
               </p>
               <ul>
                 <li>
-                  <strong>Service providers:</strong> Email delivery (Resend/Mailgun), payment processing (Stripe),
-                  physical mail (Lob.com)
+                  <strong>Service providers:</strong> Email delivery (Resend/Mailgun), payment processing (Stripe), physical
+                  mail (Lob.com)
                 </li>
                 <li>
                   <strong>Legal requirements:</strong> When required by law or to protect our rights
@@ -85,7 +82,7 @@ export default function PrivacyPage() {
                 <li>Export your data</li>
               </ul>
               <p>
-                To exercise these rights, contact us at{' '}
+                To exercise these rights, contact us at{" "}
                 <a href="mailto:privacy@congressdoyourjob.com" className="text-amber-600 hover:text-amber-700">
                   privacy@congressdoyourjob.com
                 </a>
@@ -95,24 +92,24 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-2xl font-semibold text-slate-900">Data Security</h2>
               <p>
-                We use industry-standard security measures including encryption, secure HTTPS connections, and
-                regular security audits to protect your data.
+                We use industry-standard security measures including encryption, secure HTTPS connections, and regular security
+                audits to protect your data.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold text-slate-900">Children&apos;s Privacy</h2>
               <p>
-                Our service is not directed to children under 13. We do not knowingly collect information from
-                children under 13.
+                Our service is not directed to children under 13. We do not knowingly collect information from children under
+                13.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold text-slate-900">Changes to This Policy</h2>
               <p>
-                We may update this policy periodically. We will notify users of significant changes via email or
-                prominent site notice.
+                We may update this policy periodically. We will notify users of significant changes via email or prominent site
+                notice.
               </p>
             </section>
 
@@ -121,13 +118,13 @@ export default function PrivacyPage() {
               <p>Questions about this privacy policy? Contact us:</p>
               <ul>
                 <li>
-                  Email:{' '}
+                  Email:{" "}
                   <a href="mailto:privacy@congressdoyourjob.com" className="text-amber-600 hover:text-amber-700">
                     privacy@congressdoyourjob.com
                   </a>
                 </li>
                 <li>
-                  General inquiries:{' '}
+                  General inquiries:{" "}
                   <a href="mailto:hello@congressdoyourjob.com" className="text-amber-600 hover:text-amber-700">
                     hello@congressdoyourjob.com
                   </a>
@@ -138,5 +135,5 @@ export default function PrivacyPage() {
         </article>
       </div>
     </main>
-  )
+  );
 }

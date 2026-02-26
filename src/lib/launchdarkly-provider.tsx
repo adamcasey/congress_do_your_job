@@ -1,3 +1,3 @@
-'use client'
+"use client";
 
-export { LaunchDarklyProvider } from '@/config/launchdarkly'
+export { LaunchDarklyProvider } from "@/config/launchdarkly";

@@ -1,46 +1,40 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Image from 'next/image'
+import { useState } from "react";
+import Image from "next/image";
 
 export type RepresentativeCardData = {
-  id: string
-  name: string
-  area: string
-  phone?: string
-  url?: string
-  photoURL?: string
-}
+  id: string;
+  name: string;
+  area: string;
+  phone?: string;
+  url?: string;
+  photoURL?: string;
+};
 
 function getInitials(name: string) {
   return name
-    .split(' ')
+    .split(" ")
     .filter(Boolean)
     .map((part) => part[0])
     .slice(0, 2)
-    .join('')
-    .toUpperCase()
+    .join("")
+    .toUpperCase();
 }
 
-export function RepresentativeCard({
-  rep,
-  isPlaceholder = false,
-}: {
-  rep: RepresentativeCardData
-  isPlaceholder?: boolean
-}) {
-  const [imageError, setImageError] = useState(false)
+export function RepresentativeCard({ rep, isPlaceholder = false }: { rep: RepresentativeCardData; isPlaceholder?: boolean }) {
+  const [imageError, setImageError] = useState(false);
 
   const handleImageError = () => {
-    setImageError(true)
-  }
+    setImageError(true);
+  };
 
-  const showInitials = !rep.photoURL || imageError
+  const showInitials = !rep.photoURL || imageError;
 
   return (
     <div
       className={`flex h-[200px] items-center rounded-2xl border border-slate-200/80 p-4 shadow-sm ${
-        isPlaceholder ? 'bg-slate-50/80' : 'bg-white'
+        isPlaceholder ? "bg-slate-50/80" : "bg-white"
       }`}
     >
       <div className="flex w-full items-center gap-4">
@@ -78,5 +72,5 @@ export function RepresentativeCard({
         </div>
       </div>
     </div>
-  )
+  );
 }

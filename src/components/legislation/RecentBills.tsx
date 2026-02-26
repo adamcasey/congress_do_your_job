@@ -1,67 +1,67 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useBillDetails, useBillSummary, useRecentLegislation } from '@/hooks'
-import { Bill } from '@/types/congress'
-import { formatDate, stripHtmlTags, extractSentences } from '@/utils/dates'
-import { Modal } from '@/components/ui/Modal'
-import { BillTimeline } from './BillTimeline'
+import { useState } from "react";
+import { useBillDetails, useBillSummary, useRecentLegislation } from "@/hooks";
+import { Bill } from "@/types/congress";
+import { formatDate, stripHtmlTags, extractSentences } from "@/utils/dates";
+import { Modal } from "@/components/ui/Modal";
+import { BillTimeline } from "./BillTimeline";
 
 interface RecentBillsProps {
-  limit?: number
-  days?: number
+  limit?: number;
+  days?: number;
 }
 
 export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
-  const { data, loading, error } = useRecentLegislation({ limit, days })
-  const [selectedBill, setSelectedBill] = useState<Bill | null>(null)
+  const { data, loading, error } = useRecentLegislation({ limit, days });
+  const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const { data: billDetails, loading: loadingDetails } = useBillDetails({
     billType: selectedBill?.type,
     billNumber: selectedBill?.number,
     congress: selectedBill?.congress,
     enabled: !!selectedBill,
-  })
+  });
 
   const { data: summaryData, loading: summaryLoading } = useBillSummary({
     billType: selectedBill?.type,
     billNumber: selectedBill?.number,
     congress: selectedBill?.congress,
     enabled: !!selectedBill,
-  })
+  });
 
   const handleExplainClick = (bill: Bill) => {
-    setSelectedBill(bill)
-  }
+    setSelectedBill(bill);
+  };
 
   const handleCloseModal = () => {
-    setSelectedBill(null)
-  }
+    setSelectedBill(null);
+  };
 
   const getBillStatus = (bill: Bill): { label: string; classes: string } => {
     if (!bill.latestAction) {
-      return { label: 'Unknown', classes: 'bg-slate-100 text-slate-800 border-slate-200' }
+      return { label: "Unknown", classes: "bg-slate-100 text-slate-800 border-slate-200" };
     }
 
-    const actionText = bill.latestAction.text.toLowerCase()
+    const actionText = bill.latestAction.text.toLowerCase();
 
-    if (actionText.includes('became public law') || actionText.includes('signed by president')) {
-      return { label: 'Passed', classes: 'bg-emerald-200 text-emerald-900 border-emerald-300' }
+    if (actionText.includes("became public law") || actionText.includes("signed by president")) {
+      return { label: "Passed", classes: "bg-emerald-200 text-emerald-900 border-emerald-300" };
     }
 
-    if (actionText.includes('passed') || actionText.includes('agreed to')) {
-      return { label: 'Moved', classes: 'bg-emerald-100 text-emerald-800 border-emerald-200' }
+    if (actionText.includes("passed") || actionText.includes("agreed to")) {
+      return { label: "Moved", classes: "bg-emerald-100 text-emerald-800 border-emerald-200" };
     }
 
-    if (actionText.includes('placed on') || actionText.includes('calendar')) {
-      return { label: 'Scheduled', classes: 'bg-lime-100 text-lime-800 border-lime-200' }
+    if (actionText.includes("placed on") || actionText.includes("calendar")) {
+      return { label: "Scheduled", classes: "bg-lime-100 text-lime-800 border-lime-200" };
     }
 
-    if (actionText.includes('referred to')) {
-      return { label: 'In Committee', classes: 'bg-slate-100 text-slate-800 border-slate-200' }
+    if (actionText.includes("referred to")) {
+      return { label: "In Committee", classes: "bg-slate-100 text-slate-800 border-slate-200" };
     }
 
-    return { label: 'Update', classes: 'bg-slate-100 text-slate-800 border-slate-200' }
-  }
+    return { label: "Update", classes: "bg-slate-100 text-slate-800 border-slate-200" };
+  };
 
   if (loading) {
     return (
@@ -73,7 +73,7 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
           </div>
         ))}
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -81,7 +81,7 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
       <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
         Unable to load recent bills. {error}
       </div>
-    )
+    );
   }
 
   if (!data || data.bills.length === 0) {
@@ -89,13 +89,13 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
       <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
         No recent legislative activity found.
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-3">
       {data.bills.map((bill) => {
-        const status = getBillStatus(bill)
+        const status = getBillStatus(bill);
 
         return (
           <div
@@ -114,18 +114,14 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
                     {status.label}
                   </span>
                 </div>
-                <h3 className="mt-1 text-sm font-semibold leading-snug text-slate-900">
-                  {bill.title}
-                </h3>
+                <h3 className="mt-1 text-sm font-semibold leading-snug text-slate-900">{bill.title}</h3>
                 {bill.latestAction && (
                   <p className="mt-2 text-xs text-slate-600">
                     <span className="font-medium">Latest: </span>
                     {bill.latestAction.text}
                   </p>
                 )}
-                <p className="mt-1 text-xs text-slate-400">
-                  Updated {formatDate(bill.updateDate)}
-                </p>
+                <p className="mt-1 text-xs text-slate-400">Updated {formatDate(bill.updateDate)}</p>
               </div>
               <button
                 onClick={() => handleExplainClick(bill)}
@@ -135,7 +131,7 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
               </button>
             </div>
           </div>
-        )
+        );
       })}
 
       {data.count > data.bills.length && (
@@ -147,7 +143,7 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
       <Modal
         isOpen={selectedBill !== null}
         onClose={handleCloseModal}
-        title={selectedBill ? `${selectedBill.type} ${selectedBill.number}` : ''}
+        title={selectedBill ? `${selectedBill.type} ${selectedBill.number}` : ""}
       >
         {loadingDetails ? (
           <div className="space-y-3">
@@ -164,9 +160,7 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
                 <h3 className="text-lg font-semibold text-slate-900">{billDetails.title}</h3>
                 <p className="mt-1 text-sm text-slate-600">
                   Introduced: {formatDate(billDetails.introducedDate)}
-                  {billDetails.sponsors && billDetails.sponsors.length > 0 && (
-                    <> by {billDetails.sponsors[0].fullName}</>
-                  )}
+                  {billDetails.sponsors && billDetails.sponsors.length > 0 && <> by {billDetails.sponsors[0].fullName}</>}
                 </p>
               </div>
 
@@ -178,17 +172,13 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
                     <div className="mt-2 h-4 w-5/6 rounded bg-slate-200"></div>
                   </div>
                 ) : summaryData ? (
-                  <p className="mt-2 text-sm leading-relaxed text-slate-700">
-                    {summaryData.summary}
-                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-700">{summaryData.summary}</p>
                 ) : billDetails.summaries && billDetails.summaries.length > 0 ? (
                   <p className="mt-2 text-sm leading-relaxed text-slate-700">
                     {extractSentences(stripHtmlTags(billDetails.summaries[0].text), 2)}
                   </p>
                 ) : (
-                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                    Summary not available.
-                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">Summary not available.</p>
                 )}
               </div>
             </div>
@@ -200,5 +190,5 @@ export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
         )}
       </Modal>
     </div>
-  )
+  );
 }

@@ -1,34 +1,34 @@
-'use client'
+"use client";
 
-import { useEffect, useId, useMemo, useState } from 'react'
-import { BackButton } from '@/components/ui'
-import { latoFont } from '@/styles/fonts'
-import { AboutCTA } from '@/components/about/AboutCTA'
-import { AboutHero } from '@/components/about/AboutHero'
-import { AboutIntroGrid } from '@/components/about/AboutIntroGrid'
-import { AboutModal } from '@/components/about/AboutModal'
-import { AboutSectionCard } from '@/components/about/AboutSectionCard'
-import { sections, type ModalContent } from '@/components/about/about-data'
+import { useEffect, useId, useMemo, useState } from "react";
+import { BackButton } from "@/components/ui";
+import { latoFont } from "@/styles/fonts";
+import { AboutCTA } from "@/components/about/AboutCTA";
+import { AboutHero } from "@/components/about/AboutHero";
+import { AboutIntroGrid } from "@/components/about/AboutIntroGrid";
+import { AboutModal } from "@/components/about/AboutModal";
+import { AboutSectionCard } from "@/components/about/AboutSectionCard";
+import { sections, type ModalContent } from "@/components/about/about-data";
 
 export function AboutContent() {
-  const [activeModal, setActiveModal] = useState<ModalContent | null>(null)
-  const modalId = useId()
-  const activeLabelId = useMemo(() => `${modalId}-title`, [modalId])
+  const [activeModal, setActiveModal] = useState<ModalContent | null>(null);
+  const modalId = useId();
+  const activeLabelId = useMemo(() => `${modalId}-title`, [modalId]);
 
   useEffect(() => {
-    if (!activeModal) return
+    if (!activeModal) return;
     const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setActiveModal(null)
+      if (event.key === "Escape") {
+        setActiveModal(null);
       }
-    }
-    document.body.style.overflow = 'hidden'
-    document.addEventListener('keydown', handleKey)
+    };
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleKey);
     return () => {
-      document.body.style.overflow = ''
-      document.removeEventListener('keydown', handleKey)
-    }
-  }, [activeModal])
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [activeModal]);
 
   return (
     <main
@@ -56,5 +56,5 @@ export function AboutContent() {
       </div>
       <AboutModal modal={activeModal} labelId={activeLabelId} onClose={() => setActiveModal(null)} />
     </main>
-  )
+  );
 }

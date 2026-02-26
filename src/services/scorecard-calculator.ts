@@ -29,27 +29,27 @@ import {
   CategoryScoreDetails,
   CalculatedScorecard,
   ScorecardGrade,
-} from '@/types/scorecard'
+} from "@/types/scorecard";
 
-export const METHODOLOGY_VERSION = '1.0.0'
+export const METHODOLOGY_VERSION = "1.0.0";
 
 // Default weights — sum to 1.0
 export const DEFAULT_WEIGHTS: ScoringWeights = {
-  [ScoreCategory.ATTENDANCE]: 0.20,
+  [ScoreCategory.ATTENDANCE]: 0.2,
   [ScoreCategory.LEGISLATION]: 0.25,
   [ScoreCategory.BIPARTISANSHIP]: 0.15,
   [ScoreCategory.COMMITTEE_WORK]: 0.15,
-  [ScoreCategory.CIVILITY]: 0.10,
+  [ScoreCategory.CIVILITY]: 0.1,
   [ScoreCategory.THEATER_RATIO]: 0.15,
-}
+};
 
 function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max)
+  return Math.min(Math.max(value, min), max);
 }
 
 function round(value: number, decimals: number = 1): number {
-  const factor = Math.pow(10, decimals)
-  return Math.round(value * factor) / factor
+  const factor = Math.pow(10, decimals);
+  return Math.round(value * factor) / factor;
 }
 
 /**
@@ -60,26 +60,22 @@ function round(value: number, decimals: number = 1): number {
  * are the core legislative function.
  */
 export function calculateAttendanceScore(data: AttendanceData): CategoryScore {
-  const voteRate = data.totalVotes > 0
-    ? (data.votesParticipated / data.totalVotes) * 100
-    : 100 // No votes scheduled = no penalty
+  const voteRate = data.totalVotes > 0 ? (data.votesParticipated / data.totalVotes) * 100 : 100; // No votes scheduled = no penalty
 
-  const hearingRate = data.totalHearings > 0
-    ? (data.hearingsAttended / data.totalHearings) * 100
-    : 100
+  const hearingRate = data.totalHearings > 0 ? (data.hearingsAttended / data.totalHearings) * 100 : 100;
 
-  const rawScore = clamp(round(voteRate * 0.7 + hearingRate * 0.3), 0, 100)
+  const rawScore = clamp(round(voteRate * 0.7 + hearingRate * 0.3), 0, 100);
 
   const details: CategoryScoreDetails = {
-    description: 'Measures participation in floor votes and committee hearings',
+    description: "Measures participation in floor votes and committee hearings",
     inputs: {
       totalVotes: data.totalVotes,
       votesParticipated: data.votesParticipated,
       totalHearings: data.totalHearings,
       hearingsAttended: data.hearingsAttended,
     },
-    formula: '(voteParticipationRate × 0.7) + (hearingAttendanceRate × 0.3)',
-  }
+    formula: "(voteParticipationRate × 0.7) + (hearingAttendanceRate × 0.3)",
+  };
 
   return {
     category: ScoreCategory.ATTENDANCE,
@@ -87,7 +83,7 @@ export function calculateAttendanceScore(data: AttendanceData): CategoryScore {
     weight: DEFAULT_WEIGHTS[ScoreCategory.ATTENDANCE],
     weightedScore: round(rawScore * DEFAULT_WEIGHTS[ScoreCategory.ATTENDANCE]),
     details,
-  }
+  };
 }
 
 /**
@@ -114,20 +110,20 @@ export function calculateLegislationScore(data: LegislationData): CategoryScore 
     data.billsPassedChamber * 8 +
     data.billsEnactedIntoLaw * 15 +
     data.amendmentsProposed * 2 +
-    data.amendmentsAdopted * 4
+    data.amendmentsAdopted * 4;
 
   // Normalize: 50 points = solid performance (score of 75).
   // Scale is logarithmic to prevent runaway scores from bulk cosponsorships.
   // Floor of 10 if any activity exists; 0 only for truly inactive members.
-  let rawScore: number
+  let rawScore: number;
   if (points === 0) {
-    rawScore = 0
+    rawScore = 0;
   } else {
-    rawScore = clamp(round(25 * Math.log2(points + 1)), 10, 100)
+    rawScore = clamp(round(25 * Math.log2(points + 1)), 10, 100);
   }
 
   const details: CategoryScoreDetails = {
-    description: 'Measures legislative productivity across sponsorship, committee advancement, and enactment',
+    description: "Measures legislative productivity across sponsorship, committee advancement, and enactment",
     inputs: {
       billsSponsored: data.billsSponsored,
       billsCosponsored: data.billsCosponsored,
@@ -138,8 +134,8 @@ export function calculateLegislationScore(data: LegislationData): CategoryScore 
       amendmentsAdopted: data.amendmentsAdopted,
       totalPoints: points,
     },
-    formula: 'clamp(25 × log₂(points + 1), 10, 100) where points = Σ(action × weight)',
-  }
+    formula: "clamp(25 × log₂(points + 1), 10, 100) where points = Σ(action × weight)",
+  };
 
   return {
     category: ScoreCategory.LEGISLATION,
@@ -147,7 +143,7 @@ export function calculateLegislationScore(data: LegislationData): CategoryScore 
     weight: DEFAULT_WEIGHTS[ScoreCategory.LEGISLATION],
     weightedScore: round(rawScore * DEFAULT_WEIGHTS[ScoreCategory.LEGISLATION]),
     details,
-  }
+  };
 }
 
 /**
@@ -157,27 +153,24 @@ export function calculateLegislationScore(data: LegislationData): CategoryScore 
  * cosponsorships and bipartisan bill sponsorship.
  */
 export function calculateBipartisanshipScore(data: BipartisanshipData): CategoryScore {
-  const crossPartyRate = data.totalCosponsorships > 0
-    ? (data.crossPartyCosponsorships / data.totalCosponsorships) * 100
-    : 50 // Neutral if no cosponsorships
+  const crossPartyRate = data.totalCosponsorships > 0 ? (data.crossPartyCosponsorships / data.totalCosponsorships) * 100 : 50; // Neutral if no cosponsorships
 
-  const bipartisanSponsorRate = data.totalBillsSponsored > 0
-    ? (data.bipartisanBillsSponsored / data.totalBillsSponsored) * 100
-    : 50
+  const bipartisanSponsorRate =
+    data.totalBillsSponsored > 0 ? (data.bipartisanBillsSponsored / data.totalBillsSponsored) * 100 : 50;
 
   // Weight: 60% cross-party cosponsorships, 40% bipartisan sponsorship
-  const rawScore = clamp(round(crossPartyRate * 0.6 + bipartisanSponsorRate * 0.4), 0, 100)
+  const rawScore = clamp(round(crossPartyRate * 0.6 + bipartisanSponsorRate * 0.4), 0, 100);
 
   const details: CategoryScoreDetails = {
-    description: 'Measures willingness to work across party lines through cosponsorships and bipartisan bills',
+    description: "Measures willingness to work across party lines through cosponsorships and bipartisan bills",
     inputs: {
       totalCosponsorships: data.totalCosponsorships,
       crossPartyCosponsorships: data.crossPartyCosponsorships,
       bipartisanBillsSponsored: data.bipartisanBillsSponsored,
       totalBillsSponsored: data.totalBillsSponsored,
     },
-    formula: '(crossPartyCosponsorshipRate × 0.6) + (bipartisanSponsorRate × 0.4)',
-  }
+    formula: "(crossPartyCosponsorshipRate × 0.6) + (bipartisanSponsorRate × 0.4)",
+  };
 
   return {
     category: ScoreCategory.BIPARTISANSHIP,
@@ -185,7 +178,7 @@ export function calculateBipartisanshipScore(data: BipartisanshipData): Category
     weight: DEFAULT_WEIGHTS[ScoreCategory.BIPARTISANSHIP],
     weightedScore: round(rawScore * DEFAULT_WEIGHTS[ScoreCategory.BIPARTISANSHIP]),
     details,
-  }
+  };
 }
 
 /**
@@ -194,25 +187,17 @@ export function calculateBipartisanshipScore(data: BipartisanshipData): Category
  * Measures active participation in committee business beyond attendance.
  */
 export function calculateCommitteeWorkScore(data: CommitteeWorkData): CategoryScore {
-  const hearingRate = data.totalHearingsAvailable > 0
-    ? (data.hearingsAttended / data.totalHearingsAvailable) * 100
-    : 50
+  const hearingRate = data.totalHearingsAvailable > 0 ? (data.hearingsAttended / data.totalHearingsAvailable) * 100 : 50;
 
-  const markupRate = data.totalMarkups > 0
-    ? (data.markupsParticipated / data.totalMarkups) * 100
-    : 50
+  const markupRate = data.totalMarkups > 0 ? (data.markupsParticipated / data.totalMarkups) * 100 : 50;
 
   // Bonus for serving on multiple committees (capped at +10)
-  const committeeBonus = clamp(data.committeeMemberships * 3, 0, 10)
+  const committeeBonus = clamp(data.committeeMemberships * 3, 0, 10);
 
-  const rawScore = clamp(
-    round(hearingRate * 0.5 + markupRate * 0.4 + committeeBonus),
-    0,
-    100
-  )
+  const rawScore = clamp(round(hearingRate * 0.5 + markupRate * 0.4 + committeeBonus), 0, 100);
 
   const details: CategoryScoreDetails = {
-    description: 'Measures active participation in committee hearings, markups, and service breadth',
+    description: "Measures active participation in committee hearings, markups, and service breadth",
     inputs: {
       committeeMemberships: data.committeeMemberships,
       hearingsAttended: data.hearingsAttended,
@@ -220,8 +205,8 @@ export function calculateCommitteeWorkScore(data: CommitteeWorkData): CategorySc
       markupsParticipated: data.markupsParticipated,
       totalMarkups: data.totalMarkups,
     },
-    formula: '(hearingAttendanceRate × 0.5) + (markupParticipationRate × 0.4) + min(committees × 3, 10)',
-  }
+    formula: "(hearingAttendanceRate × 0.5) + (markupParticipationRate × 0.4) + min(committees × 3, 10)",
+  };
 
   return {
     category: ScoreCategory.COMMITTEE_WORK,
@@ -229,7 +214,7 @@ export function calculateCommitteeWorkScore(data: CommitteeWorkData): CategorySc
     weight: DEFAULT_WEIGHTS[ScoreCategory.COMMITTEE_WORK],
     weightedScore: round(rawScore * DEFAULT_WEIGHTS[ScoreCategory.COMMITTEE_WORK]),
     details,
-  }
+  };
 }
 
 /**
@@ -248,20 +233,18 @@ export function calculateCommitteeWorkScore(data: CommitteeWorkData): CategorySc
  *   Cross-aisle cosponsorships: +1 per 5 (max +10)
  */
 export function calculateCivilityScore(data: CivilityData): CategoryScore {
-  const baseline = 80
+  const baseline = 80;
 
-  const deductions =
-    data.personalAttacksOnRecord * 10 +
-    data.censuresOrReprimands * 25 +
-    data.ethicsComplaintsFiled * 5
+  const deductions = data.personalAttacksOnRecord * 10 + data.censuresOrReprimands * 25 + data.ethicsComplaintsFiled * 5;
 
-  const caucusBonus = clamp(data.bipartisanCaucusMemberships * 5, 0, 15)
-  const cosponsorBonus = clamp(Math.floor(data.crossAisleCosponsorships / 5), 0, 10)
+  const caucusBonus = clamp(data.bipartisanCaucusMemberships * 5, 0, 15);
+  const cosponsorBonus = clamp(Math.floor(data.crossAisleCosponsorships / 5), 0, 10);
 
-  const rawScore = clamp(round(baseline - deductions + caucusBonus + cosponsorBonus), 0, 100)
+  const rawScore = clamp(round(baseline - deductions + caucusBonus + cosponsorBonus), 0, 100);
 
   const details: CategoryScoreDetails = {
-    description: 'Measures professional conduct based on verified public records; penalizes documented incivility, rewards bipartisan engagement',
+    description:
+      "Measures professional conduct based on verified public records; penalizes documented incivility, rewards bipartisan engagement",
     inputs: {
       personalAttacksOnRecord: data.personalAttacksOnRecord,
       censuresOrReprimands: data.censuresOrReprimands,
@@ -269,8 +252,9 @@ export function calculateCivilityScore(data: CivilityData): CategoryScore {
       bipartisanCaucusMemberships: data.bipartisanCaucusMemberships,
       crossAisleCosponsorships: data.crossAisleCosponsorships,
     },
-    formula: 'clamp(80 - (attacks × 10) - (censures × 25) - (ethics × 5) + min(caucuses × 5, 15) + min(⌊cosponsorships/5⌋, 10), 0, 100)',
-  }
+    formula:
+      "clamp(80 - (attacks × 10) - (censures × 25) - (ethics × 5) + min(caucuses × 5, 15) + min(⌊cosponsorships/5⌋, 10), 0, 100)",
+  };
 
   return {
     category: ScoreCategory.CIVILITY,
@@ -278,7 +262,7 @@ export function calculateCivilityScore(data: CivilityData): CategoryScore {
     weight: DEFAULT_WEIGHTS[ScoreCategory.CIVILITY],
     weightedScore: round(rawScore * DEFAULT_WEIGHTS[ScoreCategory.CIVILITY]),
     details,
-  }
+  };
 }
 
 /**
@@ -298,28 +282,25 @@ export function calculateCivilityScore(data: CivilityData): CategoryScore {
  *   ratio < 0.2:  0-39   (all theater, no work)
  */
 export function calculateTheaterRatioScore(data: TheaterRatioData): CategoryScore {
-  const theaterActivity =
-    data.socialMediaPostCount +
-    data.mediaAppearanceCount +
-    data.pressConferencesNonLegislative
+  const theaterActivity = data.socialMediaPostCount + data.mediaAppearanceCount + data.pressConferencesNonLegislative;
 
-  const ratio = data.legislativeActionsThisPeriod / (theaterActivity + 1)
+  const ratio = data.legislativeActionsThisPeriod / (theaterActivity + 1);
 
-  let rawScore: number
+  let rawScore: number;
   if (theaterActivity === 0 && data.legislativeActionsThisPeriod === 0) {
-    rawScore = 50 // No data = neutral
+    rawScore = 50; // No data = neutral
   } else if (ratio >= 1.0) {
-    rawScore = clamp(round(90 + (ratio - 1.0) * 5), 90, 100)
+    rawScore = clamp(round(90 + (ratio - 1.0) * 5), 90, 100);
   } else if (ratio >= 0.5) {
-    rawScore = round(70 + (ratio - 0.5) * 40)
+    rawScore = round(70 + (ratio - 0.5) * 40);
   } else if (ratio >= 0.2) {
-    rawScore = round(40 + (ratio - 0.2) * 100)
+    rawScore = round(40 + (ratio - 0.2) * 100);
   } else {
-    rawScore = clamp(round(ratio * 200), 0, 39)
+    rawScore = clamp(round(ratio * 200), 0, 39);
   }
 
   const details: CategoryScoreDetails = {
-    description: 'Measures time allocation between governing and performing; rewards substance over spectacle',
+    description: "Measures time allocation between governing and performing; rewards substance over spectacle",
     inputs: {
       legislativeActionsThisPeriod: data.legislativeActionsThisPeriod,
       socialMediaPostCount: data.socialMediaPostCount,
@@ -327,8 +308,8 @@ export function calculateTheaterRatioScore(data: TheaterRatioData): CategoryScor
       pressConferencesNonLegislative: data.pressConferencesNonLegislative,
       theaterToWorkRatio: round(ratio, 3),
     },
-    formula: 'ratio = legislativeActions / (socialMedia + media + pressConferences + 1), then mapped to 0-100 scale',
-  }
+    formula: "ratio = legislativeActions / (socialMedia + media + pressConferences + 1), then mapped to 0-100 scale",
+  };
 
   return {
     category: ScoreCategory.THEATER_RATIO,
@@ -336,34 +317,34 @@ export function calculateTheaterRatioScore(data: TheaterRatioData): CategoryScor
     weight: DEFAULT_WEIGHTS[ScoreCategory.THEATER_RATIO],
     weightedScore: round(rawScore * DEFAULT_WEIGHTS[ScoreCategory.THEATER_RATIO]),
     details,
-  }
+  };
 }
 
 /**
  * Map a 0-100 score to a letter grade
  */
 export function scoreToGrade(score: number): ScorecardGrade {
-  if (score >= 97) return 'A+'
-  if (score >= 93) return 'A'
-  if (score >= 90) return 'A-'
-  if (score >= 87) return 'B+'
-  if (score >= 83) return 'B'
-  if (score >= 80) return 'B-'
-  if (score >= 77) return 'C+'
-  if (score >= 73) return 'C'
-  if (score >= 70) return 'C-'
-  if (score >= 67) return 'D+'
-  if (score >= 63) return 'D'
-  if (score >= 60) return 'D-'
-  return 'F'
+  if (score >= 97) return "A+";
+  if (score >= 93) return "A";
+  if (score >= 90) return "A-";
+  if (score >= 87) return "B+";
+  if (score >= 83) return "B";
+  if (score >= 80) return "B-";
+  if (score >= 77) return "C+";
+  if (score >= 73) return "C";
+  if (score >= 70) return "C-";
+  if (score >= 67) return "D+";
+  if (score >= 63) return "D";
+  if (score >= 60) return "D-";
+  return "F";
 }
 
 /**
  * Validate that weights sum to 1.0 (within floating point tolerance)
  */
 export function validateWeights(weights: ScoringWeights): boolean {
-  const sum = Object.values(weights).reduce((a, b) => a + b, 0)
-  return Math.abs(sum - 1.0) < 0.001
+  const sum = Object.values(weights).reduce((a, b) => a + b, 0);
+  return Math.abs(sum - 1.0) < 0.001;
 }
 
 /**
@@ -372,14 +353,9 @@ export function validateWeights(weights: ScoringWeights): boolean {
  * This is the main entry point. It takes verified input data and produces
  * a fully calculated scorecard with transparent breakdowns.
  */
-export function calculateScorecard(
-  input: ScoringInput,
-  weights: ScoringWeights = DEFAULT_WEIGHTS
-): CalculatedScorecard {
+export function calculateScorecard(input: ScoringInput, weights: ScoringWeights = DEFAULT_WEIGHTS): CalculatedScorecard {
   if (!validateWeights(weights)) {
-    throw new Error(
-      `Scoring weights must sum to 1.0. Current sum: ${Object.values(weights).reduce((a, b) => a + b, 0)}`
-    )
+    throw new Error(`Scoring weights must sum to 1.0. Current sum: ${Object.values(weights).reduce((a, b) => a + b, 0)}`);
   }
 
   const categoryScores: CategoryScore[] = [
@@ -389,18 +365,14 @@ export function calculateScorecard(
     { ...calculateCommitteeWorkScore(input.committeeWork), weight: weights[ScoreCategory.COMMITTEE_WORK] },
     { ...calculateCivilityScore(input.civility), weight: weights[ScoreCategory.CIVILITY] },
     { ...calculateTheaterRatioScore(input.theaterRatio), weight: weights[ScoreCategory.THEATER_RATIO] },
-  ]
+  ];
 
   // Recalculate weighted scores with potentially custom weights
   for (const cs of categoryScores) {
-    cs.weightedScore = round(cs.rawScore * cs.weight)
+    cs.weightedScore = round(cs.rawScore * cs.weight);
   }
 
-  const totalScore = clamp(
-    round(categoryScores.reduce((sum, cs) => sum + cs.weightedScore, 0)),
-    0,
-    100
-  )
+  const totalScore = clamp(round(categoryScores.reduce((sum, cs) => sum + cs.weightedScore, 0)), 0, 100);
 
   return {
     bioguideId: input.bioguideId,
@@ -411,5 +383,5 @@ export function calculateScorecard(
     categoryScores,
     methodologyVersion: METHODOLOGY_VERSION,
     calculatedAt: new Date(),
-  }
+  };
 }
