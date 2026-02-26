@@ -4,8 +4,8 @@
  */
 
 interface BaseEmailLayoutProps {
-  content: string
-  preheader?: string
+  content: string;
+  preheader?: string;
 }
 
 export function BaseEmailLayout({ content, preheader }: BaseEmailLayoutProps): string {
@@ -16,7 +16,7 @@ export function BaseEmailLayout({ content, preheader }: BaseEmailLayoutProps): s
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="x-apple-disable-message-reformatting">
-        ${preheader ? `<meta name="description" content="${preheader}">` : ''}
+        ${preheader ? `<meta name="description" content="${preheader}">` : ""}
         <title>Congress Do Your Job</title>
         <!--[if mso]>
         <style type="text/css">
@@ -25,12 +25,16 @@ export function BaseEmailLayout({ content, preheader }: BaseEmailLayoutProps): s
         <![endif]-->
       </head>
       <body style="margin: 0; padding: 0; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
-        ${preheader ? `
+        ${
+          preheader
+            ? `
         <!-- Preheader text (hidden but shows in email preview) -->
         <div style="display: none; max-height: 0px; overflow: hidden;">
           ${preheader}
         </div>
-        ` : ''}
+        `
+            : ""
+        }
 
         <!-- Main wrapper table -->
         <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #ffffff; min-height: 100vh;">
@@ -42,5 +46,5 @@ export function BaseEmailLayout({ content, preheader }: BaseEmailLayoutProps): s
         </table>
       </body>
     </html>
-  `
+  `;
 }

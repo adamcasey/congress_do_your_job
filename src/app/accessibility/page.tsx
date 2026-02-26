@@ -1,43 +1,37 @@
-import { latoFont, freePressFont } from '@/styles/fonts'
-import Link from 'next/link'
+import { latoFont, freePressFont } from "@/styles/fonts";
+import Link from "next/link";
 
 export const metadata = {
-  title: 'Accessibility Statement | Congress Do Your Job',
-  description: 'Our commitment to digital accessibility.',
-}
+  title: "Accessibility Statement | Congress Do Your Job",
+  description: "Our commitment to digital accessibility.",
+};
 
 export default function AccessibilityPage() {
   return (
     <main className={`min-h-screen px-4 pb-20 pt-10 ${latoFont.className}`}>
       <div className="mx-auto max-w-4xl">
-        <Link
-          href="/"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-slate-900"
-        >
+        <Link href="/" className="mb-6 inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-slate-900">
           &larr; Back to home
         </Link>
 
         <article className="prose prose-slate max-w-none">
-          <h1 className={`${freePressFont.className} text-4xl font-semibold text-slate-900`}>
-            Accessibility Statement
-          </h1>
+          <h1 className={`${freePressFont.className} text-4xl font-semibold text-slate-900`}>Accessibility Statement</h1>
           <p className="text-lg text-slate-600">Last updated: January 15, 2026</p>
 
           <div className="mt-8 space-y-6 text-slate-700">
             <section>
               <h2 className="text-2xl font-semibold text-slate-900">Our Commitment</h2>
               <p>
-                Congress Do Your Job is committed to ensuring digital accessibility for all people, including those
-                with disabilities. We are continually improving the user experience and applying relevant
-                accessibility standards.
+                Congress Do Your Job is committed to ensuring digital accessibility for all people, including those with
+                disabilities. We are continually improving the user experience and applying relevant accessibility standards.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold text-slate-900">Conformance Status</h2>
               <p>
-                We aim to conform to the Web Content Accessibility Guidelines (WCAG) 2.1 Level AA. These guidelines
-                help make web content more accessible to people with disabilities and all users in general.
+                We aim to conform to the Web Content Accessibility Guidelines (WCAG) 2.1 Level AA. These guidelines help make
+                web content more accessible to people with disabilities and all users in general.
               </p>
             </section>
 
@@ -93,21 +87,18 @@ export default function AccessibilityPage() {
             <section>
               <h2 className="text-2xl font-semibold text-slate-900">Feedback and Contact</h2>
               <p>
-                We welcome feedback on the accessibility of Congress Do Your Job. If you encounter accessibility
-                barriers, please let us know:
+                We welcome feedback on the accessibility of Congress Do Your Job. If you encounter accessibility barriers,
+                please let us know:
               </p>
               <ul>
                 <li>
-                  Email:{' '}
-                  <a
-                    href="mailto:accessibility@congressdoyourjob.com"
-                    className="text-amber-600 hover:text-amber-700"
-                  >
+                  Email:{" "}
+                  <a href="mailto:accessibility@congressdoyourjob.com" className="text-amber-600 hover:text-amber-700">
                     accessibility@congressdoyourjob.com
                   </a>
                 </li>
                 <li>
-                  General inquiries:{' '}
+                  General inquiries:{" "}
                   <a href="mailto:hello@congressdoyourjob.com" className="text-amber-600 hover:text-amber-700">
                     hello@congressdoyourjob.com
                   </a>
@@ -119,8 +110,8 @@ export default function AccessibilityPage() {
             <section>
               <h2 className="text-2xl font-semibold text-slate-900">Alternative Formats</h2>
               <p>
-                If you need information from this site in an alternative format (large print, audio, braille, etc.),
-                please contact us and we will work with you to provide it.
+                If you need information from this site in an alternative format (large print, audio, braille, etc.), please
+                contact us and we will work with you to provide it.
               </p>
             </section>
 
@@ -150,13 +141,13 @@ export default function AccessibilityPage() {
               <h2 className="text-2xl font-semibold text-slate-900">Assessment and Remediation</h2>
               <p>This statement was created on January 15, 2026.</p>
               <p>
-                This website was last assessed for accessibility compliance on January 15, 2026. We conduct regular
-                assessments and make improvements on an ongoing basis.
+                This website was last assessed for accessibility compliance on January 15, 2026. We conduct regular assessments
+                and make improvements on an ongoing basis.
               </p>
             </section>
           </div>
         </article>
       </div>
     </main>
-  )
+  );
 }

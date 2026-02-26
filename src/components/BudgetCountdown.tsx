@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
-import { freePressFont } from '@/styles/fonts'
+import { freePressFont } from "@/styles/fonts";
 
 export function BudgetCountdown() {
   const daysSince = (() => {
     // Date should be set via NEXT_PUBLIC_LAST_BUDGET_DATE env var
     // Format: YYYY-MM-DD
-    const lastBudgetDateStr = process.env.NEXT_PUBLIC_LAST_BUDGET_DATE || '1997-09-30'
-    const lastBudgetDate = new Date(lastBudgetDateStr)
-    const today = new Date()
-    const diffTime = Math.abs(today.getTime() - lastBudgetDate.getTime())
-    return Math.floor(diffTime / (1000 * 60 * 60 * 24))
-  })()
+    const lastBudgetDateStr = process.env.NEXT_PUBLIC_LAST_BUDGET_DATE || "1997-09-30";
+    const lastBudgetDate = new Date(lastBudgetDateStr);
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - lastBudgetDate.getTime());
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  })();
 
   return (
     <div className="mb-6">
@@ -21,9 +21,7 @@ export function BudgetCountdown() {
           <div className="pointer-events-none absolute -left-20 -bottom-16 h-40 w-40 rounded-full bg-emerald-100/50 blur-3xl" />
 
           <div className="relative mx-auto flex w-full max-w-4xl flex-col items-center gap-2 text-center sm:grid sm:grid-cols-[auto_1fr_auto] sm:items-center sm:text-left sm:gap-2">
-            <span
-              className={`${freePressFont.className} text-4xl font-semibold tabular-nums text-slate-900 md:text-5xl`}
-            >
+            <span className={`${freePressFont.className} text-4xl font-semibold tabular-nums text-slate-900 md:text-5xl`}>
               {daysSince.toLocaleString()}
             </span>
             <span className="text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-500 sm:text-center">
@@ -41,5 +39,5 @@ export function BudgetCountdown() {
         </div>
       </div>
     </div>
-  )
+  );
 }

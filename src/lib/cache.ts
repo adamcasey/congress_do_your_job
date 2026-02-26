@@ -1,96 +1,86 @@
-import { getRedisClient, CacheTTL } from '@/config'
-import { CacheStatus, CacheMetadata, CachedData, CacheResponse } from '@/types/cache'
-import { createLogger } from '@/lib/logger'
+import { getRedisClient, CacheTTL } from "@/config";
+import { CacheStatus, CacheMetadata, CachedData, CacheResponse } from "@/types/cache";
+import { createLogger } from "@/lib/logger";
 
-const logger = createLogger('Cache')
+const logger = createLogger("Cache");
 
 /**
  * Generate cache key with namespace and version
  */
-export function buildCacheKey(
-  service: string,
-  resource: string,
-  identifier: string,
-  version = 'v1'
-): string {
-  return `${service}:${resource}:${identifier}:${version}`
+export function buildCacheKey(service: string, resource: string, identifier: string, version = "v1"): string {
+  return `${service}:${resource}:${identifier}:${version}`;
 }
 
 /**
  * Get data from cache with stale-while-revalidate support
  */
 export async function getCached<T>(key: string): Promise<CacheResponse<T>> {
-  const client = getRedisClient()
+  const client = getRedisClient();
 
   if (!client) {
     return {
       data: null,
       status: CacheStatus.MISS,
       isStale: false,
-    }
+    };
   }
 
   try {
-    const cached = await client.get<CachedData<T>>(key)
+    const cached = await client.get<CachedData<T>>(key);
 
     if (!cached) {
-      logCacheEvent('miss', key)
+      logCacheEvent("miss", key);
       return {
         data: null,
         status: CacheStatus.MISS,
         isStale: false,
-      }
+      };
     }
 
-    const age = Math.floor(Date.now() / 1000) - cached.metadata.cachedAt
-    const isExpired = age > cached.metadata.ttl
+    const age = Math.floor(Date.now() / 1000) - cached.metadata.cachedAt;
+    const isExpired = age > cached.metadata.ttl;
 
     if (isExpired) {
-      const isStale = age > cached.metadata.ttl * 2
+      const isStale = age > cached.metadata.ttl * 2;
 
-      logCacheEvent('stale', key, { age, ttl: cached.metadata.ttl })
+      logCacheEvent("stale", key, { age, ttl: cached.metadata.ttl });
 
       return {
         data: cached.data,
         status: CacheStatus.STALE,
         isStale,
         age,
-      }
+      };
     }
 
-    logCacheEvent('hit', key, { age })
+    logCacheEvent("hit", key, { age });
 
     return {
       data: cached.data,
       status: CacheStatus.HIT,
       isStale: false,
       age,
-    }
+    };
   } catch (error) {
-    logger.error('Error reading from cache:', error)
-    logCacheEvent('error', key, { error })
+    logger.error("Error reading from cache:", error);
+    logCacheEvent("error", key, { error });
 
     return {
       data: null,
       status: CacheStatus.ERROR,
       isStale: false,
-    }
+    };
   }
 }
 
 /**
  * Set data in cache with metadata
  */
-export async function setCached<T>(
-  key: string,
-  data: T,
-  ttl: number,
-  version = 'v1'
-): Promise<boolean> {
-  const client = getRedisClient()
+export async function setCached<T>(key: string, data: T, ttl: number, version = "v1"): Promise<boolean> {
+  const client = getRedisClient();
 
   if (!client) {
-    return false
+    return false;
   }
 
   try {
@@ -101,18 +91,18 @@ export async function setCached<T>(
         ttl,
         version,
       },
-    }
+    };
 
-    await client.set(key, cachedData, { ex: ttl * 2 }) // Store for 2x TTL to enable stale serving
+    await client.set(key, cachedData, { ex: ttl * 2 }); // Store for 2x TTL to enable stale serving
 
-    logCacheEvent('set', key, { ttl })
+    logCacheEvent("set", key, { ttl });
 
-    return true
+    return true;
   } catch (error) {
-    logger.error('Error writing to cache:', error)
-    logCacheEvent('error', key, { error })
+    logger.error("Error writing to cache:", error);
+    logCacheEvent("error", key, { error });
 
-    return false
+    return false;
   }
 }
 
@@ -120,19 +110,19 @@ export async function setCached<T>(
  * Invalidate cache by key
  */
 export async function invalidateCache(key: string): Promise<boolean> {
-  const client = getRedisClient()
+  const client = getRedisClient();
 
   if (!client) {
-    return false
+    return false;
   }
 
   try {
-    await client.del(key)
-    logCacheEvent('invalidate', key)
-    return true
+    await client.del(key);
+    logCacheEvent("invalidate", key);
+    return true;
   } catch (error) {
-    logger.error('Error invalidating cache:', error)
-    return false
+    logger.error("Error invalidating cache:", error);
+    return false;
   }
 }
 
@@ -147,28 +137,28 @@ export async function getOrFetch<T>(
   key: string,
   fetcher: () => Promise<T>,
   ttl: number,
-  version = 'v1'
+  version = "v1",
 ): Promise<CacheResponse<T>> {
-  const cached = await getCached<T>(key)
+  const cached = await getCached<T>(key);
 
   // Cache hit - return immediately
   if (cached.status === CacheStatus.HIT) {
-    return cached
+    return cached;
   }
 
   // Cache miss - fetch fresh data
   if (cached.status === CacheStatus.MISS || cached.status === CacheStatus.ERROR) {
     try {
-      const freshData = await fetcher()
-      await setCached(key, freshData, ttl, version)
+      const freshData = await fetcher();
+      await setCached(key, freshData, ttl, version);
 
       return {
         data: freshData,
         status: CacheStatus.MISS,
         isStale: false,
-      }
+      };
     } catch (error) {
-      logger.error('Error fetching fresh data:', error)
+      logger.error("Error fetching fresh data:", error);
 
       // If we have stale data, return it as fallback
       if (cached.data) {
@@ -176,10 +166,10 @@ export async function getOrFetch<T>(
           data: cached.data,
           status: CacheStatus.STALE,
           isStale: true,
-        }
+        };
       }
 
-      throw error
+      throw error;
     }
   }
 
@@ -188,20 +178,20 @@ export async function getOrFetch<T>(
     // Don't await - let refresh happen in background
     fetcher()
       .then((freshData) => setCached(key, freshData, ttl, version))
-      .catch((error) => logger.error('Background refresh failed:', error))
+      .catch((error) => logger.error("Background refresh failed:", error));
 
-    return cached
+    return cached;
   }
 
   // Fallback: fetch fresh data
-  const freshData = await fetcher()
-  await setCached(key, freshData, ttl, version)
+  const freshData = await fetcher();
+  await setCached(key, freshData, ttl, version);
 
   return {
     data: freshData,
     status: CacheStatus.MISS,
     isStale: false,
-  }
+  };
 }
 
 /**
@@ -209,32 +199,32 @@ export async function getOrFetch<T>(
  * TODO: Send to DataDog in production
  */
 function logCacheEvent(
-  event: 'hit' | 'miss' | 'stale' | 'set' | 'invalidate' | 'error',
+  event: "hit" | "miss" | "stale" | "set" | "invalidate" | "error",
   key: string,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
 ) {
   const logData = {
     event: `cache.${event}`,
     key,
     timestamp: new Date().toISOString(),
     ...metadata,
-  }
+  };
 
-  logger.info(JSON.stringify(logData))
+  logger.info(JSON.stringify(logData));
 }
 
 /**
  * Helper to hash sensitive identifiers (e.g., addresses)
  */
 export async function hashIdentifier(identifier: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(identifier)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
-  return hashHex.substring(0, 16) // First 16 chars for brevity
+  const encoder = new TextEncoder();
+  const data = encoder.encode(identifier);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  return hashHex.substring(0, 16); // First 16 chars for brevity
 }
 
 // Re-export for convenience
-export { CacheTTL, CacheStatus }
-export type { CacheResponse } from '@/types/cache'
+export { CacheTTL, CacheStatus };
+export type { CacheResponse } from "@/types/cache";

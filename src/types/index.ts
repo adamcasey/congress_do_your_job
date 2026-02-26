@@ -6,14 +6,7 @@
  */
 
 // Re-export Prisma types for convenience
-export type {
-  User,
-  ElectedOfficial,
-  Scorecard,
-  Petition,
-  PetitionSignature,
-  DigestEdition,
-} from '@prisma/client';
+export type { User, ElectedOfficial, Scorecard, Petition, PetitionSignature, DigestEdition } from "@prisma/client";
 
 // API Response types
 export interface ApiResponse<T = any> {
@@ -93,7 +86,7 @@ export interface PetitionSummary {
 export interface CreatePetitionSignatureRequest {
   petitionId: string;
   userId: string;
-  deliveryMethod: 'email' | 'physical_mail';
+  deliveryMethod: "email" | "physical_mail";
   customMessage?: string;
 }
 
@@ -131,8 +124,8 @@ export interface DigestEditionSummary {
 }
 
 // Utility types
-export type Level = 'federal' | 'state' | 'county' | 'city' | 'school_board';
-export type MembershipTier = 'free' | 'basic' | 'premium';
-export type MembershipStatus = 'active' | 'canceled' | 'past_due';
-export type PetitionStatus = 'active' | 'closed' | 'successful';
-export type DeliveryStatus = 'pending' | 'sent' | 'delivered' | 'failed';
+export type Level = "federal" | "state" | "county" | "city" | "school_board";
+export type MembershipTier = "free" | "basic" | "premium";
+export type MembershipStatus = "active" | "canceled" | "past_due";
+export type PetitionStatus = "active" | "closed" | "successful";
+export type DeliveryStatus = "pending" | "sent" | "delivered" | "failed";

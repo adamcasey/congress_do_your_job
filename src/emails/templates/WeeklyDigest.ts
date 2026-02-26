@@ -1,4 +1,4 @@
-import { BaseEmailLayout } from '../layouts/BaseEmailLayout'
+import { BaseEmailLayout } from "../layouts/BaseEmailLayout";
 
 /**
  * Weekly digest email template
@@ -8,15 +8,15 @@ import { BaseEmailLayout } from '../layouts/BaseEmailLayout'
  */
 
 interface WeeklyDigestProps {
-  weekOf: string
-  billsAdvanced: number
-  hearingsHeld: number
-  deadlinesMissed: number
+  weekOf: string;
+  billsAdvanced: number;
+  hearingsHeld: number;
+  deadlinesMissed: number;
   topStories: Array<{
-    title: string
-    summary: string
-    status: string
-  }>
+    title: string;
+    summary: string;
+    status: string;
+  }>;
 }
 
 export function WeeklyDigest(props: WeeklyDigestProps): string {
@@ -44,10 +44,10 @@ export function WeeklyDigest(props: WeeklyDigestProps): string {
         </td>
       </tr>
     </table>
-  `
+  `;
 
   return BaseEmailLayout({
     content,
     preheader: `Your weekly Congress briefing for ${props.weekOf}`,
-  })
+  });
 }

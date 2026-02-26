@@ -1,3 +1,3 @@
-export { ScorecardGauge } from './ScorecardGauge'
-export { ScorecardCategoryBreakdown } from './ScorecardCategoryBreakdown'
-export { ScorecardCard } from './ScorecardCard'
+export { ScorecardGauge } from "./ScorecardGauge";
+export { ScorecardCategoryBreakdown } from "./ScorecardCategoryBreakdown";
+export { ScorecardCard } from "./ScorecardCard";

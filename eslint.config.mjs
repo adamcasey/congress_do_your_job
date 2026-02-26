@@ -1,10 +1,10 @@
-import nextPlugin from 'eslint-config-next'
+import nextPlugin from "eslint-config-next";
 
 const eslintConfig = [
   {
-    ignores: ['.next/**', 'node_modules/**', 'out/**', '.vercel/**', 'coverage/**'],
+    ignores: [".next/**", "node_modules/**", "out/**", ".vercel/**", "coverage/**"],
   },
   ...nextPlugin,
-]
+];
 
-export default eslintConfig
+export default eslintConfig;

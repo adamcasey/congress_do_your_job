@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import { freePressFont } from '@/styles/fonts'
-import type { ModalContent } from '@/components/about/about-data'
+import { freePressFont } from "@/styles/fonts";
+import type { ModalContent } from "@/components/about/about-data";
 
 type AboutModalProps = {
-  modal: ModalContent | null
-  labelId: string
-  onClose: () => void
-}
+  modal: ModalContent | null;
+  labelId: string;
+  onClose: () => void;
+};
 
 export function AboutModal({ modal, labelId, onClose }: AboutModalProps) {
-  if (!modal) return null
+  if (!modal) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-6 py-10">
@@ -45,5 +45,5 @@ export function AboutModal({ modal, labelId, onClose }: AboutModalProps) {
         )}
       </div>
     </div>
-  )
+  );
 }

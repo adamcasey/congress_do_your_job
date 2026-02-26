@@ -14,5 +14,5 @@
  * See PRISMA_VS_MONGODB.md for detailed guidance
  */
 
-export { prisma as prismaClient } from './prisma';
-export { getDb, getCollection, clientPromise } from './mongodb';
+export { prisma as prismaClient } from "./prisma";
+export { getDb, getCollection, clientPromise } from "./mongodb";

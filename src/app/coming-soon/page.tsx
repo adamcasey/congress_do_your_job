@@ -1,17 +1,18 @@
-'use client'
+"use client";
 
-import { WaitlistForm } from '@/components/forms/WaitlistForm'
-import { BudgetCountdown } from '@/components/BudgetCountdown'
-import { freePressFont } from '@/styles/fonts'
-import { useLaunchDarkly } from '@/config/launchdarkly'
-import { FeatureFlag, featureFlagDefaults } from '@/lib/feature-flags'
+import { WaitlistForm } from "@/components/forms/WaitlistForm";
+import { BudgetCountdown } from "@/components/BudgetCountdown";
+import { freePressFont } from "@/styles/fonts";
+import { useLaunchDarkly } from "@/config/launchdarkly";
+import { FeatureFlag, featureFlagDefaults } from "@/lib/feature-flags";
 
 export default function ComingSoon() {
-  const { flags, hasLdState } = useLaunchDarkly()
+  const { flags, hasLdState } = useLaunchDarkly();
 
-  const showBudgetTimer = hasLdState && FeatureFlag.BUDGET_BILL_TIMER in flags
-    ? Boolean(flags[FeatureFlag.BUDGET_BILL_TIMER])
-    : featureFlagDefaults[FeatureFlag.BUDGET_BILL_TIMER]
+  const showBudgetTimer =
+    hasLdState && FeatureFlag.BUDGET_BILL_TIMER in flags
+      ? Boolean(flags[FeatureFlag.BUDGET_BILL_TIMER])
+      : featureFlagDefaults[FeatureFlag.BUDGET_BILL_TIMER];
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#e4f0f9] via-[#e4f0f9] to-[#fde3e0]">
@@ -23,7 +24,9 @@ export default function ComingSoon() {
         <header className="mb-10 text-center">
           {showBudgetTimer && <BudgetCountdown />}
           <div className="flex flex-col items-center justify-center gap-3 text-slate-800">
-            <h1 className={`${freePressFont.className} text-5xl leading-none tracking-tight text-slate-900 md:text-6xl lg:text-7xl`}>
+            <h1
+              className={`${freePressFont.className} text-5xl leading-none tracking-tight text-slate-900 md:text-6xl lg:text-7xl`}
+            >
               Congress Do Your Job
             </h1>
             <p className="text-xl font-semibold uppercase tracking-[0.22em] text-slate-500">Less theater. More legislation.</p>
@@ -37,8 +40,8 @@ export default function ComingSoon() {
               A calm, plain-English dashboard for what Congress actually did this week.
             </h1>
             <p className="text-lg text-slate-700">
-              Get notified when we launch: weekly briefings, accountability scorecards, and one-tap civic actions
-              delivered without the partisanship and outrage.
+              Get notified when we launch: weekly briefings, accountability scorecards, and one-tap civic actions delivered
+              without the partisanship and outrage.
             </p>
 
             <WaitlistForm />
@@ -46,5 +49,5 @@ export default function ComingSoon() {
         </section>
       </div>
     </main>
-  )
+  );
 }

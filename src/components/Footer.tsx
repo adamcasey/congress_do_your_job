@@ -1,25 +1,25 @@
-import Link from 'next/link'
-import { freePressFont, latoFont } from '@/styles/fonts'
+import Link from "next/link";
+import { freePressFont, latoFont } from "@/styles/fonts";
 
 const navGroups = [
   {
-    title: 'Explore',
+    title: "Explore",
     links: [
-      { label: 'Home', href: '/' },
-      { label: 'About', href: '/about' },
-      { label: 'Find representatives', href: '/representatives' },
-      { label: 'Weekly briefing', href: '/coming-soon' },
+      { label: "Home", href: "/" },
+      { label: "About", href: "/about" },
+      { label: "Find representatives", href: "/representatives" },
+      { label: "Weekly briefing", href: "/coming-soon" },
     ],
   },
   {
-    title: 'Get involved',
+    title: "Get involved",
     links: [
-      { label: 'Share feedback', href: 'mailto:hello@congressdoyourjob.com', external: true },
-      { label: 'Join the waitlist', href: '/coming-soon' },
-      { label: 'Press + partnerships', href: 'mailto:press@congressdoyourjob.com', external: true },
+      { label: "Share feedback", href: "mailto:hello@congressdoyourjob.com", external: true },
+      { label: "Join the waitlist", href: "/coming-soon" },
+      { label: "Press + partnerships", href: "mailto:press@congressdoyourjob.com", external: true },
     ],
   },
-]
+];
 
 export default function Footer() {
   return (
@@ -45,8 +45,8 @@ export default function Footer() {
               </div>
             </div>
             <p className="max-w-xl text-sm text-slate-600">
-              A calm, plain-English dashboard for what Congress actually did this week. Nonpartisan, source-linked,
-              and designed for busy people.
+              A calm, plain-English dashboard for what Congress actually did this week. Nonpartisan, source-linked, and designed
+              for busy people.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link
@@ -116,5 +116,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }
