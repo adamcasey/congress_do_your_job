@@ -1,13 +1,13 @@
-import { BackButton } from '@/components/ui'
-import { RepresentativeLookup } from '@/components/representatives/RepresentativeLookup'
-import { FlagGate } from '@/components/FlagGate'
-import { FeatureFlag } from '@/lib/feature-flags'
-import { freePressFont } from '@/styles/fonts'
+import { BackButton } from "@/components/ui";
+import { RepresentativeLookup } from "@/components/representatives/RepresentativeLookup";
+import { FlagGate } from "@/components/FlagGate";
+import { FeatureFlag } from "@/lib/feature-flags";
+import { freePressFont } from "@/styles/fonts";
 
 export const metadata = {
-  title: 'Find Your Representatives - Congress Do Your Job',
-  description: 'Look up your federal representatives by address. Find your senators and house representatives.',
-}
+  title: "Find Your Representatives - Congress Do Your Job",
+  description: "Look up your federal representatives by address. Find your senators and house representatives.",
+};
 
 export default function RepresentativesPage() {
   return (
@@ -17,7 +17,9 @@ export default function RepresentativesPage() {
           <BackButton href="/">Back to Dashboard</BackButton>
 
           <header className="mb-10 mt-8 text-center">
-            <h1 className={`${freePressFont.className} text-4xl leading-tight tracking-tight text-slate-900 md:text-5xl lg:text-6xl mb-4`}>
+            <h1
+              className={`${freePressFont.className} text-4xl leading-tight tracking-tight text-slate-900 md:text-5xl lg:text-6xl mb-4`}
+            >
               Find Your Representatives
             </h1>
             <h3 className="mx-auto max-w-2xl text-lg text-slate-600 text-balance">
@@ -33,12 +35,10 @@ export default function RepresentativesPage() {
             <p className="text-sm text-slate-500">
               Powered by 5 Calls API. Your address is not stored and is only used for lookup.
             </p>
-            <p className="mt-2 text-xs text-slate-400">
-              Federal representatives only (House & Senate)
-            </p>
+            <p className="mt-2 text-xs text-slate-400">Federal representatives only (House & Senate)</p>
           </footer>
         </div>
       </main>
     </FlagGate>
-  )
+  );
 }

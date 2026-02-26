@@ -1,7 +1,7 @@
-import { GoogleGenAI } from '@google/genai'
+import { GoogleGenAI } from "@google/genai";
 
 if (!process.env.GEMINI_API_KEY) {
-  throw new Error('GEMINI_API_KEY environment variable is required')
+  throw new Error("GEMINI_API_KEY environment variable is required");
 }
 
 /**
@@ -12,35 +12,31 @@ export enum APPROVED_SOURCES_ENUM {
   NYT = "New York Times",
   FREE_PRESS = "Free Press",
   DISPTACH = "The Dispatch",
-  FIVETHIRTYEIGHT = "Five Thiry Eight"
+  FIVETHIRTYEIGHT = "Five Thiry Eight",
 }
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
-})
+});
 
 export class GeminiApiError extends Error {
   constructor(
     message: string,
     public statusCode?: number,
-    public cause?: unknown
+    public cause?: unknown,
   ) {
-    super(message)
-    this.name = 'GeminiApiError'
+    super(message);
+    this.name = "GeminiApiError";
   }
 }
 
 export interface SummarizeBillOptions {
-  billText: string
-  billTitle: string
-  maxLength?: number
+  billText: string;
+  billTitle: string;
+  maxLength?: number;
 }
 
-export async function summarizeBill({
-  billText,
-  billTitle,
-  maxLength = 300,
-}: SummarizeBillOptions): Promise<string> {
+export async function summarizeBill({ billText, billTitle, maxLength = 300 }: SummarizeBillOptions): Promise<string> {
   try {
     const prompt = `You are summarizing U.S. congressional legislation for a non-partisan civic engagement platform.
 
@@ -58,33 +54,29 @@ Instructions:
 - Be factual and neutral
 - If not enough text is given to create a summary, rely on open web-searches from APPROVED_SOURCES_ENUM values
 
-Summary:`
+Summary:`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: "gemini-2.5-flash",
       contents: prompt,
-    })
+    });
 
     if (!response?.text) {
-      throw new GeminiApiError('No text generated in response', 500)
+      throw new GeminiApiError("No text generated in response", 500);
     }
 
-    const summary = response.text.trim()
+    const summary = response.text.trim();
 
     if (summary.length > maxLength + 100) {
-      return summary.substring(0, maxLength) + '...'
+      return summary.substring(0, maxLength) + "...";
     }
 
-    return summary
+    return summary;
   } catch (error) {
     if (error instanceof GeminiApiError) {
-      throw error
+      throw error;
     }
 
-    throw new GeminiApiError(
-      'Failed to generate bill summary',
-      500,
-      error
-    )
+    throw new GeminiApiError("Failed to generate bill summary", 500, error);
   }
 }

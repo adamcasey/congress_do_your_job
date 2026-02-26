@@ -9,18 +9,18 @@
  * - Operations that need raw MongoDB power
  */
 
-import { MongoClient, Db, Document } from 'mongodb';
+import { MongoClient, Db, Document } from "mongodb";
 
 if (!process.env.MONGODB_URI) {
-  throw new Error('Please add your MongoDB URI to .env');
+  throw new Error("Please add your MongoDB URI to .env");
 }
 
 const uri = process.env.MONGODB_URI;
-const isLocalDB = uri?.includes('localhost') || uri?.includes('127.0.0.1');
+const isLocalDB = uri?.includes("localhost") || uri?.includes("127.0.0.1");
 
 const options = {
   tls: !isLocalDB,
-  tlsAllowInvalidCertificates: isLocalDB || process.env.NODE_ENV === 'development',
+  tlsAllowInvalidCertificates: isLocalDB || process.env.NODE_ENV === "development",
   serverSelectionTimeoutMS: 10000,
   socketTimeoutMS: 45000,
 };
@@ -32,7 +32,7 @@ declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === "development") {
   // In development, use a global variable to preserve the client across hot reloads
   if (!global._mongoClientPromise) {
     client = new MongoClient(uri, options);

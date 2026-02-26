@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import Link from 'next/link'
+import Link from "next/link";
 
 export function AboutCTA() {
   return (
@@ -27,5 +27,5 @@ export function AboutCTA() {
         </Link>
       </div>
     </section>
-  )
+  );
 }

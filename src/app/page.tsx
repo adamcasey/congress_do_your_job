@@ -1,248 +1,236 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
-import Link from 'next/link'
-import { FeatureFlag, featureFlagDefaults } from '@/lib/feature-flags'
-import { useLaunchDarkly } from '@/config/launchdarkly'
-import { freePressFont, latoFont } from '@/styles/fonts'
-import { BudgetCountdown } from '@/components/BudgetCountdown'
-import { RecentBills } from '@/components/legislation/RecentBills'
-import { WaitlistForm } from '@/components/forms/WaitlistForm'
-import { useCongressStats } from '@/hooks'
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import Link from "next/link";
+import { FeatureFlag, featureFlagDefaults } from "@/lib/feature-flags";
+import { useLaunchDarkly } from "@/config/launchdarkly";
+import { freePressFont, latoFont } from "@/styles/fonts";
+import { BudgetCountdown } from "@/components/BudgetCountdown";
+import { RecentBills } from "@/components/legislation/RecentBills";
+import { WaitlistForm } from "@/components/forms/WaitlistForm";
+import { useCongressStats } from "@/hooks";
 
-const DAY_MS = 1000 * 60 * 60 * 24
+const DAY_MS = 1000 * 60 * 60 * 24;
 
-type Status =
-  | 'advanced'
-  | 'stalled'
-  | 'overdue'
-  | 'scheduled'
-  | 'passed'
-  | 'update'
+type Status = "advanced" | "stalled" | "overdue" | "scheduled" | "passed" | "update";
 
 type BriefingItem = {
-  title: string
-  summary: string
-  status: Status
-  detail: string
-}
+  title: string;
+  summary: string;
+  status: Status;
+  detail: string;
+};
 
 type ChoreItem = {
-  title: string
-  due: string
-  status: Status
-  impact: string
-  source: string
-}
+  title: string;
+  due: string;
+  status: Status;
+  impact: string;
+  source: string;
+};
 
 type Metric = {
-  label: string
-  value: string
-  change: string
-  tone?: 'good' | 'caution' | 'neutral'
-}
+  label: string;
+  value: string;
+  change: string;
+  tone?: "good" | "caution" | "neutral";
+};
 
 type Official = {
-  name: string
-  office: string
-  score: number
-  attendance: string
-  civilityNotes: string
-}
+  name: string;
+  office: string;
+  score: number;
+  attendance: string;
+  civilityNotes: string;
+};
 
 type CivicAction = {
-  title: string
-  summary: string
-  level: string
-  action: string
-}
+  title: string;
+  summary: string;
+  level: string;
+  action: string;
+};
 
-const statusStyles: Record<
-  Status,
-  { label: string; classes: string }
-> = {
-  advanced: { label: 'Moved', classes: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-  passed: { label: 'Passed', classes: 'bg-emerald-200 text-emerald-900 border-emerald-300' },
-  stalled: { label: 'Stalled', classes: 'bg-amber-100 text-amber-800 border-amber-200' },
-  overdue: { label: 'Overdue', classes: 'bg-orange-100 text-orange-900 border-orange-200' },
-  scheduled: { label: 'Scheduled', classes: 'bg-lime-100 text-lime-800 border-lime-200' },
-  update: { label: 'Update', classes: 'bg-slate-100 text-slate-800 border-slate-200' },
-}
+const statusStyles: Record<Status, { label: string; classes: string }> = {
+  advanced: { label: "Moved", classes: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+  passed: { label: "Passed", classes: "bg-emerald-200 text-emerald-900 border-emerald-300" },
+  stalled: { label: "Stalled", classes: "bg-amber-100 text-amber-800 border-amber-200" },
+  overdue: { label: "Overdue", classes: "bg-orange-100 text-orange-900 border-orange-200" },
+  scheduled: { label: "Scheduled", classes: "bg-lime-100 text-lime-800 border-lime-200" },
+  update: { label: "Update", classes: "bg-slate-100 text-slate-800 border-slate-200" },
+};
 
 const weeklyBriefing: BriefingItem[] = [
   {
-    title: 'Appropriations: Senate advanced 7 of 12 spending bills',
-    summary: 'Committee marked up Transportation and Energy packages with near-unanimous votes.',
-    status: 'advanced',
-    detail: 'Next: full Senate consideration. House versions still pending.',
+    title: "Appropriations: Senate advanced 7 of 12 spending bills",
+    summary: "Committee marked up Transportation and Energy packages with near-unanimous votes.",
+    status: "advanced",
+    detail: "Next: full Senate consideration. House versions still pending.",
   },
   {
-    title: 'FAA reauthorization still awaiting floor time',
-    summary: 'Renewal remains stalled while temporary extension covers airport operations.',
-    status: 'stalled',
-    detail: 'Deadline approaching; no confirmed debate window.',
+    title: "FAA reauthorization still awaiting floor time",
+    summary: "Renewal remains stalled while temporary extension covers airport operations.",
+    status: "stalled",
+    detail: "Deadline approaching; no confirmed debate window.",
   },
   {
-    title: 'Disaster aid supplemental cleared the House',
-    summary: 'Passed with broad support after amendment debate focused on reporting requirements.',
-    status: 'passed',
-    detail: 'Heads to Senate; agency funding needs to be released before October.',
+    title: "Disaster aid supplemental cleared the House",
+    summary: "Passed with broad support after amendment debate focused on reporting requirements.",
+    status: "passed",
+    detail: "Heads to Senate; agency funding needs to be released before October.",
   },
   {
-    title: 'AI framework hearing held in Senate Commerce',
+    title: "AI framework hearing held in Senate Commerce",
     summary: 'Experts testified on transparency standards; draft bill promised "before recess."',
-    status: 'update',
-    detail: 'Committee staff compiling recommendations; no vote scheduled.',
+    status: "update",
+    detail: "Committee staff compiling recommendations; no vote scheduled.",
   },
-]
+];
 
 const deadlines: BriefingItem[] = [
   {
-    title: 'Government funding runs out',
-    summary: 'Current stopgap expires; House has 4 of 12 bills drafted, none on floor calendar.',
-    status: 'overdue',
-    detail: 'Congressional Research Service notes seven-day notice needed for orderly transition.',
+    title: "Government funding runs out",
+    summary: "Current stopgap expires; House has 4 of 12 bills drafted, none on floor calendar.",
+    status: "overdue",
+    detail: "Congressional Research Service notes seven-day notice needed for orderly transition.",
   },
   {
-    title: 'National Flood Insurance Program renewal',
-    summary: 'Short-term extension expires; lapse would pause new policies.',
-    status: 'overdue',
-    detail: 'Floor time not yet reserved in either chamber.',
+    title: "National Flood Insurance Program renewal",
+    summary: "Short-term extension expires; lapse would pause new policies.",
+    status: "overdue",
+    detail: "Floor time not yet reserved in either chamber.",
   },
   {
-    title: 'Defense authorization conference report',
-    summary: 'Chambers still reconciling procurement sections; conferees not announced.',
-    status: 'scheduled',
+    title: "Defense authorization conference report",
+    summary: "Chambers still reconciling procurement sections; conferees not announced.",
+    status: "scheduled",
     detail: 'Leaders said "before end of month," but no public timeline released.',
   },
-]
+];
 
 const choreList: ChoreItem[] = [
   {
-    title: 'FAA Reauthorization (multi-year)',
-    due: 'Past due - temporary patch ends in weeks',
-    status: 'overdue',
-    impact: 'Keeps airports, safety inspectors, and modernization projects funded.',
-    source: 'TODO: link to primary source (Congress.gov)',
+    title: "FAA Reauthorization (multi-year)",
+    due: "Past due - temporary patch ends in weeks",
+    status: "overdue",
+    impact: "Keeps airports, safety inspectors, and modernization projects funded.",
+    source: "TODO: link to primary source (Congress.gov)",
   },
   {
-    title: 'Appropriations x12',
-    due: 'Next shutdown date: 4 weeks',
-    status: 'scheduled',
-    impact: 'Full-year budgets prevent automatic cuts and agency slowdowns.',
-    source: 'TODO: pull current calendar and status from Congress.gov',
+    title: "Appropriations x12",
+    due: "Next shutdown date: 4 weeks",
+    status: "scheduled",
+    impact: "Full-year budgets prevent automatic cuts and agency slowdowns.",
+    source: "TODO: pull current calendar and status from Congress.gov",
   },
   {
-    title: 'Defense Authorization (NDAA)',
-    due: 'Conference report pending',
-    status: 'advanced',
-    impact: 'Sets pay, procurement, and policy guidance for the services.',
-    source: 'TODO: sync with bill actions feed',
+    title: "Defense Authorization (NDAA)",
+    due: "Conference report pending",
+    status: "advanced",
+    impact: "Sets pay, procurement, and policy guidance for the services.",
+    source: "TODO: sync with bill actions feed",
   },
   {
-    title: 'Data privacy baseline',
-    due: 'Draft expected; no vote scheduled',
-    status: 'stalled',
-    impact: 'National rules for data handling and consumer transparency.',
-    source: 'TODO: add primary source references',
+    title: "Data privacy baseline",
+    due: "Draft expected; no vote scheduled",
+    status: "stalled",
+    impact: "National rules for data handling and consumer transparency.",
+    source: "TODO: add primary source references",
   },
-]
+];
 
 // Productivity metrics that cannot yet be derived from the Congress.gov API.
 // These will be replaced with live data when additional data sources are wired.
 const STATIC_METRICS: Metric[] = [
-  { label: 'Hearings held', value: '—', change: 'data coming soon', tone: 'neutral' },
-  { label: 'Floor hours worked', value: '—', change: 'data coming soon', tone: 'neutral' },
-  { label: 'Vote attendance', value: '—', change: 'data coming soon', tone: 'neutral' },
-  { label: 'Committee attendance', value: '—', change: 'data coming soon', tone: 'neutral' },
-  { label: 'Deadlines missed', value: '3', change: 'overdue tasks', tone: 'caution' },
-]
+  { label: "Hearings held", value: "—", change: "data coming soon", tone: "neutral" },
+  { label: "Floor hours worked", value: "—", change: "data coming soon", tone: "neutral" },
+  { label: "Vote attendance", value: "—", change: "data coming soon", tone: "neutral" },
+  { label: "Committee attendance", value: "—", change: "data coming soon", tone: "neutral" },
+  { label: "Deadlines missed", value: "3", change: "overdue tasks", tone: "caution" },
+];
 
 const officials: Official[] = [
   {
-    name: 'Jordan Lee',
-    office: 'U.S. Senator - Mid-Atlantic',
+    name: "Jordan Lee",
+    office: "U.S. Senator - Mid-Atlantic",
     score: 86,
-    attendance: '98% vote attendance - 94% committee attendance',
-    civilityNotes: 'No recorded decorum issues this session.',
+    attendance: "98% vote attendance - 94% committee attendance",
+    civilityNotes: "No recorded decorum issues this session.",
   },
   {
-    name: 'Avery Chen',
-    office: 'U.S. Representative - 7th District',
+    name: "Avery Chen",
+    office: "U.S. Representative - 7th District",
     score: 72,
-    attendance: '93% vote attendance - 88% committee attendance',
-    civilityNotes: 'Filed 3 bipartisan co-sponsor clusters in June.',
+    attendance: "93% vote attendance - 88% committee attendance",
+    civilityNotes: "Filed 3 bipartisan co-sponsor clusters in June.",
   },
   {
-    name: 'Samira Patel',
-    office: 'U.S. Senator - Southwest',
+    name: "Samira Patel",
+    office: "U.S. Senator - Southwest",
     score: 64,
-    attendance: '89% vote attendance - 80% committee attendance',
-    civilityNotes: 'One formal warning for withdrawn remarks; resolved.',
+    attendance: "89% vote attendance - 80% committee attendance",
+    civilityNotes: "One formal warning for withdrawn remarks; resolved.",
   },
-]
+];
 
 const civicActions: CivicAction[] = [
   {
-    title: 'Letter: Finish full-year budgets',
-    summary: 'Direct, neutral message reminding members to move all 12 appropriations bills before the next deadline.',
-    level: 'Federal',
-    action: 'Send to your delegation',
+    title: "Letter: Finish full-year budgets",
+    summary: "Direct, neutral message reminding members to move all 12 appropriations bills before the next deadline.",
+    level: "Federal",
+    action: "Send to your delegation",
   },
   {
-    title: 'Petition: Publish hearing materials on time',
-    summary: 'Requests committees to post witness lists, slides, and recordings within 48 hours of each hearing.',
-    level: 'Congressional committees',
-    action: 'Add your name',
+    title: "Petition: Publish hearing materials on time",
+    summary: "Requests committees to post witness lists, slides, and recordings within 48 hours of each hearing.",
+    level: "Congressional committees",
+    action: "Add your name",
   },
   {
-    title: 'Alert: Track FAA reauthorization',
-    summary: 'Get updates when the reauthorization bill moves committees or is scheduled for floor debate.',
-    level: 'Federal aviation policy',
-    action: 'Start tracking',
+    title: "Alert: Track FAA reauthorization",
+    summary: "Get updates when the reauthorization bill moves committees or is scheduled for floor debate.",
+    level: "Federal aviation policy",
+    action: "Start tracking",
   },
-]
+];
 
-const scoreBands: Record<
-  NonNullable<Metric['tone']>,
-  { text: string; bar: string; chip: string }
-> = {
+const scoreBands: Record<NonNullable<Metric["tone"]>, { text: string; bar: string; chip: string }> = {
   good: {
-    text: 'text-emerald-700',
-    bar: 'bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600',
-    chip: 'bg-emerald-50 text-emerald-800 border border-emerald-200',
+    text: "text-emerald-700",
+    bar: "bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600",
+    chip: "bg-emerald-50 text-emerald-800 border border-emerald-200",
   },
   caution: {
-    text: 'text-amber-700',
-    bar: 'bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500',
-    chip: 'bg-amber-50 text-amber-800 border border-amber-200',
+    text: "text-amber-700",
+    bar: "bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500",
+    chip: "bg-amber-50 text-amber-800 border border-amber-200",
   },
   neutral: {
-    text: 'text-slate-700',
-    bar: 'bg-gradient-to-r from-slate-300 via-slate-400 to-slate-500',
-    chip: 'bg-slate-50 text-slate-800 border border-slate-200',
+    text: "text-slate-700",
+    bar: "bg-gradient-to-r from-slate-300 via-slate-400 to-slate-500",
+    chip: "bg-slate-50 text-slate-800 border border-slate-200",
   },
-}
+};
 
 function getBudgetStats(dateString: string) {
-  const parsed = Date.parse(dateString)
+  const parsed = Date.parse(dateString);
   if (!Number.isFinite(parsed)) {
-    return { daysSinceBudget: 0, lastBudgetDateLabel: 'unknown' }
+    return { daysSinceBudget: 0, lastBudgetDateLabel: "unknown" };
   }
 
-  const daysSinceBudget = Math.max(0, Math.floor((Date.now() - parsed) / DAY_MS))
-  const lastBudgetDateLabel = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(new Date(parsed))
+  const daysSinceBudget = Math.max(0, Math.floor((Date.now() - parsed) / DAY_MS));
+  const lastBudgetDateLabel = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(parsed));
 
-  return { daysSinceBudget, lastBudgetDateLabel }
+  return { daysSinceBudget, lastBudgetDateLabel };
 }
 
 function StatusBadge({ status }: { status: Status }) {
-  const style = statusStyles[status]
+  const style = statusStyles[status];
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${style.classes}`}
@@ -250,99 +238,95 @@ function StatusBadge({ status }: { status: Status }) {
       <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />
       {style.label}
     </span>
-  )
+  );
 }
 
-type DataStatus = 'todo' | 'partial' | 'live'
+type DataStatus = "todo" | "partial" | "live";
 
 const dataStatusBadge: Record<DataStatus, { label: string; classes: string }> = {
-  todo: { label: 'TODO: connect to live data', classes: 'bg-white/70 text-slate-500 ring-1 ring-slate-200' },
-  partial: { label: 'Partial live data', classes: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' },
-  live: { label: 'Live data', classes: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' },
-}
+  todo: { label: "TODO: connect to live data", classes: "bg-white/70 text-slate-500 ring-1 ring-slate-200" },
+  partial: { label: "Partial live data", classes: "bg-amber-50 text-amber-700 ring-1 ring-amber-200" },
+  live: { label: "Live data", classes: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" },
+};
 
 function SectionHeader({
   title,
   eyebrow,
   description,
-  dataStatus = 'todo',
+  dataStatus = "todo",
 }: {
-  title: string
-  eyebrow?: string
-  description?: string
-  dataStatus?: DataStatus
+  title: string;
+  eyebrow?: string;
+  description?: string;
+  dataStatus?: DataStatus;
 }) {
-  const badge = dataStatusBadge[dataStatus]
+  const badge = dataStatusBadge[dataStatus];
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
-        {eyebrow && (
-          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{eyebrow}</p>
-        )}
+        {eyebrow && <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{eyebrow}</p>}
         <h2 className="text-2xl font-semibold leading-tight text-slate-900">{title}</h2>
         {description && <p className="mt-2 max-w-2xl text-sm text-slate-600">{description}</p>}
       </div>
-      <span className={`rounded-full px-3 py-1 text-xs font-medium ${badge.classes}`}>
-        {badge.label}
-      </span>
+      <span className={`rounded-full px-3 py-1 text-xs font-medium ${badge.classes}`}>{badge.label}</span>
     </div>
-  )
+  );
 }
 
 export default function Home() {
-  const router = useRouter()
-  const { flags, hasLdState } = useLaunchDarkly()
-  const { data: statsData, loading: statsLoading } = useCongressStats()
+  const router = useRouter();
+  const { flags, hasLdState } = useLaunchDarkly();
+  const { data: statsData, loading: statsLoading } = useCongressStats();
 
-  const showComingSoon = hasLdState && FeatureFlag.COMING_SOON_LANDING_PAGE in flags
-    ? Boolean(flags[FeatureFlag.COMING_SOON_LANDING_PAGE])
-    : featureFlagDefaults[FeatureFlag.COMING_SOON_LANDING_PAGE]
+  const showComingSoon =
+    hasLdState && FeatureFlag.COMING_SOON_LANDING_PAGE in flags
+      ? Boolean(flags[FeatureFlag.COMING_SOON_LANDING_PAGE])
+      : featureFlagDefaults[FeatureFlag.COMING_SOON_LANDING_PAGE];
 
-  const showBudgetTimer = hasLdState && FeatureFlag.BUDGET_BILL_TIMER in flags
-    ? Boolean(flags[FeatureFlag.BUDGET_BILL_TIMER])
-    : featureFlagDefaults[FeatureFlag.BUDGET_BILL_TIMER]
+  const showBudgetTimer =
+    hasLdState && FeatureFlag.BUDGET_BILL_TIMER in flags
+      ? Boolean(flags[FeatureFlag.BUDGET_BILL_TIMER])
+      : featureFlagDefaults[FeatureFlag.BUDGET_BILL_TIMER];
 
   useEffect(() => {
-    if (process.env.NODE_ENV === 'production' && !showComingSoon) {
-      router.push('/coming-soon')
+    if (process.env.NODE_ENV === "production" && !showComingSoon) {
+      router.push("/coming-soon");
     }
-  }, [hasLdState, showComingSoon, router])
+  }, [hasLdState, showComingSoon, router]);
 
-  const lastBudgetDate = process.env.NEXT_PUBLIC_BUDGET_LAST_PASSED_DATE ?? '2024-03-23'
-  const { daysSinceBudget, lastBudgetDateLabel } = getBudgetStats(lastBudgetDate)
+  const lastBudgetDate = process.env.NEXT_PUBLIC_BUDGET_LAST_PASSED_DATE ?? "2024-03-23";
+  const { daysSinceBudget, lastBudgetDateLabel } = getBudgetStats(lastBudgetDate);
 
-  const billsValue = statsLoading
-    ? '...'
-    : (statsData?.billsAdvancedThisWeek?.toString() ?? '—')
+  const billsValue = statsLoading ? "..." : (statsData?.billsAdvancedThisWeek?.toString() ?? "—");
 
   const billsChangeLabel = (() => {
-    if (!statsData) return '...'
-    const diff = statsData.billsChange
-    if (diff === 0) return 'same as last week'
-    const sign = diff > 0 ? '+' : ''
-    return `${sign}${diff} vs last week`
-  })()
+    if (!statsData) return "...";
+    const diff = statsData.billsChange;
+    if (diff === 0) return "same as last week";
+    const sign = diff > 0 ? "+" : "";
+    return `${sign}${diff} vs last week`;
+  })();
 
   const productivityMetrics: Metric[] = [
     {
-      label: 'Bills advanced this week',
+      label: "Bills advanced this week",
       value: billsValue,
       change: billsChangeLabel,
-      tone: statsData?.billsChangeTone ?? 'neutral',
+      tone: statsData?.billsChangeTone ?? "neutral",
     },
     ...STATIC_METRICS,
-  ]
+  ];
 
   const heroMetrics = [
-    { label: 'Bills advanced', value: billsValue, detail: billsChangeLabel },
-    { label: 'Hearings', value: '—', detail: 'data coming soon' },
-    { label: 'Vote attendance', value: '—', detail: 'data coming soon' },
+    { label: "Bills advanced", value: billsValue, detail: billsChangeLabel },
+    { label: "Hearings", value: "—", detail: "data coming soon" },
+    { label: "Vote attendance", value: "—", detail: "data coming soon" },
     {
-      label: 'Days since budget passed',
-      value: daysSinceBudget.toLocaleString('en-US'),
+      label: "Days since budget passed",
+      value: daysSinceBudget.toLocaleString("en-US"),
       detail: `since ${lastBudgetDateLabel}`,
     },
-  ]
+  ];
 
   return (
     <main className={`min-h-screen px-4 pb-20 pt-10 text-slate-900 ${latoFont.className}`}>
@@ -355,7 +339,9 @@ export default function Home() {
             <div className="pointer-events-none absolute -right-16 bottom-0 h-56 w-56 rotate-12 rounded-full bg-emerald-200/40 blur-3xl" />
             <div className="relative flex flex-col items-center gap-5 text-center">
               <div className="flex flex-col items-center gap-3 text-slate-800">
-                <h1 className={`${freePressFont.className} text-4xl leading-none tracking-tight text-slate-900 sm:text-5xl md:text-6xl`}>
+                <h1
+                  className={`${freePressFont.className} text-4xl leading-none tracking-tight text-slate-900 sm:text-5xl md:text-6xl`}
+                >
                   Congress Do Your Job
                 </h1>
                 <p className="text-base font-semibold uppercase tracking-[0.22em] text-slate-500 sm:text-lg">
@@ -385,8 +371,8 @@ export default function Home() {
                   What your representatives actually did this week - no spin, no red/blue.
                 </h2>
                 <p className="max-w-2xl text-lg text-slate-700">
-                  Plain-English updates on bills, attendance, hearings, and deadlines. Built for people who want facts
-                  without outrage.
+                  Plain-English updates on bills, attendance, hearings, and deadlines. Built for people who want facts without
+                  outrage.
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <button className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background shadow-lg shadow-slate-300/60 transition hover:-translate-y-[1px] hover:shadow-xl hover:shadow-slate-300/80">
@@ -449,18 +435,13 @@ export default function Home() {
                 </span>
               </div>
               {deadlines.map((item) => (
-                <article
-                  key={item.title}
-                  className="rounded-xl border border-amber-100 bg-white/90 px-4 py-3 shadow-sm"
-                >
+                <article key={item.title} className="rounded-xl border border-amber-100 bg-white/90 px-4 py-3 shadow-sm">
                   <div className="flex items-center justify-between gap-3">
                     <h4 className="text-base font-semibold text-slate-900">{item.title}</h4>
                     <StatusBadge status={item.status} />
                   </div>
                   <p className="mt-1 text-sm text-slate-700">{item.summary}</p>
-                  <p className="mt-1 text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
-                    {item.detail}
-                  </p>
+                  <p className="mt-1 text-xs font-medium uppercase tracking-[0.12em] text-slate-500">{item.detail}</p>
                 </article>
               ))}
             </div>
@@ -491,9 +472,7 @@ export default function Home() {
                     <span className="h-2 w-2 rounded-full bg-amber-400" aria-hidden />
                     {chore.due}
                   </div>
-                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                    {chore.source}
-                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{chore.source}</span>
                 </div>
               </article>
             ))}
@@ -509,7 +488,7 @@ export default function Home() {
           />
           <div className="grid gap-4 md:grid-cols-3">
             {productivityMetrics.map((metric) => {
-              const band = metric.tone ? scoreBands[metric.tone] : scoreBands.neutral
+              const band = metric.tone ? scoreBands[metric.tone] : scoreBands.neutral;
               return (
                 <div
                   key={metric.label}
@@ -520,11 +499,13 @@ export default function Home() {
                   <div className="h-2 overflow-hidden rounded-full bg-slate-100">
                     <div className={`h-full ${band.bar}`} />
                   </div>
-                  <span className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${band.chip}`}>
+                  <span
+                    className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${band.chip}`}
+                  >
                     {metric.change}
                   </span>
                 </div>
-              )
+              );
             })}
           </div>
         </section>
@@ -601,8 +582,8 @@ export default function Home() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">Stay in the loop</p>
               <h3 className={`${freePressFont.className} text-3xl font-semibold text-slate-900`}>Weekly inbox briefing</h3>
               <p className="max-w-xl text-sm text-slate-700">
-                Every Monday morning: what moved, what stalled, what slipped, and what to expect next week. Free while we
-                build; premium tier will add personalized tracking.
+                Every Monday morning: what moved, what stalled, what slipped, and what to expect next week. Free while we build;
+                premium tier will add personalized tracking.
               </p>
               <div className="flex flex-wrap gap-3 text-sm text-slate-700">
                 <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">
@@ -625,5 +606,5 @@ export default function Home() {
         </section>
       </div>
     </main>
-  )
+  );
 }

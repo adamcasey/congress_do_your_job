@@ -8,22 +8,22 @@ export enum FeatureFlag {
    * Controls whether homepage redirects to /coming-soon
    * LaunchDarkly key: coming-soon-landing-page
    */
-  COMING_SOON_LANDING_PAGE = 'comingSoonLandingPage',
+  COMING_SOON_LANDING_PAGE = "comingSoonLandingPage",
 
   /**
    * Controls whether the budget bill timer is displayed
    * LaunchDarkly key: budget-bill-timer
    */
-  BUDGET_BILL_TIMER = 'budgetBillTimer',
+  BUDGET_BILL_TIMER = "budgetBillTimer",
 }
 
 /**
  * LaunchDarkly flag keys (raw dashboard keys).
  */
 export const featureFlagKeys: Record<FeatureFlag, string> = {
-  [FeatureFlag.COMING_SOON_LANDING_PAGE]: 'coming-soon-landing-page',
-  [FeatureFlag.BUDGET_BILL_TIMER]: 'budget-bill-timer',
-}
+  [FeatureFlag.COMING_SOON_LANDING_PAGE]: "coming-soon-landing-page",
+  [FeatureFlag.BUDGET_BILL_TIMER]: "budget-bill-timer",
+};
 
 /**
  * Type-safe flag defaults
@@ -32,4 +32,4 @@ export const featureFlagKeys: Record<FeatureFlag, string> = {
 export const featureFlagDefaults: Record<FeatureFlag, boolean> = {
   [FeatureFlag.COMING_SOON_LANDING_PAGE]: true,
   [FeatureFlag.BUDGET_BILL_TIMER]: false,
-}
+};

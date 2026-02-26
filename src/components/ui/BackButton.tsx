@@ -1,9 +1,9 @@
-import Link from 'next/link'
-import { ReactNode } from 'react'
+import Link from "next/link";
+import { ReactNode } from "react";
 
 interface BackButtonProps {
-  href: string
-  children: ReactNode
+  href: string;
+  children: ReactNode;
 }
 
 export function BackButton({ href, children }: BackButtonProps) {
@@ -28,5 +28,5 @@ export function BackButton({ href, children }: BackButtonProps) {
       </svg>
       {children}
     </Link>
-  )
+  );
 }

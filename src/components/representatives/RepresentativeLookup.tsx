@@ -1,70 +1,70 @@
-'use client'
+"use client";
 
-import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react'
-import { useAddressAutocomplete, useRepresentativeLookup } from '@/hooks'
-import { EmptyState } from '@/components/ui'
-import { RepresentativeCard, RepresentativeCardData } from './RepresentativeCard'
-import { DistrictSnapshotCard } from './DistrictSnapshotCard'
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import { useAddressAutocomplete, useRepresentativeLookup } from "@/hooks";
+import { EmptyState } from "@/components/ui";
+import { RepresentativeCard, RepresentativeCardData } from "./RepresentativeCard";
+import { DistrictSnapshotCard } from "./DistrictSnapshotCard";
 
 const placeholderRepresentatives: RepresentativeCardData[] = [
   {
-    id: 'placeholder-1',
-    name: 'Avery Chen',
-    area: 'US House',
-    phone: '202-225-1188',
+    id: "placeholder-1",
+    name: "Avery Chen",
+    area: "US House",
+    phone: "202-225-1188",
   },
   {
-    id: 'placeholder-2',
-    name: 'Jordan Lee',
-    area: 'US Senate',
-    phone: '202-224-1421',
+    id: "placeholder-2",
+    name: "Jordan Lee",
+    area: "US Senate",
+    phone: "202-224-1421",
   },
   {
-    id: 'placeholder-3',
-    name: 'Samira Patel',
-    area: 'US Senate',
-    phone: '202-224-6622',
+    id: "placeholder-3",
+    name: "Samira Patel",
+    area: "US Senate",
+    phone: "202-224-6622",
   },
-]
+];
 
 export function RepresentativeLookup() {
-  const [address, setAddress] = useState('')
-  const [showAutocomplete, setShowAutocomplete] = useState(false)
-  const [hasSearched, setHasSearched] = useState(false)
-  const autocompleteRef = useRef<HTMLDivElement>(null)
-  const { loading, error, representatives, state, district, lookupByAddress } = useRepresentativeLookup()
-  const { predictions, fetchPredictions, clearPredictions } = useAddressAutocomplete()
+  const [address, setAddress] = useState("");
+  const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const autocompleteRef = useRef<HTMLDivElement>(null);
+  const { loading, error, representatives, state, district, lookupByAddress } = useRepresentativeLookup();
+  const { predictions, fetchPredictions, clearPredictions } = useAddressAutocomplete();
 
   const handleAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setAddress(value)
-    fetchPredictions(value)
-    setShowAutocomplete(true)
-  }
+    const value = e.target.value;
+    setAddress(value);
+    fetchPredictions(value);
+    setShowAutocomplete(true);
+  };
 
   const handleSelectPrediction = (description: string) => {
-    setAddress(description)
-    setShowAutocomplete(false)
-    clearPredictions()
-  }
+    setAddress(description);
+    setShowAutocomplete(false);
+    clearPredictions();
+  };
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setHasSearched(true)
-    setShowAutocomplete(false)
-    await lookupByAddress(address)
-  }
+    e.preventDefault();
+    setHasSearched(true);
+    setShowAutocomplete(false);
+    await lookupByAddress(address);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (autocompleteRef.current && !autocompleteRef.current.contains(event.target as Node)) {
-        setShowAutocomplete(false)
+        setShowAutocomplete(false);
       }
-    }
+    };
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const representativeCards: RepresentativeCardData[] = representatives.map((rep) => ({
     id: rep.id,
@@ -73,11 +73,11 @@ export function RepresentativeLookup() {
     phone: rep.phone,
     url: rep.url,
     photoURL: rep.photoURL,
-  }))
+  }));
 
-  const showPlaceholder = !hasSearched && !loading && representativeCards.length === 0
-  const showEmpty = hasSearched && !loading && representativeCards.length === 0 && !error
-  const cardsToShow = showPlaceholder ? placeholderRepresentatives : representativeCards
+  const showPlaceholder = !hasSearched && !loading && representativeCards.length === 0;
+  const showEmpty = hasSearched && !loading && representativeCards.length === 0 && !error;
+  const cardsToShow = showPlaceholder ? placeholderRepresentatives : representativeCards;
 
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
@@ -117,9 +117,7 @@ export function RepresentativeLookup() {
               </div>
             )}
 
-            <p className="mt-2 text-xs text-slate-500">
-              We&apos;ll find your federal representatives (House & Senate)
-            </p>
+            <p className="mt-2 text-xs text-slate-500">We&apos;ll find your federal representatives (House & Senate)</p>
           </div>
 
           <button
@@ -127,7 +125,7 @@ export function RepresentativeLookup() {
             disabled={loading || !address.trim()}
             className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-slate-900 px-6 text-base font-semibold text-white shadow-lg shadow-slate-900/30 transition hover:-translate-y-[1px] hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
           >
-            {loading ? 'Looking up...' : 'Find My Representatives'}
+            {loading ? "Looking up..." : "Find My Representatives"}
           </button>
         </form>
       </div>
@@ -135,7 +133,7 @@ export function RepresentativeLookup() {
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-lg font-semibold text-slate-900">
-            {showPlaceholder ? 'Your Representatives' : hasSearched ? 'Your Representatives' : 'Example Results'}
+            {showPlaceholder ? "Your Representatives" : hasSearched ? "Your Representatives" : "Example Results"}
           </h3>
           {!showPlaceholder && representativeCards.length > 0 && (
             <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
@@ -147,25 +145,15 @@ export function RepresentativeLookup() {
         {loading && (
           <div className="grid gap-4 md:grid-cols-2">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div
-                key={`skeleton-${index}`}
-                className="h-28 rounded-2xl border border-slate-200/80 bg-slate-50/70"
-              />
+              <div key={`skeleton-${index}`} className="h-28 rounded-2xl border border-slate-200/80 bg-slate-50/70" />
             ))}
           </div>
         )}
 
-        {!loading && error && (
-          <EmptyState
-            title="Unable to load representatives"
-            message={error}
-          />
-        )}
+        {!loading && error && <EmptyState title="Unable to load representatives" message={error} />}
 
         {!loading && showEmpty && (
-          <EmptyState
-            message="No representatives found for this address. Please check that you've entered a complete address with city, state, and ZIP code."
-          />
+          <EmptyState message="No representatives found for this address. Please check that you've entered a complete address with city, state, and ZIP code." />
         )}
 
         {!loading && showPlaceholder && (
@@ -187,5 +175,5 @@ export function RepresentativeLookup() {
         )}
       </div>
     </div>
-  )
+  );
 }

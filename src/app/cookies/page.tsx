@@ -1,19 +1,16 @@
-import { latoFont, freePressFont } from '@/styles/fonts'
-import Link from 'next/link'
+import { latoFont, freePressFont } from "@/styles/fonts";
+import Link from "next/link";
 
 export const metadata = {
-  title: 'Cookie Policy | Congress Do Your Job',
-  description: 'How we use cookies and tracking technologies.',
-}
+  title: "Cookie Policy | Congress Do Your Job",
+  description: "How we use cookies and tracking technologies.",
+};
 
 export default function CookiesPage() {
   return (
     <main className={`min-h-screen px-4 pb-20 pt-10 ${latoFont.className}`}>
       <div className="mx-auto max-w-4xl">
-        <Link
-          href="/"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-slate-900"
-        >
+        <Link href="/" className="mb-6 inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-slate-900">
           &larr; Back to home
         </Link>
 
@@ -25,8 +22,8 @@ export default function CookiesPage() {
             <section>
               <h2 className="text-2xl font-semibold text-slate-900">What Are Cookies?</h2>
               <p>
-                Cookies are small text files stored on your device when you visit a website. They help us remember
-                your preferences, understand how you use our site, and improve your experience.
+                Cookies are small text files stored on your device when you visit a website. They help us remember your
+                preferences, understand how you use our site, and improve your experience.
               </p>
             </section>
 
@@ -119,8 +116,8 @@ export default function CookiesPage() {
             <section>
               <h2 className="text-2xl font-semibold text-slate-900">Updates to This Policy</h2>
               <p>
-                We may update this Cookie Policy from time to time. Check this page periodically for changes. The
-                &quot;Last updated&quot; date at the top indicates when this policy was last revised.
+                We may update this Cookie Policy from time to time. Check this page periodically for changes. The &quot;Last
+                updated&quot; date at the top indicates when this policy was last revised.
               </p>
             </section>
 
@@ -129,7 +126,7 @@ export default function CookiesPage() {
               <p>Questions about our use of cookies?</p>
               <ul>
                 <li>
-                  Email:{' '}
+                  Email:{" "}
                   <a href="mailto:privacy@congressdoyourjob.com" className="text-amber-600 hover:text-amber-700">
                     privacy@congressdoyourjob.com
                   </a>
@@ -140,5 +137,5 @@ export default function CookiesPage() {
         </article>
       </div>
     </main>
-  )
+  );
 }

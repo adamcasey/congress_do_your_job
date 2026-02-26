@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { freePressFont } from '@/styles/fonts'
+import { freePressFont } from "@/styles/fonts";
 
-const whyTags = ['Source-linked', 'Nonpartisan', 'Plain English', 'Built for busy people']
+const whyTags = ["Source-linked", "Nonpartisan", "Plain English", "Built for busy people"];
 
 export function AboutIntroGrid() {
   return (
@@ -27,8 +27,8 @@ export function AboutIntroGrid() {
         <div className="rounded-[32px] border border-slate-200/70 bg-white/90 p-8 shadow-xl shadow-slate-200/40">
           <p className="text-xs font-semibold uppercase tracking-[0.32em] text-emerald-700">Our promise</p>
           <p className="mt-4 text-sm leading-relaxed text-slate-600">
-            We focus on public data, clear language, and respectful civic action. This is a project for people who want
-            Congress to work better and want to reach out in a way that invites progress.
+            We focus on public data, clear language, and respectful civic action. This is a project for people who want Congress
+            to work better and want to reach out in a way that invites progress.
           </p>
         </div>
       </div>
@@ -55,5 +55,5 @@ export function AboutIntroGrid() {
         </div>
       </div>
     </div>
-  )
+  );
 }
