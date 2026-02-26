@@ -4,6 +4,17 @@ if (!process.env.GEMINI_API_KEY) {
   throw new Error('GEMINI_API_KEY environment variable is required')
 }
 
+/**
+ * Dynamic list of approved news sources for web searches
+ */
+export enum APPROVED_SOURCES_ENUM {
+  TANGLE = "Tangle News",
+  NYT = "New York Times",
+  FREE_PRESS = "Free Press",
+  DISPTACH = "The Dispatch",
+  FIVETHIRTYEIGHT = "Five Thiry Eight"
+}
+
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 })
@@ -41,10 +52,11 @@ ${billText}
 Instructions:
 - Write a concise, plain-English summary in 5-6 sentences (max ${maxLength} characters)
 - Focus on WHAT the bill does, not WHY or political motivations
-- Use active voice and 8th-grade reading level
+- Use narrative voice and professional, best-selling author prose (Examples include but not limited to David Brooks, David Epstein, Richard Grant, Neil Strauss)
 - Avoid jargon, partisan framing, and superlatives
 - Start with the core action (e.g., "This bill establishes...", "This bill requires...", "This bill amends...")
 - Be factual and neutral
+- If not enough text is given to create a summary, rely on open web-searches from APPROVED_SOURCES_ENUM values
 
 Summary:`
 
