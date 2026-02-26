@@ -9,6 +9,7 @@ import { freePressFont, latoFont } from '@/styles/fonts'
 import { BudgetCountdown } from '@/components/BudgetCountdown'
 import { RecentBills } from '@/components/legislation/RecentBills'
 import { WaitlistForm } from '@/components/forms/WaitlistForm'
+import { useCongressStats } from '@/hooks'
 
 const DAY_MS = 1000 * 60 * 60 * 24
 
@@ -148,12 +149,13 @@ const choreList: ChoreItem[] = [
   },
 ]
 
-const productivityMetrics: Metric[] = [
-  { label: 'Bills advanced this week', value: '14', change: '+4 vs last week', tone: 'good' },
-  { label: 'Hearings held', value: '22', change: 'steady', tone: 'neutral' },
-  { label: 'Floor hours worked', value: '31h', change: '+6h vs last week', tone: 'good' },
-  { label: 'Vote attendance', value: '94%', change: '+1.5 pts', tone: 'good' },
-  { label: 'Committee attendance', value: '88%', change: '-2 pts', tone: 'caution' },
+// Productivity metrics that cannot yet be derived from the Congress.gov API.
+// These will be replaced with live data when additional data sources are wired.
+const STATIC_METRICS: Metric[] = [
+  { label: 'Hearings held', value: '—', change: 'data coming soon', tone: 'neutral' },
+  { label: 'Floor hours worked', value: '—', change: 'data coming soon', tone: 'neutral' },
+  { label: 'Vote attendance', value: '—', change: 'data coming soon', tone: 'neutral' },
+  { label: 'Committee attendance', value: '—', change: 'data coming soon', tone: 'neutral' },
   { label: 'Deadlines missed', value: '3', change: 'overdue tasks', tone: 'caution' },
 ]
 
@@ -251,7 +253,26 @@ function StatusBadge({ status }: { status: Status }) {
   )
 }
 
-function SectionHeader({ title, eyebrow, description }: { title: string; eyebrow?: string; description?: string }) {
+type DataStatus = 'todo' | 'partial' | 'live'
+
+const dataStatusBadge: Record<DataStatus, { label: string; classes: string }> = {
+  todo: { label: 'TODO: connect to live data', classes: 'bg-white/70 text-slate-500 ring-1 ring-slate-200' },
+  partial: { label: 'Partial live data', classes: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' },
+  live: { label: 'Live data', classes: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' },
+}
+
+function SectionHeader({
+  title,
+  eyebrow,
+  description,
+  dataStatus = 'todo',
+}: {
+  title: string
+  eyebrow?: string
+  description?: string
+  dataStatus?: DataStatus
+}) {
+  const badge = dataStatusBadge[dataStatus]
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
@@ -261,8 +282,8 @@ function SectionHeader({ title, eyebrow, description }: { title: string; eyebrow
         <h2 className="text-2xl font-semibold leading-tight text-slate-900">{title}</h2>
         {description && <p className="mt-2 max-w-2xl text-sm text-slate-600">{description}</p>}
       </div>
-      <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
-        TODO: connect to live data
+      <span className={`rounded-full px-3 py-1 text-xs font-medium ${badge.classes}`}>
+        {badge.label}
       </span>
     </div>
   )
@@ -271,6 +292,7 @@ function SectionHeader({ title, eyebrow, description }: { title: string; eyebrow
 export default function Home() {
   const router = useRouter()
   const { flags, hasLdState } = useLaunchDarkly()
+  const { data: statsData, loading: statsLoading } = useCongressStats()
 
   const showComingSoon = hasLdState && FeatureFlag.COMING_SOON_LANDING_PAGE in flags
     ? Boolean(flags[FeatureFlag.COMING_SOON_LANDING_PAGE])
@@ -289,10 +311,32 @@ export default function Home() {
   const lastBudgetDate = process.env.NEXT_PUBLIC_BUDGET_LAST_PASSED_DATE ?? '2024-03-23'
   const { daysSinceBudget, lastBudgetDateLabel } = getBudgetStats(lastBudgetDate)
 
+  const billsValue = statsLoading
+    ? '...'
+    : (statsData?.billsAdvancedThisWeek?.toString() ?? '—')
+
+  const billsChangeLabel = (() => {
+    if (!statsData) return '...'
+    const diff = statsData.billsChange
+    if (diff === 0) return 'same as last week'
+    const sign = diff > 0 ? '+' : ''
+    return `${sign}${diff} vs last week`
+  })()
+
+  const productivityMetrics: Metric[] = [
+    {
+      label: 'Bills advanced this week',
+      value: billsValue,
+      change: billsChangeLabel,
+      tone: statsData?.billsChangeTone ?? 'neutral',
+    },
+    ...STATIC_METRICS,
+  ]
+
   const heroMetrics = [
-    { label: 'Bills advanced', value: '14', detail: '+4 vs last week' },
-    { label: 'Hearings', value: '22', detail: 'steady' },
-    { label: 'Vote attendance', value: '94%', detail: '+1.5 pts' },
+    { label: 'Bills advanced', value: billsValue, detail: billsChangeLabel },
+    { label: 'Hearings', value: '—', detail: 'data coming soon' },
+    { label: 'Vote attendance', value: '—', detail: 'data coming soon' },
     {
       label: 'Days since budget passed',
       value: daysSinceBudget.toLocaleString('en-US'),
@@ -461,6 +505,7 @@ export default function Home() {
             eyebrow="Productivity dashboard"
             title="Behavior over rhetoric"
             description="Daily-updated stats designed to feel like Strava for Congress: reps, recovery, and accountability."
+            dataStatus="partial"
           />
           <div className="grid gap-4 md:grid-cols-3">
             {productivityMetrics.map((metric) => {
