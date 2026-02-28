@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { freePressFont, latoFont } from "@/styles/fonts";
-import figmaLogoLight from "../../public/logos/figma/figma_logo_light.svg";
+const figmaLogoLight = "/logos/figma/figma_logo_light.svg";
 
 const navGroups = [
   {
