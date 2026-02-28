@@ -269,7 +269,7 @@ export default function MethodologyPage() {
             <p>
               <strong>Not a complete picture.</strong> Constituent casework, private negotiations, and informal cross-aisle
               collaboration are difficult to quantify. This scorecard measures what can be verified from public records, not
-              every aspect of an official's work.
+              every aspect of an official&&apos;s work.
             </p>
             <p>
               <strong>Corrections welcome.</strong> If you believe a score contains an error, use the community correction form.
