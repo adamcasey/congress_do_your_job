@@ -1,5 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import { freePressFont, latoFont } from "@/styles/fonts";
+import figmaLogoLight from "../../public/logos/figma/figma_logo_light.svg";
 
 const navGroups = [
   {
@@ -35,7 +37,7 @@ export default function Footer() {
           <div className="space-y-5">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-[11px] font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-slate-900/30">
-                CDYJ
+                <Image src={figmaLogoLight} alt={"Congress Do Your Job Logo"} width={64} height={64} unoptimized />
               </div>
               <div>
                 <p className={`${freePressFont.className} text-2xl text-slate-900`}>Congress Do Your Job</p>
