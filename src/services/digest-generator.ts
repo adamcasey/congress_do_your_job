@@ -161,14 +161,22 @@ export async function generateWeeklyDigest(now: Date = new Date()): Promise<Gene
           sectionType: "stats",
           title: "By the Numbers",
           content: overallSummary,
-          items: [stats as unknown as Record<string, unknown>],
+          // Dates must be serialized as strings for Prisma's Json[] field
+          items: [
+            {
+              billsIntroduced: stats.billsIntroduced,
+              billsWithRecentAction: stats.billsWithRecentAction,
+              weekStart: stats.weekStart.toISOString(),
+              weekEnd: stats.weekEnd.toISOString(),
+            },
+          ],
           order: 1,
         },
         {
           sectionType: "bills",
           title: "Bills in Focus",
           content: `${featuredBills.length} bill${featuredBills.length !== 1 ? "s" : ""} summarized this week`,
-          items: featuredBills as unknown as Record<string, unknown>[],
+          items: featuredBills.map((b) => ({ ...b })),
           order: 2,
         },
       ],

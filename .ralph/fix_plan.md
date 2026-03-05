@@ -75,7 +75,12 @@
   - No API routes or components built
 - [ ] Connect homepage "See this week's briefing" and "Open profile" buttons (currently dead)
 - [ ] Replace "TODO" source links in choreList items with real Congress.gov URLs
-- [ ] Add error boundaries to key pages
+- [x] Add error boundaries to key pages
+  - `src/app/error.tsx` — root catch-all: "We hit a snag" with Try again + Back to dashboard
+  - `src/app/global-error.tsx` — root layout catch (self-contained html/body, inline styles, no deps)
+  - `src/app/representatives/error.tsx` — contextual message for API-dependent rep lookup page
+  - All three are Client Components with reset() + home link per Next.js App Router spec
+  - Fixed digest-generator.ts: Date fields serialized to ISO strings in Prisma Json[] sections (build was failing)
 
 ## Low Priority
 
