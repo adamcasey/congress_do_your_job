@@ -231,6 +231,20 @@ export async function getAmendment(
 }
 
 /**
+ * Search members of Congress by name
+ */
+export async function searchMembers(query: string, options: FetchOptions = {}): Promise<CongressApiResponse<Member>> {
+  const { limit = 20, offset = 0 } = options;
+
+  return fetchCongressApi<Member>(`/member`, {
+    q: query,
+    limit,
+    offset,
+    currentMember: "true",
+  });
+}
+
+/**
  * Get current congress number
  */
 export function getCurrentCongress(): number {
