@@ -92,6 +92,27 @@ async function fetchCongressApi<T>(
   }
 }
 
+interface SearchBillsOptions {
+  limit?: number;
+  offset?: number;
+  congress?: number;
+}
+
+/**
+ * Search bills by keyword using Congress.gov full-text search
+ * Congress.gov q param format: JSON-encoded search query
+ */
+export async function searchBills(query: string, options: SearchBillsOptions = {}): Promise<CongressApiResponse<Bill>> {
+  const { limit = 20, offset = 0, congress = CURRENT_CONGRESS } = options;
+
+  return fetchCongressApi<Bill>(`/bill/${congress}`, {
+    q: JSON.stringify({ search: query }),
+    limit,
+    offset,
+    sort: "updateDate+desc",
+  });
+}
+
 /**
  * Get list of bills with optional filtering
  */
