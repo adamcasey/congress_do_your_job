@@ -9,6 +9,15 @@
 
 ## High Priority
 
+- [x] Improve bill summaries to handle edge cases and always provide the user with a factual summary of legislation
+  - `bill-summary.ts` now calls dedicated `/summaries` endpoint (was only using bill object's embedded field)
+  - `selectBestSummaryText()` picks the most advanced CRS version (highest versionCode)
+  - `cleanHtml()` strips tags + entities before passing text to AI (was only in error fallback)
+  - Metadata (chamber, policyArea, latestAction, sponsors) passed to Gemini for context-richer prompts
+  - Fallback summaries no longer persisted to DB — allows retry on future requests when bill gets CRS text
+  - Fixed model name mismatch: stored value changed from `"gemini-2.0-flash-exp"` → `"gemini-2.5-flash"`
+  - `gemini-api.ts` `SummarizeBillOptions` now accepts optional `metadata?: BillMetadata`; approved sources injected dynamically into prompt
+  - 11 new tests in `tests/backend/services/bill-summary.test.ts`; full suite 187 tests passing
 - [x] Extract hardcoded mock data from homepage into API-driven or config-driven sources
   - Built `/api/v1/congress/stats` → real bill advancement counts (this week vs last week) from Congress.gov
   - Added `useCongressStats` hook; productivityMetrics bills card + hero metrics now show live data
@@ -18,10 +27,12 @@
 - [x] Fix homepage production redirect logic (was unconditionally redirecting to /coming-soon in production)
   - Fixed: `useEffect` now checks `showComingSoon` flag before redirecting
   - When flag is false (or toggled off in LaunchDarkly), homepage renders normally in production
-- [ ] Implement weekly digest generation pipeline
-  - Prisma model `DigestEdition` exists but no generation logic
-  - Email templates exist (`WeeklyDigest.ts`) but aren't wired to cron
-  - Need: data collection → summary generation → email sending
+- [x] Implement weekly digest generation pipeline
+  - `src/services/digest-generator.ts` — `generateWeeklyDigest()`: fetches week's bills, AI summaries for top 5, creates DigestEdition in DB (status: draft), idempotent (skips if published edition exists for this Monday)
+  - `src/emails/templates/WeeklyDigest.ts` — full HTML email (dark header, stats row, bill cards with AI summaries, CTA, footer); replaced TODO stub
+  - `src/app/api/cron/weekly-digest/route.ts` — GET endpoint: generates digest → fetches waitlist subscribers → sends email via Resend → marks DigestEdition published; per-subscriber failures isolated
+  - `vercel.json` — added `0 12 * * 1` (Mondays 12:00 UTC = 8am ET)
+  - 12 new tests; full suite 199/199 passing across 27 files
 - [x] Implement scorecard scoring engine v1.0.0
   - Created `src/types/scorecard.ts` — scoring types, enums, input/output interfaces
   - Created `src/services/scorecard-calculator.ts` — pure-function engine (6 categories, transparent methodology)
@@ -55,6 +66,7 @@
 
 ## Medium Priority
 
+- [ ] Add legislation search feature
 - [ ] Add Clerk authentication integration
   - Prisma `User` model has `clerkId` field ready
   - No Clerk SDK installed yet
