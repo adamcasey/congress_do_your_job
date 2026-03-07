@@ -3,16 +3,11 @@
 import { WaitlistForm } from "@/components/forms/WaitlistForm";
 import { BudgetCountdown } from "@/components/BudgetCountdown";
 import { freePressFont } from "@/styles/fonts";
-import { useLaunchDarkly } from "@/config/launchdarkly";
-import { FeatureFlag, featureFlagDefaults } from "@/lib/feature-flags";
+import { useFeatureFlag } from "@/config/launchdarkly";
+import { FeatureFlag } from "@/lib/feature-flags";
 
 export default function ComingSoon() {
-  const { flags, hasLdState } = useLaunchDarkly();
-
-  const showBudgetTimer =
-    hasLdState && FeatureFlag.BUDGET_BILL_TIMER in flags
-      ? Boolean(flags[FeatureFlag.BUDGET_BILL_TIMER])
-      : featureFlagDefaults[FeatureFlag.BUDGET_BILL_TIMER];
+  const showBudgetTimer = useFeatureFlag(FeatureFlag.BUDGET_BILL_TIMER);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#e4f0f9] via-[#e4f0f9] to-[#fde3e0]">

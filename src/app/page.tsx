@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
-import { FeatureFlag, featureFlagDefaults } from "@/lib/feature-flags";
-import { useLaunchDarkly } from "@/config/launchdarkly";
+import { FeatureFlag } from "@/lib/feature-flags";
+import { useFeatureFlag } from "@/config/launchdarkly";
 import { freePressFont, latoFont } from "@/styles/fonts";
 import { BudgetCountdown } from "@/components/BudgetCountdown";
 import { RecentBills } from "@/components/legislation/RecentBills";
@@ -275,24 +275,16 @@ function SectionHeader({
 
 export default function Home() {
   const router = useRouter();
-  const { flags, hasLdState } = useLaunchDarkly();
   const { data: statsData, loading: statsLoading } = useCongressStats();
 
-  const showComingSoon =
-    hasLdState && FeatureFlag.COMING_SOON_LANDING_PAGE in flags
-      ? Boolean(flags[FeatureFlag.COMING_SOON_LANDING_PAGE])
-      : featureFlagDefaults[FeatureFlag.COMING_SOON_LANDING_PAGE];
-
-  const showBudgetTimer =
-    hasLdState && FeatureFlag.BUDGET_BILL_TIMER in flags
-      ? Boolean(flags[FeatureFlag.BUDGET_BILL_TIMER])
-      : featureFlagDefaults[FeatureFlag.BUDGET_BILL_TIMER];
+  const showComingSoon = useFeatureFlag(FeatureFlag.COMING_SOON_LANDING_PAGE);
+  const showBudgetTimer = useFeatureFlag(FeatureFlag.BUDGET_BILL_TIMER);
 
   useEffect(() => {
     if (process.env.NODE_ENV === "production" && !showComingSoon) {
       router.push("/coming-soon");
     }
-  }, [hasLdState, showComingSoon, router]);
+  }, [showComingSoon, router]);
 
   const lastBudgetDate = process.env.NEXT_PUBLIC_BUDGET_LAST_PASSED_DATE ?? "2024-03-23";
   const { daysSinceBudget, lastBudgetDateLabel } = getBudgetStats(lastBudgetDate);
