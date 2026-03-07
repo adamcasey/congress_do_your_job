@@ -1,6 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useBillDetails } from "@/hooks/useBillDetails";
+import { createQueryWrapper } from "../test-utils";
 
 describe("useBillDetails", () => {
   afterEach(() => {
@@ -11,7 +12,9 @@ describe("useBillDetails", () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
-    const { result } = renderHook(() => useBillDetails({ enabled: true }));
+    const { result } = renderHook(() => useBillDetails({ enabled: true }), {
+      wrapper: createQueryWrapper(),
+    });
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
@@ -42,7 +45,9 @@ describe("useBillDetails", () => {
       }),
     );
 
-    const { result } = renderHook(() => useBillDetails({ billType: "HR", billNumber: "1", congress: 119 }));
+    const { result } = renderHook(() => useBillDetails({ billType: "HR", billNumber: "1", congress: 119 }), {
+      wrapper: createQueryWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -54,7 +59,9 @@ describe("useBillDetails", () => {
 
   it("sets generic error on fetch failure", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
-    const { result } = renderHook(() => useBillDetails({ billType: "HR", billNumber: "1", congress: 119 }));
+    const { result } = renderHook(() => useBillDetails({ billType: "HR", billNumber: "1", congress: 119 }), {
+      wrapper: createQueryWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);

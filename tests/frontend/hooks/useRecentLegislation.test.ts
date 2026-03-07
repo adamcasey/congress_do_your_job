@@ -1,6 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useRecentLegislation } from "@/hooks/useRecentLegislation";
+import { createQueryWrapper } from "../test-utils";
 
 describe("useRecentLegislation", () => {
   afterEach(() => {
@@ -11,7 +12,9 @@ describe("useRecentLegislation", () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
-    const { result } = renderHook(() => useRecentLegislation({ enabled: false }));
+    const { result } = renderHook(() => useRecentLegislation({ enabled: false }), {
+      wrapper: createQueryWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -36,7 +39,9 @@ describe("useRecentLegislation", () => {
       }),
     );
 
-    const { result } = renderHook(() => useRecentLegislation({ limit: 10, days: 14 }));
+    const { result } = renderHook(() => useRecentLegislation({ limit: 10, days: 14 }), {
+      wrapper: createQueryWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -52,7 +57,9 @@ describe("useRecentLegislation", () => {
 
   it("handles non-abort errors by setting error state", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
-    const { result } = renderHook(() => useRecentLegislation());
+    const { result } = renderHook(() => useRecentLegislation(), {
+      wrapper: createQueryWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);

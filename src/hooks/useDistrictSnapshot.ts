@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { ApiResponse } from "@/lib/api-response";
 
 export interface DistrictData {
@@ -20,86 +20,66 @@ interface UseDistrictSnapshotReturn {
   loading: boolean;
 }
 
+async function fetchDistrictData(state: string, district: string): Promise<DistrictData> {
+  try {
+    const response = await fetch(
+      `/api/v1/district?state=${encodeURIComponent(state)}&district=${encodeURIComponent(district)}`,
+    );
+    const result = (await response.json()) as ApiResponse<DistrictData>;
+
+    if (!response.ok || !result.success) {
+      return {
+        districtName: `District ${district}`,
+        population: null,
+        medianAge: null,
+        nextElection: null,
+        error: result.success ? "Unable to load district data" : result.error || "Unable to load district data",
+      };
+    }
+
+    return result.data;
+  } catch {
+    return {
+      districtName: `District ${district}`,
+      population: null,
+      medianAge: null,
+      nextElection: null,
+      error: "Failed to load district data",
+    };
+  }
+}
+
+const NO_DISTRICT_DATA: DistrictData = {
+  districtName: "No district data",
+  population: null,
+  medianAge: null,
+  nextElection: null,
+  error: "District information not available",
+};
+
 export function useDistrictSnapshot({
   state,
   district,
   isPlaceholder = false,
 }: UseDistrictSnapshotArgs): UseDistrictSnapshotReturn {
-  const [data, setData] = useState<DistrictData | null>(null);
-  const [loading, setLoading] = useState(false);
+  const canFetch = !isPlaceholder && !!state && !!district;
 
-  useEffect(() => {
-    if (isPlaceholder) {
-      setLoading(false);
-      setData(null);
-      return;
-    }
+  const { data, isPending } = useQuery({
+    queryKey: ["districtSnapshot", state, district],
+    queryFn: () => fetchDistrictData(state!, district!),
+    enabled: canFetch,
+    staleTime: 60 * 60 * 1000,
+    placeholderData: !isPlaceholder && (!state || !district) ? NO_DISTRICT_DATA : undefined,
+  });
 
-    if (!state || !district) {
-      setLoading(false);
-      setData({
-        districtName: "No district data",
-        population: null,
-        medianAge: null,
-        nextElection: null,
-        error: "District information not available",
-      });
-      return;
-    }
+  const resolvedData = isPlaceholder
+    ? null
+    : !state || !district
+      ? NO_DISTRICT_DATA
+      : (data ?? null);
 
-    let isActive = true;
-    const controller = new AbortController();
-
-    const fetchDistrict = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `/api/v1/district?state=${encodeURIComponent(state)}&district=${encodeURIComponent(district)}`,
-          { signal: controller.signal },
-        );
-        const result = (await response.json()) as ApiResponse<DistrictData>;
-
-        if (!isActive) {
-          return;
-        }
-
-        if (!response.ok || !result.success) {
-          setData({
-            districtName: `District ${district}`,
-            population: null,
-            medianAge: null,
-            nextElection: null,
-            error: result.success ? "Unable to load district data" : result.error || "Unable to load district data",
-          });
-          return;
-        }
-
-        setData(result.data);
-      } catch (error) {
-        if (!isActive || (error instanceof DOMException && error.name === "AbortError")) {
-          return;
-        }
-        setData({
-          districtName: `District ${district}`,
-          population: null,
-          medianAge: null,
-          nextElection: null,
-          error: "Failed to load district data",
-        });
-      } finally {
-        if (isActive) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchDistrict();
-
-    return () => {
-      isActive = false;
-      controller.abort();
-    };
-  }, [state, district, isPlaceholder]);
-
-  return { data, loading };
+  return {
+    data: resolvedData,
+    loading: canFetch && isPending,
+  };
 }
