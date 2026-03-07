@@ -9,6 +9,7 @@ interface ScorecardCardProps {
   dataSourceNote?: string;
 }
 
+// TODO: move to shared util
 function formatDate(date: Date | string): string {
   return new Date(date).toLocaleDateString("en-US", {
     month: "short",

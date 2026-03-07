@@ -8,7 +8,7 @@ export const metadata = {
   description:
     "Look up Civility & Productivity Scorecards for any current member of Congress. Objective, transparent scoring based on attendance, legislation, bipartisanship, and more.",
 };
-
+// TODO: expose this to users from the dashboard
 export default function ScorecardPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#e4f0f9] via-[#e4f0f9] to-[#fde3e0]">
@@ -22,8 +22,8 @@ export default function ScorecardPage() {
             Productivity Scorecards
           </h1>
           <p className="mx-auto max-w-xl text-lg text-slate-600 text-balance">
-            Objective, transparent scores for every current member of Congress — based on what they actually do, not what
-            they say.
+            Objective, transparent scores for every current member of Congress — based on what they actually do, not what they
+            say.
           </p>
         </header>
 
@@ -39,8 +39,8 @@ export default function ScorecardPage() {
             </Link>
           </p>
           <p className="text-xs text-slate-400">
-            Some categories (committee hearings, civility, theater ratio) use neutral defaults while additional data sources come
-            online. Data transparency is shown in each score breakdown.
+            Some categories (committee hearings, civility, theater ratio) use neutral defaults while additional data sources
+            come online. Data transparency is shown in each score breakdown.
           </p>
         </footer>
       </div>
