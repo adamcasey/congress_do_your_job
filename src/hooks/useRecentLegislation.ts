@@ -1,64 +1,32 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { RecentLegislationData, UseRecentLegislationArgs, UseRecentLegislationReturn } from "@/types/legislation";
 import type { ApiResponse } from "@/lib/api-response";
+
+async function fetchRecentLegislation(limit: number, days: number): Promise<RecentLegislationData> {
+  const response = await fetch(`/api/v1/legislation/recent?limit=${limit}&days=${days}`);
+  const result = (await response.json()) as ApiResponse<RecentLegislationData>;
+  if (!response.ok || !result.success) {
+    const errorMessage = !result.success ? result.error : "Failed to fetch recent legislation";
+    throw new Error(errorMessage || "Failed to fetch recent legislation");
+  }
+  return result.data;
+}
 
 export function useRecentLegislation({
   limit = 20,
   days = 7,
   enabled = true,
 }: UseRecentLegislationArgs = {}): UseRecentLegislationReturn {
-  const [data, setData] = useState<RecentLegislationData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { data = null, isPending, error } = useQuery({
+    queryKey: ["recentLegislation", limit, days],
+    queryFn: () => fetchRecentLegislation(limit, days),
+    enabled,
+    staleTime: 2 * 60 * 1000,
+  });
 
-  useEffect(() => {
-    if (!enabled) {
-      setLoading(false);
-      return;
-    }
-
-    let isActive = true;
-    const controller = new AbortController();
-
-    const fetchLegislation = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch(`/api/v1/legislation/recent?limit=${limit}&days=${days}`, { signal: controller.signal });
-
-        if (!isActive) return;
-
-        const result = (await response.json()) as ApiResponse<RecentLegislationData>;
-
-        if (!response.ok || !result.success) {
-          const errorMessage = !result.success ? result.error : "Failed to fetch recent legislation";
-          throw new Error(errorMessage || "Failed to fetch recent legislation");
-        }
-
-        setData(result.data);
-      } catch (err) {
-        if (!isActive || (err instanceof DOMException && err.name === "AbortError")) {
-          return;
-        }
-
-        const errorMessage = err instanceof Error ? err.message : "Failed to load recent legislation";
-        setError(errorMessage);
-        setData(null);
-      } finally {
-        if (isActive) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchLegislation();
-
-    return () => {
-      isActive = false;
-      controller.abort();
-    };
-  }, [limit, days, enabled]);
-
-  return { data, loading, error };
+  return {
+    data,
+    loading: enabled && isPending,
+    error: error ? (error instanceof Error ? error.message : "Failed to load recent legislation") : null,
+  };
 }
