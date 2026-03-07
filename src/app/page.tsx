@@ -28,6 +28,7 @@ type ChoreItem = {
   status: Status;
   impact: string;
   source: string;
+  sourceUrl?: string;
 };
 
 type Metric = {
@@ -115,28 +116,35 @@ const choreList: ChoreItem[] = [
     due: "Past due - temporary patch ends in weeks",
     status: "overdue",
     impact: "Keeps airports, safety inspectors, and modernization projects funded.",
-    source: "TODO: link to primary source (Congress.gov)",
+    source: "Congress.gov",
+    sourceUrl:
+      "https://www.congress.gov/search?q=%7B%22source%22%3A%22legislation%22%2C%22search%22%3A%22FAA+reauthorization%22%7D",
   },
   {
     title: "Appropriations x12",
     due: "Next shutdown date: 4 weeks",
     status: "scheduled",
     impact: "Full-year budgets prevent automatic cuts and agency slowdowns.",
-    source: "TODO: pull current calendar and status from Congress.gov",
+    source: "Congress.gov",
+    sourceUrl: "https://www.congress.gov/appropriations",
   },
   {
     title: "Defense Authorization (NDAA)",
     due: "Conference report pending",
     status: "advanced",
     impact: "Sets pay, procurement, and policy guidance for the services.",
-    source: "TODO: sync with bill actions feed",
+    source: "Congress.gov",
+    sourceUrl:
+      "https://www.congress.gov/search?q=%7B%22source%22%3A%22legislation%22%2C%22search%22%3A%22National+Defense+Authorization+Act%22%7D",
   },
   {
     title: "Data privacy baseline",
     due: "Draft expected; no vote scheduled",
     status: "stalled",
     impact: "National rules for data handling and consumer transparency.",
-    source: "TODO: add primary source references",
+    source: "Congress.gov",
+    sourceUrl:
+      "https://www.congress.gov/search?q=%7B%22source%22%3A%22legislation%22%2C%22search%22%3A%22data+privacy%22%7D",
   },
 ];
 
@@ -244,7 +252,7 @@ function StatusBadge({ status }: { status: Status }) {
 type DataStatus = "todo" | "partial" | "live";
 
 const dataStatusBadge: Record<DataStatus, { label: string; classes: string }> = {
-  todo: { label: "TODO: connect to live data", classes: "bg-white/70 text-slate-500 ring-1 ring-slate-200" },
+  todo: { label: "Static data", classes: "bg-white/70 text-slate-500 ring-1 ring-slate-200" },
   partial: { label: "Partial live data", classes: "bg-amber-50 text-amber-700 ring-1 ring-amber-200" },
   live: { label: "Live data", classes: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" },
 };
@@ -464,7 +472,18 @@ export default function Home() {
                     <span className="h-2 w-2 rounded-full bg-amber-400" aria-hidden />
                     {chore.due}
                   </div>
-                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{chore.source}</span>
+                  {chore.sourceUrl ? (
+                    <a
+                      href={chore.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 underline-offset-2 hover:underline"
+                    >
+                      {chore.source}
+                    </a>
+                  ) : (
+                    <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{chore.source}</span>
+                  )}
                 </div>
               </article>
             ))}
@@ -527,12 +546,17 @@ export default function Home() {
                 <div className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-800 ring-1 ring-emerald-100">
                   {official.civilityNotes}
                 </div>
-                <button className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-slate-800 underline-offset-4 hover:underline">
-                  Open profile
-                  <span aria-hidden>&rarr;</span>
-                </button>
               </article>
             ))}
+          </div>
+          <div className="flex justify-end">
+            <Link
+              href="/scorecard"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 underline-offset-4 hover:underline"
+            >
+              Look up any member&apos;s scorecard
+              <span aria-hidden>&rarr;</span>
+            </Link>
           </div>
         </section>
 

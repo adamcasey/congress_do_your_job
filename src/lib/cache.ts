@@ -195,8 +195,9 @@ export async function getOrFetch<T>(
 }
 
 /**
- * Log cache events for monitoring
- * TODO: Send to DataDog in production
+ * Log cache events for monitoring.
+ * Events are written to the Sentry-captured logger; a future enhancement
+ * can forward structured cache metrics to a dedicated observability pipeline.
  */
 function logCacheEvent(
   event: "hit" | "miss" | "stale" | "set" | "invalidate" | "error",
