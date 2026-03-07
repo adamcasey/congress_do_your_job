@@ -237,9 +237,9 @@ function buildBipartisanshipData(sponsoredBills: Bill[], cosponsoredBills: Bill[
  * so those fields get neutral defaults. Committee membership count is available.
  */
 function buildCommitteeWorkData(member: Member): CommitteeWorkData {
-  // The Member type from Congress.gov doesn't directly expose committee count,
-  // but terms can give us a rough idea. For now, use a reasonable default.
-  // TODO: Fetch /member/{id}/committees when that endpoint data is available
+  // The Member type from Congress.gov doesn't directly expose committee count.
+  // The /member/{id}/committees endpoint exists but is not yet wired here;
+  // until it is, we return a conservative default (most members serve on 2-3 committees).
   return {
     committeeMemberships: 2, // Conservative default; most members serve on 2-3 committees
     hearingsAttended: 0,
