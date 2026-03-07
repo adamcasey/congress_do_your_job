@@ -27,6 +27,8 @@ const PERIOD_LABELS: Record<Period, string> = {
   quarterly: "This Quarter",
 };
 
+// TODO: way too many useState hooks. Evaluate what's necessary for this component and determine if it should be in local state or in a context provider
+// TODO: bring in react-query to handle loading, error, and data state management
 export function ScorecardLookup() {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<MemberSuggestion[]>([]);
@@ -173,11 +175,7 @@ export function ScorecardLookup() {
                   >
                     {m.imageUrl && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={m.imageUrl}
-                        alt=""
-                        className="w-8 h-8 rounded-full object-cover flex-shrink-0 bg-slate-100"
-                      />
+                      <img src={m.imageUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0 bg-slate-100" />
                     )}
                     <div>
                       <p className="text-sm font-medium text-slate-900">{m.name}</p>
@@ -188,9 +186,7 @@ export function ScorecardLookup() {
               </div>
             )}
 
-            {loadingSearch && (
-              <p className="mt-1.5 text-xs text-slate-400">Searching…</p>
-            )}
+            {loadingSearch && <p className="mt-1.5 text-xs text-slate-400">Searching…</p>}
           </div>
 
           {/* Period selector */}
@@ -252,11 +248,7 @@ export function ScorecardLookup() {
 
       {/* Scorecard result */}
       {scorecard && !loadingScorecard && selectedMember && (
-        <ScorecardCard
-          scorecard={scorecard.scorecard}
-          memberName={selectedMember.name}
-          periodLabel={PERIOD_LABELS[period]}
-        />
+        <ScorecardCard scorecard={scorecard.scorecard} memberName={selectedMember.name} periodLabel={PERIOD_LABELS[period]} />
       )}
     </div>
   );
