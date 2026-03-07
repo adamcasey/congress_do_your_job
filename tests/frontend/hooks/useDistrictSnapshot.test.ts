@@ -1,6 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useDistrictSnapshot } from "@/hooks/useDistrictSnapshot";
+import { createQueryWrapper } from "../test-utils";
 
 describe("useDistrictSnapshot", () => {
   afterEach(() => {
@@ -8,7 +9,10 @@ describe("useDistrictSnapshot", () => {
   });
 
   it("returns null data for placeholder mode", async () => {
-    const { result } = renderHook(() => useDistrictSnapshot({ state: "MO", district: "02", isPlaceholder: true }));
+    const { result } = renderHook(
+      () => useDistrictSnapshot({ state: "MO", district: "02", isPlaceholder: true }),
+      { wrapper: createQueryWrapper() },
+    );
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -17,7 +21,9 @@ describe("useDistrictSnapshot", () => {
   });
 
   it("returns fallback message when required location data is missing", async () => {
-    const { result } = renderHook(() => useDistrictSnapshot({}));
+    const { result } = renderHook(() => useDistrictSnapshot({}), {
+      wrapper: createQueryWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.data?.error).toBe("District information not available");
@@ -41,7 +47,9 @@ describe("useDistrictSnapshot", () => {
       }),
     );
 
-    const { result } = renderHook(() => useDistrictSnapshot({ state: "MO", district: "02" }));
+    const { result } = renderHook(() => useDistrictSnapshot({ state: "MO", district: "02" }), {
+      wrapper: createQueryWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -66,7 +74,9 @@ describe("useDistrictSnapshot", () => {
       }),
     );
 
-    const { result } = renderHook(() => useDistrictSnapshot({ state: "MO", district: "02" }));
+    const { result } = renderHook(() => useDistrictSnapshot({ state: "MO", district: "02" }), {
+      wrapper: createQueryWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.data?.error).toBe("Failed to fetch district data");
@@ -76,7 +86,9 @@ describe("useDistrictSnapshot", () => {
   it("handles network failures", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
 
-    const { result } = renderHook(() => useDistrictSnapshot({ state: "MO", district: "02" }));
+    const { result } = renderHook(() => useDistrictSnapshot({ state: "MO", district: "02" }), {
+      wrapper: createQueryWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.data?.error).toBe("Failed to load district data");

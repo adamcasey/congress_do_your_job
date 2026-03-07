@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { ApiResponse } from "@/lib/api-response";
 
 export interface BillSummaryData {
@@ -20,67 +20,40 @@ interface UseBillSummaryReturn {
   error: string | null;
 }
 
+async function fetchBillSummary(billType: string, billNumber: string, congress: number): Promise<BillSummaryData> {
+  try {
+    const response = await fetch(
+      `/api/v1/legislation/bill/summary?type=${encodeURIComponent(billType)}&number=${encodeURIComponent(billNumber)}&congress=${congress}`,
+    );
+    const result = (await response.json()) as ApiResponse<BillSummaryData>;
+    if (!response.ok || !result.success) {
+      const errorMessage = !result.success ? result.error : "Failed to load bill summary";
+      throw new Error(errorMessage || "Failed to load bill summary");
+    }
+    return result.data;
+  } catch {
+    throw new Error("Failed to load bill summary");
+  }
+}
+
 export function useBillSummary({
   billType,
   billNumber,
   congress = 119,
   enabled = true,
 }: UseBillSummaryArgs): UseBillSummaryReturn {
-  const [data, setData] = useState<BillSummaryData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const canFetch = enabled && !!billType && !!billNumber;
 
-  useEffect(() => {
-    if (!enabled || !billType || !billNumber) {
-      setLoading(false);
-      return;
-    }
+  const { data = null, isPending, error } = useQuery({
+    queryKey: ["billSummary", billType, billNumber, congress],
+    queryFn: () => fetchBillSummary(billType!, billNumber!, congress),
+    enabled: canFetch,
+    staleTime: 30 * 60 * 1000,
+  });
 
-    let isActive = true;
-    const controller = new AbortController();
-
-    const fetchSummary = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch(
-          `/api/v1/legislation/bill/summary?type=${encodeURIComponent(billType)}&number=${encodeURIComponent(billNumber)}&congress=${congress}`,
-          { signal: controller.signal },
-        );
-
-        if (!isActive) {
-          return;
-        }
-
-        const result = (await response.json()) as ApiResponse<BillSummaryData>;
-
-        if (!response.ok || !result.success) {
-          const errorMessage = !result.success ? result.error : "Failed to load bill summary";
-          setError(errorMessage || "Failed to load bill summary");
-          return;
-        }
-
-        setData(result.data);
-      } catch (err) {
-        if (!isActive || (err instanceof DOMException && err.name === "AbortError")) {
-          return;
-        }
-        setError("Failed to load bill summary");
-      } finally {
-        if (isActive) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchSummary();
-
-    return () => {
-      isActive = false;
-      controller.abort();
-    };
-  }, [billType, billNumber, congress, enabled]);
-
-  return { data, loading, error };
+  return {
+    data,
+    loading: canFetch && isPending,
+    error: error instanceof Error ? error.message : null,
+  };
 }

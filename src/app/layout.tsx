@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { LaunchDarklyProvider } from "@/lib/launchdarkly-provider";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Footer from "@/components/Footer";
 
@@ -40,11 +41,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <LaunchDarklyProvider>
-          {children}
-          <Footer />
-          <SpeedInsights />
-        </LaunchDarklyProvider>
+        <QueryProvider>
+          <LaunchDarklyProvider>
+            {children}
+            <Footer />
+            <SpeedInsights />
+          </LaunchDarklyProvider>
+        </QueryProvider>
       </body>
     </html>
   );

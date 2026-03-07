@@ -1,8 +1,10 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ScorecardCard } from "./ScorecardCard";
 import { CalculatedScorecard } from "@/types/scorecard";
+import { useDebounce } from "@/hooks/useDebounce";
 import type { ApiResponse } from "@/lib/api-response";
 
 interface MemberSuggestion {
@@ -27,97 +29,74 @@ const PERIOD_LABELS: Record<Period, string> = {
   quarterly: "This Quarter",
 };
 
-// TODO: way too many useState hooks. Evaluate what's necessary for this component and determine if it should be in local state or in a context provider
-// TODO: bring in react-query to handle loading, error, and data state management
+async function fetchMemberSuggestions(query: string): Promise<MemberSuggestion[]> {
+  const res = await fetch(`/api/v1/members/search?q=${encodeURIComponent(query)}`);
+  const result = (await res.json()) as ApiResponse<{ members: MemberSuggestion[] }>;
+  if (!result.success) return [];
+  return result.data.members ?? [];
+}
+
+async function fetchScorecard(bioguideId: string, period: Period): Promise<ScorecardData> {
+  const res = await fetch(`/api/v1/scorecard/${bioguideId}?period=${period}`);
+  const result = (await res.json()) as ApiResponse<ScorecardData>;
+  if (!res.ok || !result.success) {
+    throw new Error((result as { error?: string }).error ?? "Failed to load scorecard");
+  }
+  return result.data;
+}
+
 export function ScorecardLookup() {
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<MemberSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedMember, setSelectedMember] = useState<MemberSuggestion | null>(null);
   const [period, setPeriod] = useState<Period>("session");
-  const [scorecard, setScorecard] = useState<ScorecardData | null>(null);
-  const [loadingSearch, setLoadingSearch] = useState(false);
-  const [loadingScorecard, setLoadingScorecard] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [scorecardEnabled, setScorecardEnabled] = useState(false);
 
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const debouncedQuery = useDebounce(query, 300);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const fetchSuggestions = (input: string) => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+  const {
+    data: suggestions = [],
+    isFetching: loadingSearch,
+  } = useQuery({
+    queryKey: ["memberSearch", debouncedQuery],
+    queryFn: () => fetchMemberSuggestions(debouncedQuery),
+    enabled: debouncedQuery.length >= 2 && !selectedMember,
+    staleTime: 30 * 1000,
+  });
 
-    if (input.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-
-    debounceTimer.current = setTimeout(async () => {
-      setLoadingSearch(true);
-      try {
-        const res = await fetch(`/api/v1/members/search?q=${encodeURIComponent(input)}`);
-        const result = (await res.json()) as ApiResponse<{ members: MemberSuggestion[] }>;
-        if (result.success) {
-          setSuggestions(result.data.members ?? []);
-          setShowSuggestions(true);
-        } else {
-          setSuggestions([]);
-        }
-      } catch {
-        setSuggestions([]);
-      } finally {
-        setLoadingSearch(false);
-      }
-    }, 300);
-  };
+  const {
+    data: scorecard,
+    isPending: loadingScorecard,
+    error: scorecardError,
+  } = useQuery({
+    queryKey: ["scorecard", selectedMember?.bioguideId, period],
+    queryFn: () => fetchScorecard(selectedMember!.bioguideId, period),
+    enabled: scorecardEnabled && !!selectedMember,
+    staleTime: 5 * 60 * 1000,
+    retry: 0,
+  });
 
   const handleQueryChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
     setSelectedMember(null);
-    setScorecard(null);
-    setError(null);
-    fetchSuggestions(value);
+    setScorecardEnabled(false);
+    setShowSuggestions(true);
   };
 
   const handleSelectMember = (member: MemberSuggestion) => {
     setSelectedMember(member);
     setQuery(member.name);
-    setSuggestions([]);
     setShowSuggestions(false);
-  };
-
-  const loadScorecard = async (bioguideId: string, p: Period) => {
-    setLoadingScorecard(true);
-    setError(null);
-    setScorecard(null);
-    try {
-      const res = await fetch(`/api/v1/scorecard/${bioguideId}?period=${p}`);
-      const result = (await res.json()) as ApiResponse<ScorecardData>;
-      if (!res.ok || !result.success) {
-        setError((result as { error?: string }).error ?? "Failed to load scorecard");
-      } else {
-        setScorecard(result.data);
-      }
-    } catch {
-      setError("Failed to load scorecard. Please try again.");
-    } finally {
-      setLoadingScorecard(false);
-    }
+    setScorecardEnabled(false);
   };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!selectedMember) return;
-    loadScorecard(selectedMember.bioguideId, period);
+    setScorecardEnabled(true);
   };
-
-  // Reload scorecard when period changes and a member is already selected
-  useEffect(() => {
-    if (selectedMember && scorecard) {
-      loadScorecard(selectedMember.bioguideId, period);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [period]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -130,17 +109,14 @@ export function ScorecardLookup() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Cleanup debounce timer
-  useEffect(() => {
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
-  }, []);
-
   const memberLabel = (m: MemberSuggestion) => {
-    const role = m.chamber === "House" ? `Rep. · ${m.state}${m.district ? `-${m.district}` : ""}` : `Sen. · ${m.state}`;
-    return role;
+    return m.chamber === "House"
+      ? `Rep. · ${m.state}${m.district ? `-${m.district}` : ""}`
+      : `Sen. · ${m.state}`;
   };
+
+  const errorMessage = scorecardError instanceof Error ? scorecardError.message : null;
+  const showScorecard = scorecardEnabled && scorecard && !loadingScorecard && selectedMember;
 
   return (
     <div className="space-y-8">
@@ -211,10 +187,10 @@ export function ScorecardLookup() {
           {/* Submit */}
           <button
             type="submit"
-            disabled={!selectedMember || loadingScorecard}
+            disabled={!selectedMember || (scorecardEnabled && loadingScorecard)}
             className="h-12 rounded-lg bg-slate-900 px-6 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:-translate-y-[1px] hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex-shrink-0"
           >
-            {loadingScorecard ? "Loading…" : "View Scorecard"}
+            {scorecardEnabled && loadingScorecard ? "Loading…" : "View Scorecard"}
           </button>
         </div>
 
@@ -224,7 +200,7 @@ export function ScorecardLookup() {
       </form>
 
       {/* Loading skeleton */}
-      {loadingScorecard && (
+      {scorecardEnabled && loadingScorecard && (
         <div className="w-full rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden animate-pulse">
           <div className="px-6 pt-6 pb-4 border-b border-slate-100">
             <div className="h-5 w-48 bg-slate-200 rounded" />
@@ -242,12 +218,12 @@ export function ScorecardLookup() {
       )}
 
       {/* Error state */}
-      {error && !loadingScorecard && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+      {errorMessage && scorecardEnabled && !loadingScorecard && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{errorMessage}</div>
       )}
 
       {/* Scorecard result */}
-      {scorecard && !loadingScorecard && selectedMember && (
+      {showScorecard && (
         <ScorecardCard scorecard={scorecard.scorecard} memberName={selectedMember.name} periodLabel={PERIOD_LABELS[period]} />
       )}
     </div>

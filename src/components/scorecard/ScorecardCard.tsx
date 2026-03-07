@@ -1,21 +1,13 @@
 import { CalculatedScorecard } from "@/types/scorecard";
 import { ScorecardGauge } from "./ScorecardGauge";
 import { ScorecardCategoryBreakdown } from "./ScorecardCategoryBreakdown";
+import { formatDate } from "@/lib/format-date";
 
 interface ScorecardCardProps {
   scorecard: CalculatedScorecard;
   memberName?: string;
   periodLabel?: string;
   dataSourceNote?: string;
-}
-
-// TODO: move to shared util
-function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 export function ScorecardCard({ scorecard, memberName, periodLabel, dataSourceNote }: ScorecardCardProps) {
