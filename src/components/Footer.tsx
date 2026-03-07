@@ -10,7 +10,7 @@ const navGroups = [
       { label: "Home", href: "/" },
       { label: "About", href: "/about" },
       { label: "Find representatives", href: "/representatives" },
-      { label: "Weekly briefing", href: "/coming-soon" },
+      { label: "Weekly briefing", href: "/legislation" },
     ],
   },
   {
