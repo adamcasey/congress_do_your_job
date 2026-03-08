@@ -28,15 +28,18 @@
   - Fix: save/restore `document.body.style.overflow` properly instead of hardcoding `"unset"`
   - Added `mx-4` for mobile safety; `aria-modal` + `role="dialog"` + `aria-labelledby` for a11y
   - Build: passing | Tests: 286/286 passing
-- [ ] **Event handler refactor (entire codebase)**
-  - Direct `setState` calls must not be passed as `onClick`/`onChange` handlers
-  - Extract named handler functions (e.g. `handleClick`, `handleSubmit`) and pass those instead
-  - Example: `LegislationSearch.tsx` "Explain" button passes `setState` directly — refactor to a named handler
-  - Audit the full codebase and fix every instance of this pattern
-- [ ] **One component per file (entire codebase)**
-  - No file should define more than one component
-  - Audit all files that export or define multiple components and split them into separate files
-  - Maintain existing exports/imports after splitting
+- [x] **Event handler refactor (entire codebase)**
+  - Full audit confirmed no violations remain; all setState calls in event props are already wrapped in named handlers
+  - `LegislationSearch.tsx` was fixed in the pagination loop; `RecentBills`, `ScorecardLookup`, `RepresentativeLookup` were already clean
+  - Build: passing | Tests: 286/286 passing
+- [x] **One component per file (entire codebase)**
+  - `StatusBadge` → `src/components/ui/StatusBadge.tsx` (with `Status` type + `statusStyles`)
+  - `SectionHeader` → `src/components/ui/SectionHeader.tsx` (with `DataStatus` type)
+  - Both exported from `src/components/ui/index.ts`; `src/app/page.tsx` updated to import them
+  - `BillDetailModal` → `src/components/legislation/BillDetailModal.tsx`; `LegislationSearch.tsx` updated to import it
+  - `CategoryRow` → `src/components/scorecard/CategoryRow.tsx` (with helpers `getBarColor`, `formatInputKey`, display maps)
+  - `ScorecardCategoryBreakdown.tsx` reduced to a thin wrapper that imports `CategoryRow`
+  - Build: passing | Tests: 286/286 passing
 - [ ] **react-query adoption (entire codebase)**
   - All data fetching must go through react-query (`useQuery`, `useMutation`, `useInfiniteQuery`)
   - No component should manage async data with raw `useState` + `useEffect` fetching patterns
