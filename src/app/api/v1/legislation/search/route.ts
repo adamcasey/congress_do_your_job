@@ -24,7 +24,8 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const q = searchParams.get("q")?.trim() ?? "";
-    const limit = Math.min(Number(searchParams.get("limit")) || 20, 50);
+    const limit = Math.min(Number(searchParams.get("limit")) || 8, 50);
+    const offset = Math.max(Number(searchParams.get("offset")) || 0, 0);
     const congress = getCurrentCongress();
 
     if (q.length > 200) {
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
     const cacheKey = buildCacheKey(
       "legislation",
       "search",
-      `${congress}-${encodeURIComponent(q.toLowerCase())}-${limit}`,
+      `${congress}-${encodeURIComponent(q.toLowerCase())}-${limit}-${offset}`,
     );
 
     const fetcher = async (): Promise<SearchResponse> => {
@@ -42,11 +43,11 @@ export async function GET(request: NextRequest) {
       let count = 0;
 
       if (q.length >= 2) {
-        const response = await searchBills(q, { limit, congress });
+        const response = await searchBills(q, { limit, offset, congress });
         bills = response.bills ?? [];
         count = response.pagination?.count ?? bills.length;
       } else {
-        const response = await getBills({ limit, sort: "updateDate+desc" });
+        const response = await getBills({ limit, offset, sort: "updateDate+desc" });
         bills = response.bills ?? [];
         count = response.pagination?.count ?? bills.length;
       }
