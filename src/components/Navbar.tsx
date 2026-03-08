@@ -13,19 +13,19 @@ const NAV_LINKS = [
 
 export function Navbar() {
   return (
-    <nav className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
+    <nav className="sticky top-0 z-40 border-b-2 border-slate-200 bg-white shadow-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 shadow-sm">
+        <Link href="/" className="flex items-center gap-3 shrink-0">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 shadow">
             <Image
               src="/logos/figma/figma_logo_light.svg"
               alt="Congress Do Your Job"
-              width={20}
-              height={20}
+              width={28}
+              height={28}
               unoptimized
             />
           </div>
-          <span className={`${freePressFont.className} hidden text-base text-slate-900 sm:block`}>
+          <span className={`${freePressFont.className} hidden text-lg font-semibold text-slate-900 sm:block`}>
             Congress Do Your Job
           </span>
         </Link>
@@ -35,14 +35,13 @@ export function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-full px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+              className="rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
             >
               {link.label}
             </Link>
           ))}
+          {hasClerk && <NavAuthButton />}
         </div>
-
-        <div className="shrink-0">{hasClerk && <NavAuthButton />}</div>
       </div>
     </nav>
   );
