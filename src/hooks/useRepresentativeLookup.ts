@@ -1,6 +1,13 @@
-import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import type { ApiResponse } from "@/lib/api-response";
 import { Representative } from "@/types/representative";
+
+interface RepresentativeData {
+  representatives: Representative[];
+  location: string;
+  state: string;
+  district: string;
+}
 
 interface UseRepresentativeLookupReturn {
   loading: boolean;
@@ -13,63 +20,27 @@ interface UseRepresentativeLookupReturn {
   reset: () => void;
 }
 
+async function fetchRepresentatives(address: string): Promise<RepresentativeData> {
+  const response = await fetch(`/api/v1/representatives?address=${encodeURIComponent(address)}`);
+  const result = (await response.json()) as ApiResponse<RepresentativeData>;
+  if (!response.ok || !result.success) {
+    const errorMessage = !result.success ? result.error : "Failed to fetch representatives";
+    throw new Error(errorMessage || "Failed to fetch representatives");
+  }
+  return result.data;
+}
+
 export function useRepresentativeLookup(): UseRepresentativeLookupReturn {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [representatives, setRepresentatives] = useState<Representative[]>([]);
-  const [location, setLocation] = useState("");
-  const [state, setState] = useState("");
-  const [district, setDistrict] = useState("");
-
-  const lookupByAddress = async (address: string) => {
-    setLoading(true);
-    setError("");
-    setRepresentatives([]);
-    setLocation("");
-    setState("");
-    setDistrict("");
-
-    try {
-      const response = await fetch(`/api/v1/representatives?address=${encodeURIComponent(address)}`);
-      const result = (await response.json()) as ApiResponse<{
-        representatives: Representative[];
-        location: string;
-        state: string;
-        district: string;
-      }>;
-
-      if (!response.ok || !result.success) {
-        const errorMessage = !result.success ? result.error : "Failed to fetch representatives";
-        throw new Error(errorMessage || "Failed to fetch representatives");
-      }
-
-      setRepresentatives(result.data.representatives || []);
-      setLocation(result.data.location || "");
-      setState(result.data.state || "");
-      setDistrict(result.data.district || "");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to lookup representatives");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const reset = () => {
-    setRepresentatives([]);
-    setError("");
-    setLocation("");
-    setState("");
-    setDistrict("");
-  };
+  const mutation = useMutation({ mutationFn: fetchRepresentatives });
 
   return {
-    loading,
-    error,
-    representatives,
-    location,
-    state,
-    district,
-    lookupByAddress,
-    reset,
+    loading: mutation.isPending,
+    error: mutation.error instanceof Error ? mutation.error.message : mutation.isError ? "Failed to lookup representatives" : "",
+    representatives: mutation.data?.representatives ?? [],
+    location: mutation.data?.location ?? "",
+    state: mutation.data?.state ?? "",
+    district: mutation.data?.district ?? "",
+    lookupByAddress: (address: string) => mutation.mutateAsync(address).then(() => undefined),
+    reset: mutation.reset,
   };
 }
