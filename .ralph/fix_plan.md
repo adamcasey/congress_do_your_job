@@ -22,9 +22,12 @@
   - `LegislationSearch` refactored to use the hook: raw `useState+useEffect` fetch removed, named handlers extracted, "Load More" button added
   - 5 tests added in `tests/frontend/hooks/useLegislationSearch.test.ts`
   - Build: passing | Tests: 286/286 passing
-- [ ] **Fix BillDetailsModal positioning**
-  - Modal renders too far out of viewport; opening it breaks page scroll
-  - Fix modal to render centered/in-viewport and use `overflow-hidden` on body when open
+- [x] **Fix BillDetailsModal positioning**
+  - Root cause: `backdrop-blur-sm` on ancestor can trap `fixed` descendants; `overflow = "unset"` was wrong cleanup
+  - Fix: `createPortal` renders modal directly on `document.body`, bypassing CSS containment from any ancestor
+  - Fix: save/restore `document.body.style.overflow` properly instead of hardcoding `"unset"`
+  - Added `mx-4` for mobile safety; `aria-modal` + `role="dialog"` + `aria-labelledby` for a11y
+  - Build: passing | Tests: 286/286 passing
 - [ ] **Event handler refactor (entire codebase)**
   - Direct `setState` calls must not be passed as `onClick`/`onChange` handlers
   - Extract named handler functions (e.g. `handleClick`, `handleSubmit`) and pass those instead
