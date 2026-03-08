@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface ModalProps {
   isOpen: boolean;
@@ -10,34 +11,52 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, title, children }: ModalProps) {
+  const [mounted, setMounted] = useState(false);
+  const savedOverflow = useRef("");
+
+  // Defer portal mount until client to avoid SSR hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
+      if (e.key === "Escape") onClose();
     };
 
     if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
+      savedOverflow.current = document.body.style.overflow;
       document.body.style.overflow = "hidden";
+      document.addEventListener("keydown", handleEscape);
     }
 
     return () => {
       document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "unset";
+      if (isOpen) {
+        // Restore whatever overflow was set before, rather than hardcoding a value
+        document.body.style.overflow = savedOverflow.current;
+      }
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm" onClick={onClose}>
+  const modal = (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
       <div
-        className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        className="relative mx-4 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-4">
-          <h2 className="text-2xl font-semibold text-slate-900">{title}</h2>
+        <div className="flex items-start justify-between gap-4 p-6 pb-4">
+          <h2 id="modal-title" className="text-2xl font-semibold text-slate-900">
+            {title}
+          </h2>
           <button
             onClick={onClose}
             className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
@@ -48,8 +67,10 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
             </svg>
           </button>
         </div>
-        <div className="mt-4">{children}</div>
+        <div className="px-6 pb-6">{children}</div>
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
