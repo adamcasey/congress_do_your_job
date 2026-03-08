@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import { useRepresentativeLookup } from "../useRepresentativeLookup";
+import { createQueryWrapper } from "../../../tests/frontend/test-utils";
 
 const mockRep = { bioguideId: "A000001", name: "Jane Smith", title: "Senator", party: "Independent", state: "MO" };
 
@@ -10,7 +11,7 @@ describe("useRepresentativeLookup", () => {
   });
 
   it("initializes with correct default state", () => {
-    const { result } = renderHook(() => useRepresentativeLookup());
+    const { result } = renderHook(() => useRepresentativeLookup(), { wrapper: createQueryWrapper() });
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBe("");
     expect(result.current.representatives).toEqual([]);
@@ -28,18 +29,20 @@ describe("useRepresentativeLookup", () => {
       }),
     }));
 
-    const { result } = renderHook(() => useRepresentativeLookup());
+    const { result } = renderHook(() => useRepresentativeLookup(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
       await result.current.lookupByAddress("123 Main St, Springfield, MO");
     });
 
-    expect(result.current.representatives).toEqual([mockRep]);
-    expect(result.current.location).toBe("Springfield, MO");
-    expect(result.current.state).toBe("MO");
-    expect(result.current.district).toBe("07");
-    expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBe("");
+    await waitFor(() => {
+      expect(result.current.representatives).toEqual([mockRep]);
+      expect(result.current.location).toBe("Springfield, MO");
+      expect(result.current.state).toBe("MO");
+      expect(result.current.district).toBe("07");
+      expect(result.current.loading).toBe(false);
+      expect(result.current.error).toBe("");
+    });
   });
 
   it("sets error when response is not ok", async () => {
@@ -48,15 +51,17 @@ describe("useRepresentativeLookup", () => {
       json: vi.fn().mockResolvedValue({ success: false, error: "Address not found" }),
     }));
 
-    const { result } = renderHook(() => useRepresentativeLookup());
+    const { result } = renderHook(() => useRepresentativeLookup(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
-      await result.current.lookupByAddress("bad address");
+      try { await result.current.lookupByAddress("bad address"); } catch { /* expected */ }
     });
 
-    expect(result.current.error).toBe("Address not found");
-    expect(result.current.representatives).toEqual([]);
-    expect(result.current.loading).toBe(false);
+    await waitFor(() => {
+      expect(result.current.error).toBe("Address not found");
+      expect(result.current.representatives).toEqual([]);
+      expect(result.current.loading).toBe(false);
+    });
   });
 
   it("sets error when result.success is false", async () => {
@@ -65,13 +70,15 @@ describe("useRepresentativeLookup", () => {
       json: vi.fn().mockResolvedValue({ success: false, error: "Invalid address format" }),
     }));
 
-    const { result } = renderHook(() => useRepresentativeLookup());
+    const { result } = renderHook(() => useRepresentativeLookup(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
-      await result.current.lookupByAddress("???");
+      try { await result.current.lookupByAddress("???"); } catch { /* expected */ }
     });
 
-    expect(result.current.error).toBe("Invalid address format");
+    await waitFor(() => {
+      expect(result.current.error).toBe("Invalid address format");
+    });
   });
 
   it("uses fallback error message when error field is missing", async () => {
@@ -80,38 +87,44 @@ describe("useRepresentativeLookup", () => {
       json: vi.fn().mockResolvedValue({ success: false, error: "" }),
     }));
 
-    const { result } = renderHook(() => useRepresentativeLookup());
+    const { result } = renderHook(() => useRepresentativeLookup(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
-      await result.current.lookupByAddress("123 Main St");
+      try { await result.current.lookupByAddress("123 Main St"); } catch { /* expected */ }
     });
 
-    expect(result.current.error).toBe("Failed to fetch representatives");
+    await waitFor(() => {
+      expect(result.current.error).toBe("Failed to fetch representatives");
+    });
   });
 
   it("sets error on network failure", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network error")));
 
-    const { result } = renderHook(() => useRepresentativeLookup());
+    const { result } = renderHook(() => useRepresentativeLookup(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
-      await result.current.lookupByAddress("123 Main St");
+      try { await result.current.lookupByAddress("123 Main St"); } catch { /* expected */ }
     });
 
-    expect(result.current.error).toBe("Network error");
-    expect(result.current.loading).toBe(false);
+    await waitFor(() => {
+      expect(result.current.error).toBe("Network error");
+      expect(result.current.loading).toBe(false);
+    });
   });
 
   it("handles non-Error thrown values", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue("unexpected"));
 
-    const { result } = renderHook(() => useRepresentativeLookup());
+    const { result } = renderHook(() => useRepresentativeLookup(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
-      await result.current.lookupByAddress("123 Main St");
+      try { await result.current.lookupByAddress("123 Main St"); } catch { /* expected */ }
     });
 
-    expect(result.current.error).toBe("Failed to lookup representatives");
+    await waitFor(() => {
+      expect(result.current.error).toBe("Failed to lookup representatives");
+    });
   });
 
   it("handles missing optional fields in response data", async () => {
@@ -123,16 +136,18 @@ describe("useRepresentativeLookup", () => {
       }),
     }));
 
-    const { result } = renderHook(() => useRepresentativeLookup());
+    const { result } = renderHook(() => useRepresentativeLookup(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
       await result.current.lookupByAddress("123 Main St");
     });
 
-    expect(result.current.representatives).toEqual([]);
-    expect(result.current.location).toBe("");
-    expect(result.current.state).toBe("");
-    expect(result.current.district).toBe("");
+    await waitFor(() => {
+      expect(result.current.representatives).toEqual([]);
+      expect(result.current.location).toBe("");
+      expect(result.current.state).toBe("");
+      expect(result.current.district).toBe("");
+    });
   });
 
   it("reset clears all state", async () => {
@@ -144,22 +159,24 @@ describe("useRepresentativeLookup", () => {
       }),
     }));
 
-    const { result } = renderHook(() => useRepresentativeLookup());
+    const { result } = renderHook(() => useRepresentativeLookup(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
       await result.current.lookupByAddress("123 Main St");
     });
 
-    expect(result.current.representatives).toHaveLength(1);
+    await waitFor(() => expect(result.current.representatives).toHaveLength(1));
 
     act(() => {
       result.current.reset();
     });
 
-    expect(result.current.representatives).toEqual([]);
-    expect(result.current.error).toBe("");
-    expect(result.current.location).toBe("");
-    expect(result.current.state).toBe("");
-    expect(result.current.district).toBe("");
+    await waitFor(() => {
+      expect(result.current.representatives).toEqual([]);
+      expect(result.current.error).toBe("");
+      expect(result.current.location).toBe("");
+      expect(result.current.state).toBe("");
+      expect(result.current.district).toBe("");
+    });
   });
 });

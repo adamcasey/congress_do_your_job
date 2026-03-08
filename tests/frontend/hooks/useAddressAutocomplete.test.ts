@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useAddressAutocomplete } from "@/hooks/useAddressAutocomplete";
+import { createQueryWrapper } from "../test-utils";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -14,10 +15,10 @@ describe("useAddressAutocomplete", () => {
   it("clears predictions for short input without calling API", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-    const { result } = renderHook(() => useAddressAutocomplete());
+    const { result } = renderHook(() => useAddressAutocomplete(), { wrapper: createQueryWrapper() });
 
-    await act(async () => {
-      await result.current.fetchPredictions("12");
+    act(() => {
+      result.current.fetchPredictions("12");
     });
 
     expect(fetchMock).not.toHaveBeenCalled();
@@ -35,10 +36,10 @@ describe("useAddressAutocomplete", () => {
       }),
     });
     vi.stubGlobal("fetch", fetchMock);
-    const { result } = renderHook(() => useAddressAutocomplete());
+    const { result } = renderHook(() => useAddressAutocomplete(), { wrapper: createQueryWrapper() });
 
-    await act(async () => {
-      await result.current.fetchPredictions("123 Main");
+    act(() => {
+      result.current.fetchPredictions("123 Main");
     });
     await sleep(350);
 
@@ -57,10 +58,10 @@ describe("useAddressAutocomplete", () => {
       }),
     );
 
-    const { result } = renderHook(() => useAddressAutocomplete());
+    const { result } = renderHook(() => useAddressAutocomplete(), { wrapper: createQueryWrapper() });
 
-    await act(async () => {
-      await result.current.fetchPredictions("123 Main");
+    act(() => {
+      result.current.fetchPredictions("123 Main");
     });
     await sleep(350);
 
@@ -72,10 +73,10 @@ describe("useAddressAutocomplete", () => {
   it("handles request failures and clearPredictions", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
 
-    const { result } = renderHook(() => useAddressAutocomplete());
+    const { result } = renderHook(() => useAddressAutocomplete(), { wrapper: createQueryWrapper() });
 
-    await act(async () => {
-      await result.current.fetchPredictions("123 Main");
+    act(() => {
+      result.current.fetchPredictions("123 Main");
     });
     await sleep(350);
 

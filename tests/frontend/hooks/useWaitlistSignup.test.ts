@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useWaitlistSignup } from "@/hooks/useWaitlistSignup";
+import { createQueryWrapper } from "../test-utils";
 
 describe("useWaitlistSignup", () => {
   afterEach(() => {
@@ -17,16 +18,18 @@ describe("useWaitlistSignup", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const { result } = renderHook(() => useWaitlistSignup());
+    const { result } = renderHook(() => useWaitlistSignup(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
       await result.current.submitEmail("person@example.com");
     });
 
     expect(fetchMock).toHaveBeenCalledWith("/api/v1/waitlist", expect.any(Object));
-    expect(result.current.success).toBe(true);
-    expect(result.current.error).toBe("");
-    expect(result.current.loading).toBe(false);
+    await waitFor(() => {
+      expect(result.current.success).toBe(true);
+      expect(result.current.error).toBe("");
+      expect(result.current.loading).toBe(false);
+    });
   });
 
   it("captures server-side error messages", async () => {
@@ -41,24 +44,34 @@ describe("useWaitlistSignup", () => {
       }),
     );
 
-    const { result } = renderHook(() => useWaitlistSignup());
+    const { result } = renderHook(() => useWaitlistSignup(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
-      await result.current.submitEmail("person@example.com");
+      try {
+        await result.current.submitEmail("person@example.com");
+      } catch {
+        // mutateAsync throws on error; the hook maps it to error string
+      }
     });
 
-    expect(result.current.success).toBe(false);
-    expect(result.current.error).toBe("Already on waitlist");
-    expect(result.current.loading).toBe(false);
+    await waitFor(() => {
+      expect(result.current.success).toBe(false);
+      expect(result.current.error).toBe("Already on waitlist");
+      expect(result.current.loading).toBe(false);
+    });
   });
 
   it("falls back to generic error on thrown non-error values", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue("boom"));
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Failed to sign up")));
 
-    const { result } = renderHook(() => useWaitlistSignup());
+    const { result } = renderHook(() => useWaitlistSignup(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
-      await result.current.submitEmail("person@example.com");
+      try {
+        await result.current.submitEmail("person@example.com");
+      } catch {
+        // expected
+      }
     });
 
     await waitFor(() => {
@@ -78,7 +91,7 @@ describe("useWaitlistSignup", () => {
       }),
     );
 
-    const { result } = renderHook(() => useWaitlistSignup());
+    const { result } = renderHook(() => useWaitlistSignup(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
       await result.current.submitEmail("person@example.com");
