@@ -10,10 +10,10 @@ import { BudgetCountdown } from "@/components/BudgetCountdown";
 import { RecentBills } from "@/components/legislation/RecentBills";
 import { WaitlistForm } from "@/components/forms/WaitlistForm";
 import { useCongressStats } from "@/hooks";
+import { StatusBadge, SectionHeader } from "@/components/ui";
+import type { Status } from "@/components/ui";
 
 const DAY_MS = 1000 * 60 * 60 * 24;
-
-type Status = "advanced" | "stalled" | "overdue" | "scheduled" | "passed" | "update";
 
 type BriefingItem = {
   title: string;
@@ -51,15 +51,6 @@ type CivicAction = {
   summary: string;
   level: string;
   action: string;
-};
-
-const statusStyles: Record<Status, { label: string; classes: string }> = {
-  advanced: { label: "Moved", classes: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-  passed: { label: "Passed", classes: "bg-emerald-200 text-emerald-900 border-emerald-300" },
-  stalled: { label: "Stalled", classes: "bg-amber-100 text-amber-800 border-amber-200" },
-  overdue: { label: "Overdue", classes: "bg-orange-100 text-orange-900 border-orange-200" },
-  scheduled: { label: "Scheduled", classes: "bg-lime-100 text-lime-800 border-lime-200" },
-  update: { label: "Update", classes: "bg-slate-100 text-slate-800 border-slate-200" },
 };
 
 const weeklyBriefing: BriefingItem[] = [
@@ -148,16 +139,6 @@ const choreList: ChoreItem[] = [
   },
 ];
 
-// Productivity metrics that cannot yet be derived from the Congress.gov API.
-// These will be replaced with live data when additional data sources are wired.
-const STATIC_METRICS: Metric[] = [
-  { label: "Hearings held", value: "—", change: "data coming soon", tone: "neutral" },
-  { label: "Floor hours worked", value: "—", change: "data coming soon", tone: "neutral" },
-  { label: "Vote attendance", value: "—", change: "data coming soon", tone: "neutral" },
-  { label: "Committee attendance", value: "—", change: "data coming soon", tone: "neutral" },
-  { label: "Deadlines missed", value: "3", change: "overdue tasks", tone: "caution" },
-];
-
 const officials: Official[] = [
   {
     name: "Jordan Lee",
@@ -221,6 +202,16 @@ const scoreBands: Record<NonNullable<Metric["tone"]>, { text: string; bar: strin
   },
 };
 
+// Productivity metrics that cannot yet be derived from the Congress.gov API.
+// These will be replaced with live data when additional data sources are wired.
+const STATIC_METRICS: Metric[] = [
+  { label: "Hearings held", value: "—", change: "data coming soon", tone: "neutral" },
+  { label: "Floor hours worked", value: "—", change: "data coming soon", tone: "neutral" },
+  { label: "Vote attendance", value: "—", change: "data coming soon", tone: "neutral" },
+  { label: "Committee attendance", value: "—", change: "data coming soon", tone: "neutral" },
+  { label: "Deadlines missed", value: "3", change: "overdue tasks", tone: "caution" },
+];
+
 function getBudgetStats(dateString: string) {
   const parsed = Date.parse(dateString);
   if (!Number.isFinite(parsed)) {
@@ -235,50 +226,6 @@ function getBudgetStats(dateString: string) {
   }).format(new Date(parsed));
 
   return { daysSinceBudget, lastBudgetDateLabel };
-}
-
-function StatusBadge({ status }: { status: Status }) {
-  const style = statusStyles[status];
-  return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${style.classes}`}
-    >
-      <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />
-      {style.label}
-    </span>
-  );
-}
-
-type DataStatus = "todo" | "partial" | "live";
-
-const dataStatusBadge: Record<DataStatus, { label: string; classes: string }> = {
-  todo: { label: "Static data", classes: "bg-white/70 text-slate-500 ring-1 ring-slate-200" },
-  partial: { label: "Partial live data", classes: "bg-amber-50 text-amber-700 ring-1 ring-amber-200" },
-  live: { label: "Live data", classes: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" },
-};
-
-function SectionHeader({
-  title,
-  eyebrow,
-  description,
-  dataStatus = "todo",
-}: {
-  title: string;
-  eyebrow?: string;
-  description?: string;
-  dataStatus?: DataStatus;
-}) {
-  const badge = dataStatusBadge[dataStatus];
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <div>
-        {eyebrow && <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{eyebrow}</p>}
-        <h2 className="text-2xl font-semibold leading-tight text-slate-900">{title}</h2>
-        {description && <p className="mt-2 max-w-2xl text-sm text-slate-600">{description}</p>}
-      </div>
-      <span className={`rounded-full px-3 py-1 text-xs font-medium ${badge.classes}`}>{badge.label}</span>
-    </div>
-  );
 }
 
 export default function Home() {
