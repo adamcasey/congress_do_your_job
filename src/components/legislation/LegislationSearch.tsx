@@ -1,12 +1,11 @@
 "use client";
 
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { Bill } from "@/types/congress";
 import { BillTimeline } from "./BillTimeline";
 import { Modal } from "@/components/ui/Modal";
-import { useBillDetails, useBillSummary } from "@/hooks";
+import { useBillDetails, useBillSummary, useDebounce, useLegislationSearch } from "@/hooks";
 import { formatDate, stripHtmlTags, extractSentences } from "@/utils/dates";
-import type { ApiResponse } from "@/lib/api-response";
 
 interface SearchResponse {
   bills: Bill[];
@@ -98,72 +97,34 @@ function BillDetailModal({ bill, onClose }: { bill: Bill; onClose: () => void })
 
 export function LegislationSearch() {
   const [query, setQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [bills, setBills] = useState<Bill[]>([]);
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
 
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
+  const debouncedQuery = useDebounce(query, 400);
+
+  const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, error } =
+    useLegislationSearch(debouncedQuery);
+
+  const bills = data?.pages.flatMap((p) => p.bills) ?? [];
+  const totalCount = data?.pages[0]?.count ?? 0;
+  const isSearching = debouncedQuery.length >= 2;
 
   const handleQueryChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setQuery(value);
-
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      setDebouncedQuery(value);
-    }, 400);
+    setQuery(e.target.value);
   };
 
-  useEffect(() => {
-    // Abort any in-flight request
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
+  const handleExplain = (bill: Bill) => {
+    setSelectedBill(bill);
+  };
 
-    const fetchBills = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const url =
-          debouncedQuery.length >= 2
-            ? `/api/v1/legislation/search?q=${encodeURIComponent(debouncedQuery)}&limit=20`
-            : `/api/v1/legislation/search?limit=20`;
+  const handleCloseModal = () => {
+    setSelectedBill(null);
+  };
 
-        const res = await fetch(url, { signal: controller.signal });
-        const result = (await res.json()) as ApiResponse<SearchResponse>;
+  const handleLoadMore = () => {
+    fetchNextPage();
+  };
 
-        if (!result.success) {
-          setError(result.error ?? "Failed to load legislation");
-          setBills([]);
-        } else {
-          setBills(result.data.bills);
-          setCount(result.data.count);
-        }
-      } catch (err) {
-        if (err instanceof DOMException && err.name === "AbortError") return;
-        setError("Failed to load legislation. Please try again.");
-        setBills([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBills();
-
-    return () => controller.abort();
-  }, [debouncedQuery]);
-
-  useEffect(() => {
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
-  }, []);
-
-  const isSearching = debouncedQuery.length >= 2;
+  const loading = isFetching && !isFetchingNextPage;
 
   return (
     <div className="space-y-6">
@@ -202,17 +163,19 @@ export function LegislationSearch() {
         </h3>
         {!loading && bills.length > 0 && (
           <span className="text-xs text-slate-400">
-            {isSearching ? `${bills.length} of ${count} bills` : `${bills.length} bills`}
+            {isSearching ? `${bills.length} of ${totalCount} bills` : `${bills.length} bills`}
           </span>
         )}
       </div>
 
       {/* Error */}
       {error && !loading && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{error}</div>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          {error instanceof Error ? error.message : "Failed to load legislation. Please try again."}
+        </div>
       )}
 
-      {/* Loading skeletons */}
+      {/* Loading skeletons (initial load only) */}
       {loading && (
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -263,7 +226,7 @@ export function LegislationSearch() {
                     <p className="mt-1 text-xs text-slate-400">Updated {formatDate(bill.updateDate)}</p>
                   </div>
                   <button
-                    onClick={() => setSelectedBill(bill)}
+                    onClick={() => handleExplain(bill)}
                     className="flex-shrink-0 rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
                   >
                     Explain
@@ -275,8 +238,28 @@ export function LegislationSearch() {
         </div>
       )}
 
+      {/* Load More */}
+      {!loading && hasNextPage && (
+        <div className="flex justify-center pt-2">
+          <button
+            onClick={handleLoadMore}
+            disabled={isFetchingNextPage}
+            className="rounded-lg border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isFetchingNextPage ? (
+              <span className="flex items-center gap-2">
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
+                Loading…
+              </span>
+            ) : (
+              "Load More"
+            )}
+          </button>
+        </div>
+      )}
+
       {/* Bill detail modal */}
-      {selectedBill && <BillDetailModal bill={selectedBill} onClose={() => setSelectedBill(null)} />}
+      {selectedBill && <BillDetailModal bill={selectedBill} onClose={handleCloseModal} />}
     </div>
   );
 }
