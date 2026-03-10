@@ -15,6 +15,13 @@ export enum FeatureFlag {
    * LaunchDarkly key: budget-bill-timer
    */
   BUDGET_BILL_TIMER = "budgetBillTimer",
+
+  /**
+   * Controls whether the header nav links are visible.
+   * When false, the sticky header shows only the brand logo.
+   * LaunchDarkly key: show-header-nagivation
+   */
+  SHOW_HEADER_NAVIGATION = "showHeaderNavigation",
 }
 
 /**
@@ -24,4 +31,5 @@ export enum FeatureFlag {
 export const featureFlagDefaults: Record<FeatureFlag, boolean> = {
   [FeatureFlag.COMING_SOON_LANDING_PAGE]: true,
   [FeatureFlag.BUDGET_BILL_TIMER]: false,
+  [FeatureFlag.SHOW_HEADER_NAVIGATION]: true,
 };
