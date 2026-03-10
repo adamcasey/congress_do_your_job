@@ -40,19 +40,34 @@
   - `CategoryRow` → `src/components/scorecard/CategoryRow.tsx` (with helpers `getBarColor`, `formatInputKey`, display maps)
   - `ScorecardCategoryBreakdown.tsx` reduced to a thin wrapper that imports `CategoryRow`
   - Build: passing | Tests: 286/286 passing
-- [ ] **react-query adoption (entire codebase)**
-  - All data fetching must go through react-query (`useQuery`, `useMutation`, `useInfiniteQuery`)
-  - No component should manage async data with raw `useState` + `useEffect` fetching patterns
-  - Audit the full codebase and refactor every data-fetching hook or component that bypasses react-query
-  - Use `useInfiniteQuery` for paginated lists (e.g. legislation load more)
-- [ ] **Fix legislation search relevance** (`/legislation`)
-  - Exact title match should always appear first in results
-  - Add fuzzy-search support to handle misspellings and partial/incomplete search strings
-  - Verify: searching "Protecting our Communities from Sexual Predators Act" returns that bill as result #1
-- [ ] **Reusable SearchBar component with clear button**
-  - All search inputs across the site must use a single shared `SearchBar` component
-  - Component must include an "X" clear button on the right side of the input
-  - Replace existing ad-hoc search inputs in `LegislationSearch`, scorecard lookup, and any other location with this component
+- [x] **react-query adoption (entire codebase)**
+  - `useWaitlistSignup`, `useRepresentativeLookup`, `useAddressAutocomplete` converted to `useMutation`
+  - All paginated lists use `useInfiniteQuery`; all queries use `useQuery`
+  - No raw `useState+useEffect` fetch patterns remain
+  - Build: passing | Tests: 286/286 passing
+- [x] **Fix legislation search relevance** (`/legislation`)
+  - scoreBill() scores exact → 100, prefix → 90, contains → 80, word-fraction → ≤70
+  - rankBills() re-sorts API results so highest-scoring title surfaces first
+  - normalizeQuery() strips punctuation; retries with normalized form on 0-result responses
+  - 11 tests in tests/backend/api/legislation-search-route.test.ts
+  - Build: passing | Tests: 297/297 passing
+- [x] **Reusable SearchBar component with clear button**
+  - `src/components/ui/SearchBar.tsx`: search icon left, loading spinner or X clear button right
+  - `onChange(value: string)` signature; onFocus/disabled/label/labelClassName props
+  - Replaced ad-hoc inputs in `LegislationSearch` and `ScorecardLookup`; removed duplicate spinner/icon markup
+  - 12 tests in `tests/frontend/components/SearchBar.test.tsx`
+  - Build: passing | Tests: 309/309 passing
+- [ ] Add a debugger for debugging code locally during development based
+  - Right now, running a debugger doesn't trigger any breakpoints
+- [x] The member scorecard search is broken and doesn't return correct members when searching by name
+  - Root cause: Congress.gov `/member?q=<name>` treats `q` as a bioguideId filter, not a name search
+  - Fix: added `getAllCurrentMembers()` to `congress-api.ts` that paginates through all ~535 current members
+  - Fix: `/api/v1/members/search` route now caches the full roster once (`members:all:current`) then filters by name client-side
+  - Removed per-query Congress API calls; all searches now filter from the cached roster in-memory
+  - 11 tests in `tests/backend/api/members-search-route.test.ts`
+  - Build: passing | Tests: 320/320 passing
+- [ ] Put the new header behind the feature-flag, "show-header-nagivation"
+  - When `false`, the header with navlinks should not be shown
 
 ## High Priority — Previously tracked
 
