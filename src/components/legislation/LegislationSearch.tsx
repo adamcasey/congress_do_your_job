@@ -1,10 +1,11 @@
 "use client";
 
-import { ChangeEvent, useState } from "react";
+import { useState } from "react";
 import { Bill } from "@/types/congress";
 import { BillDetailModal } from "./BillDetailModal";
 import { useDebounce, useLegislationSearch } from "@/hooks";
 import { formatDate } from "@/utils/dates";
+import { SearchBar } from "@/components/ui";
 
 function getBillStatus(bill: Bill): { label: string; classes: string } {
   if (!bill.latestAction) {
@@ -39,8 +40,8 @@ export function LegislationSearch() {
   const totalCount = data?.pages[0]?.count ?? 0;
   const isSearching = debouncedQuery.length >= 2;
 
-  const handleQueryChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value);
+  const handleQueryChange = (value: string) => {
+    setQuery(value);
   };
 
   const handleExplain = (bill: Bill) => {
@@ -60,32 +61,15 @@ export function LegislationSearch() {
   return (
     <div className="space-y-6">
       {/* Search bar */}
-      <div>
-        <label htmlFor="legislation-search" className="sr-only">
-          Search legislation
-        </label>
-        <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-            <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-            </svg>
-          </div>
-          <input
-            id="legislation-search"
-            type="text"
-            value={query}
-            onChange={handleQueryChange}
-            placeholder="Search bills by keyword, topic, or bill number…"
-            autoComplete="off"
-            className="w-full h-12 rounded-lg border border-slate-300 bg-white pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200"
-          />
-          {loading && (
-            <div className="absolute inset-y-0 right-0 flex items-center pr-4">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
-            </div>
-          )}
-        </div>
-      </div>
+      <SearchBar
+        id="legislation-search"
+        label="Search legislation"
+        labelClassName="sr-only"
+        value={query}
+        onChange={handleQueryChange}
+        placeholder="Search bills by keyword, topic, or bill number…"
+        isLoading={loading}
+      />
 
       {/* Header row */}
       <div className="flex items-center justify-between">

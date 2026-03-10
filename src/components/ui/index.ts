@@ -7,3 +7,4 @@ export { StatusBadge } from "./StatusBadge";
 export type { Status } from "./StatusBadge";
 export { SectionHeader } from "./SectionHeader";
 export type { DataStatus } from "./SectionHeader";
+export { SearchBar } from "./SearchBar";
