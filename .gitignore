@@ -46,7 +46,7 @@ next-env.d.ts
 generated/
 
 ### IDE
-.vscode/
+# Track .vscode/ configs (launch.json, settings.json) so debug configs are shared
 .idea/
 *.swp
 *.swo

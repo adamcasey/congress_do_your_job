@@ -57,8 +57,13 @@
   - Replaced ad-hoc inputs in `LegislationSearch` and `ScorecardLookup`; removed duplicate spinner/icon markup
   - 12 tests in `tests/frontend/components/SearchBar.test.tsx`
   - Build: passing | Tests: 309/309 passing
-- [ ] Add a debugger for debugging code locally during development based
-  - Right now, running a debugger doesn't trigger any breakpoints
+- [x] Add a debugger for debugging code locally during development
+  - Root cause: no `.vscode/launch.json` — VSCode had no debug configurations defined
+  - Added `.vscode/launch.json` with three configs: server-side (node-terminal), client-side (chrome), full-stack (node-terminal + serverReadyAction → debugWithChrome)
+  - Removed `.vscode/` from `.gitignore` so debug configs are shared with all contributors
+  - Added `dev:debug` script (`NODE_OPTIONS='--inspect' next dev`) as a terminal-based alternative
+  - Usage: open Run & Debug panel in VSCode → select "Next.js: debug full stack" → set breakpoints → F5
+  - Build: passing | Tests: 320/320 passing
 - [x] The member scorecard search is broken and doesn't return correct members when searching by name
   - Root cause: Congress.gov `/member?q=<name>` treats `q` as a bioguideId filter, not a name search
   - Fix: added `getAllCurrentMembers()` to `congress-api.ts` that paginates through all ~535 current members
