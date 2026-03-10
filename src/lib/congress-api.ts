@@ -252,17 +252,50 @@ export async function getAmendment(
 }
 
 /**
- * Search members of Congress by name
+ * Fetch all current members of Congress with internal pagination.
+ * Congress.gov /member does not support name search — callers must filter client-side.
+ */
+export async function getAllCurrentMembers(): Promise<Member[]> {
+  const allMembers: Member[] = [];
+  let offset = 0;
+  const limit = 250;
+
+  while (true) {
+    const response = await fetchCongressApi<Member>(`/member`, {
+      limit,
+      offset,
+      currentMember: "true",
+    });
+
+    const batch = response.members ?? [];
+    allMembers.push(...batch);
+
+    if (batch.length < limit) break;
+    offset += limit;
+  }
+
+  return allMembers;
+}
+
+/**
+ * Search members of Congress by name.
+ * Fetches all current members and filters client-side because the Congress.gov
+ * /member endpoint does not support free-text name search via the q param
+ * (q expects a bioguideId).
  */
 export async function searchMembers(query: string, options: FetchOptions = {}): Promise<CongressApiResponse<Member>> {
   const { limit = 20, offset = 0 } = options;
 
-  return fetchCongressApi<Member>(`/member`, {
-    q: query,
-    limit,
-    offset,
-    currentMember: "true",
-  });
+  const allMembers = await getAllCurrentMembers();
+
+  const normalized = query.toLowerCase().trim();
+  const filtered = allMembers.filter((m) => m.name?.toLowerCase().includes(normalized));
+  const paginated = filtered.slice(offset, offset + limit);
+
+  return {
+    members: paginated,
+    pagination: { count: paginated.length },
+  };
 }
 
 /**

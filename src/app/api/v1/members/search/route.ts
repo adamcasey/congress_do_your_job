@@ -1,11 +1,14 @@
 import { NextRequest } from "next/server";
-import { searchMembers } from "@/lib/congress-api";
+import { getAllCurrentMembers } from "@/lib/congress-api";
 import { getOrFetch, buildCacheKey, CacheTTL } from "@/lib/cache";
 import { createLogger } from "@/lib/logger";
 import { jsonError, jsonSuccess } from "@/lib/api-response";
 import { Member } from "@/types/congress";
 
 const logger = createLogger("MemberSearchAPI");
+
+// Shared cache key for the full current-member roster
+const ALL_MEMBERS_CACHE_KEY = buildCacheKey("members", "all", "current");
 
 export interface MemberSearchResult {
   bioguideId: string;
@@ -20,7 +23,9 @@ export interface MemberSearchResult {
  * Member search API
  * GET /api/v1/members/search?q=<name>
  *
- * Returns current members of Congress matching the search query.
+ * Fetches all current members of Congress (cached 30d) and filters by name
+ * client-side. The Congress.gov /member endpoint does not support free-text
+ * name search — its `q` param expects a bioguideId, not a name string.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -34,11 +39,23 @@ export async function GET(request: NextRequest) {
       return jsonError("Query too long", 400);
     }
 
-    const cacheKey = buildCacheKey("members", "search", q.toLowerCase());
+    // Fetch and cache the full roster once; all queries share this cached list
+    const rosterResult = await getOrFetch<{ members: Member[] }>(
+      ALL_MEMBERS_CACHE_KEY,
+      async () => {
+        const members = await getAllCurrentMembers();
+        return { members };
+      },
+      CacheTTL.LEGISLATOR_PROFILE,
+    );
 
-    const fetcher = async (): Promise<{ members: MemberSearchResult[] }> => {
-      const response = await searchMembers(q, { limit: 10 });
-      const members: MemberSearchResult[] = (response.members ?? []).map((m: Member) => ({
+    const allMembers = rosterResult.data?.members ?? [];
+
+    const normalized = q.toLowerCase();
+    const filtered: MemberSearchResult[] = allMembers
+      .filter((m: Member) => m.name?.toLowerCase().includes(normalized))
+      .slice(0, 10)
+      .map((m: Member) => ({
         bioguideId: m.bioguideId,
         name: m.name,
         state: m.state,
@@ -46,12 +63,8 @@ export async function GET(request: NextRequest) {
         district: m.district,
         imageUrl: m.depiction?.imageUrl,
       }));
-      return { members };
-    };
 
-    const result = await getOrFetch<{ members: MemberSearchResult[] }>(cacheKey, fetcher, CacheTTL.LEGISLATOR_PROFILE);
-
-    return jsonSuccess(result.data ?? { members: [] });
+    return jsonSuccess({ members: filtered });
   } catch (error) {
     logger.error("Member search error:", error);
     return jsonError("Failed to search members", 500);
