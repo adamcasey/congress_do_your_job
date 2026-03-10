@@ -1,8 +1,9 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ScorecardCard } from "./ScorecardCard";
+import { SearchBar } from "@/components/ui";
 import { CalculatedScorecard } from "@/types/scorecard";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { ApiResponse } from "@/lib/api-response";
@@ -77,8 +78,7 @@ export function ScorecardLookup() {
     retry: 0,
   });
 
-  const handleQueryChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  const handleQueryChange = (value: string) => {
     setQuery(value);
     setSelectedMember(null);
     setScorecardEnabled(false);
@@ -125,18 +125,14 @@ export function ScorecardLookup() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           {/* Name search */}
           <div className="flex-1 relative" ref={dropdownRef}>
-            <label htmlFor="member-search" className="block text-sm font-medium text-slate-700 mb-1.5">
-              Search by name
-            </label>
-            <input
+            <SearchBar
               id="member-search"
-              type="text"
+              label="Search by name"
               value={query}
               onChange={handleQueryChange}
               onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
               placeholder="e.g. Pelosi, Sanders, McCarthy…"
-              autoComplete="off"
-              className="w-full h-12 rounded-lg border border-slate-300 bg-white px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200"
+              isLoading={loadingSearch}
             />
 
             {/* Suggestion dropdown */}
@@ -162,7 +158,6 @@ export function ScorecardLookup() {
               </div>
             )}
 
-            {loadingSearch && <p className="mt-1.5 text-xs text-slate-400">Searching…</p>}
           </div>
 
           {/* Period selector */}
