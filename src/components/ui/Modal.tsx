@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
 interface ModalProps {
@@ -10,14 +10,15 @@ interface ModalProps {
   children: React.ReactNode;
 }
 
-export function Modal({ isOpen, onClose, title, children }: ModalProps) {
-  const [mounted, setMounted] = useState(false);
-  const savedOverflow = useRef("");
+// useSyncExternalStore returns false on the server and true on the client,
+// avoiding the setState-in-useEffect anti-pattern for SSR portal hydration.
+const subscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
-  // Defer portal mount until client to avoid SSR hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+export function Modal({ isOpen, onClose, title, children }: ModalProps) {
+  const mounted = useSyncExternalStore(subscribe, getClientSnapshot, getServerSnapshot);
+  const savedOverflow = useRef("");
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
