@@ -66,8 +66,13 @@
   - Removed per-query Congress API calls; all searches now filter from the cached roster in-memory
   - 11 tests in `tests/backend/api/members-search-route.test.ts`
   - Build: passing | Tests: 320/320 passing
-- [ ] Put the new header behind the feature-flag, "show-header-nagivation"
-  - When `false`, the header with navlinks should not be shown
+- [x] Put the new header behind the feature-flag, "show-header-nagivation"
+  - Added `FeatureFlag.SHOW_HEADER_NAVIGATION = "showHeaderNavigation"` with default `true`
+  - Extracted nav links into `src/components/NavLinks.tsx` (Client Component) gated on the flag
+  - `Navbar` stays a Server Component; only `<NavLinks />` is client-rendered
+  - When flag is `false`, `NavLinks` returns null — brand logo still visible in the sticky header
+  - No new tests needed (flag evaluation already covered by useFeatureFlag tests)
+  - Build: passing | Tests: 320/320 passing
 
 ## High Priority — Previously tracked
 
