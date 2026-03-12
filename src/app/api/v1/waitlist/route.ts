@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       userAgent: request.headers.get("user-agent") || undefined,
     };
 
-    await waitlistCollection.insertOne(signup as any);
+    await waitlistCollection.insertOne(signup);
 
     try {
       await resend.emails.send({

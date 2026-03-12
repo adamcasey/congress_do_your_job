@@ -21,19 +21,19 @@ interface UseBillSummaryReturn {
 }
 
 async function fetchBillSummary(billType: string, billNumber: string, congress: number): Promise<BillSummaryData> {
+  let response: Response;
   try {
-    const response = await fetch(
+    response = await fetch(
       `/api/v1/legislation/bill/summary?type=${encodeURIComponent(billType)}&number=${encodeURIComponent(billNumber)}&congress=${congress}`,
     );
-    const result = (await response.json()) as ApiResponse<BillSummaryData>;
-    if (!response.ok || !result.success) {
-      const errorMessage = !result.success ? result.error : "Failed to load bill summary";
-      throw new Error(errorMessage || "Failed to load bill summary");
-    }
-    return result.data;
   } catch {
     throw new Error("Failed to load bill summary");
   }
+  const result = (await response.json()) as ApiResponse<BillSummaryData>;
+  if (!response.ok || !result.success) {
+    throw new Error((!result.success && result.error) || "Failed to load bill summary");
+  }
+  return result.data;
 }
 
 export function useBillSummary({
