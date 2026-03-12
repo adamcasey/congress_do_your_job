@@ -8,6 +8,7 @@ import { FeatureFlag } from "@/lib/feature-flags";
 const NAV_LINKS = [
   { label: "Briefing", href: "/legislation" },
   { label: "Scorecards", href: "/scorecard" },
+  { label: "Petitions", href: "/petitions" },
   { label: "Representatives", href: "/representatives" },
 ];
 

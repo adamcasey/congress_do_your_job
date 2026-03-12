@@ -14,6 +14,7 @@ export const CacheTTL = {
   SCORECARD: 6 * 60 * 60, // 6 hours
   SOCIAL_MEDIA: 4 * 60 * 60, // 4 hours
   WEEKLY_DIGEST: 7 * 24 * 60 * 60, // 7 days
+  PETITIONS: 5 * 60, // 5 minutes — petition counts change frequently
   API_ERROR: 5 * 60, // 5 minutes
 } as const;
 

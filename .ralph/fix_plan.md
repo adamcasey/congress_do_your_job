@@ -123,9 +123,6 @@
 
 ## Medium Priority
 
-- [ ] Build petition system UI and API
-  - Prisma models `Petition` and `PetitionSignature` exist
-  - No API routes or components built
 - [x] Add legislation search feature
   - Added `searchBills(query, options)` to `congress-api.ts` (Congress.gov q JSON param)
   - Created `GET /api/v1/legislation/search?q=<query>&limit=<n>` — keyword search with 2h cache, falls back to recent bills when no query
@@ -147,6 +144,19 @@
   - Footer "Weekly briefing" link fixed → /legislation
   - Activate by adding NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY + CLERK_SECRET_KEY to env
   - Build: passing | Tests: 281/281 passing across 35 files
+- [x] Build petition system UI and API
+  - `src/types/petition.ts` — `PetitionDocument`, `PetitionSignatureDocument`, `PetitionSummary`, `PetitionDetail`, `SignPetitionRequest` types
+  - `GET /api/v1/petitions` — lists petitions by status (default: active), Redis-cached 5 min
+  - `GET /api/v1/petitions/[slug]` — petition detail + `hasSigned` flag for authenticated users, cached 5 min
+  - `POST /api/v1/petitions/[slug]/sign` — requires Clerk auth; validates petition is active + no duplicate; atomically increments `signatureCount`; busts detail + list cache on success
+  - `src/components/petitions/PetitionCard.tsx` — compact card with progress bar and category badge
+  - `src/components/petitions/PetitionSignForm.tsx` — Client Component; delivery method selector, optional custom message, success/error states
+  - `/petitions` page and `/petitions/[slug]` page with letter preview, progress, and sign form
+  - `src/app/petitions/error.tsx` — error boundary
+  - "Petitions" link added to navbar
+  - Seed petitions via MongoDB shell or admin script (not in scope for MVP)
+  - 17 tests in `tests/backend/api/petitions-route.test.ts`
+  - Build: passing | Tests: 337/337 passing across 40 files
 - [x] Connect homepage "See this week's briefing" and "Open profile" buttons (currently dead)
   - "See this week's briefing" → <Link href="/legislation"> (was a dead <button>)
   - "Open profile" dead buttons removed; replaced with "Look up any member's scorecard →" link to /scorecard
