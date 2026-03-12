@@ -56,10 +56,7 @@ export function ScorecardLookup() {
   const debouncedQuery = useDebounce(query, 300);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const {
-    data: suggestions = [],
-    isFetching: loadingSearch,
-  } = useQuery({
+  const { data: suggestions = [], isFetching: loadingSearch } = useQuery({
     queryKey: ["memberSearch", debouncedQuery],
     queryFn: () => fetchMemberSuggestions(debouncedQuery),
     enabled: debouncedQuery.length >= 2 && !selectedMember,
@@ -110,9 +107,7 @@ export function ScorecardLookup() {
   }, []);
 
   const memberLabel = (m: MemberSuggestion) => {
-    return m.chamber === "House"
-      ? `Rep. · ${m.state}${m.district ? `-${m.district}` : ""}`
-      : `Sen. · ${m.state}`;
+    return m.chamber === "House" ? `Rep. · ${m.state}${m.district ? `-${m.district}` : ""}` : `Sen. · ${m.state}`;
   };
 
   const errorMessage = scorecardError instanceof Error ? scorecardError.message : null;
@@ -157,7 +152,6 @@ export function ScorecardLookup() {
                 ))}
               </div>
             )}
-
           </div>
 
           {/* Period selector */}
