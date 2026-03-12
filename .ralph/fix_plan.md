@@ -9,6 +9,43 @@
 
 ## High Priority — Dashboard Housekeeping (do these before anything else)
 
+- [ ] Make sure this code is following the most current best-practices for each language and service
+- [ ] Identify any anti-patterns and consider if a fix is warranted
+
+## High Priority — Previously tracked
+
+- [x] The scorecard feature is still broken.
+  - Root cause 1: `fetchScorecard()` in `ScorecardLookup.tsx` was not passing the `period` query param to the API URL — all calls defaulted to "session" regardless of user selection
+  - Root cause 2: Two debug `console.log` statements left in `/api/v1/scorecard/[bioguideId]/route.ts` (lines 67, 70) — removed
+  - Build: passing | Tests: 320/320 passing
+- [x] We aren't evaluating LaunchDarkly feature flags client side and disallowing access to header nav links
+  - Already implemented: `NavLinks.tsx` uses `useFeatureFlag(FeatureFlag.SHOW_HEADER_NAVIGATION)` and returns null when flag is off
+  - Verified correct — this was completed in the "Put the new header behind the feature-flag" loop
+
+## Medium Priority
+
+- [ ] Build petition system UI and API
+  - Prisma models `Petition` and `PetitionSignature` exist
+  - No API routes or components built
+
+## Low Priority
+
+- [ ] Implement Stripe membership/payment flow
+- [ ] Implement Lob.com physical mail integration
+- [ ] Add Eisenhower Fund pooled donation logic
+- [ ] Mobile-specific layout optimizations
+- [ ] Performance: evaluate if LaunchDarkly client-side SDK is needed (adds bundle weight)
+
+## Completed
+
+- [x] Project enabled for Ralph
+- [x] Codebase review and architecture documentation
+- [x] Remove debug console.log statements from homepage (LD Debug logs)
+- [x] Wire homepage email signup form to existing WaitlistForm component
+- [x] Scorecard scoring engine v1.0.0 (types + calculator + 32 tests)
+- [x] Scorecard data collection service (Congress.gov API → ScoringInput, 11 tests)
+- [x] Scorecard API route (`/api/v1/scorecard/[bioguideId]`, 10 tests)
+- [x] Fix homepage production redirect to respect `showComingSoon` feature flag
 - [x] **Remove all LaunchDarkly references from the backend**
   - Audited all files under `src/app/api/`, `src/lib/`, `src/middleware.ts` — no server-side LD imports found
   - `launchdarkly-node-server-sdk` is not present in package.json; all evaluation is client-side via `launchdarkly-react-client-sdk`
@@ -78,9 +115,38 @@
   - When flag is `false`, `NavLinks` returns null — brand logo still visible in the sticky header
   - No new tests needed (flag evaluation already covered by useFeatureFlag tests)
   - Build: passing | Tests: 320/320 passing
-
-## High Priority — Previously tracked
-
+- [x] Add legislation search feature
+- Added `searchBills(query, options)` to `congress-api.ts` (Congress.gov q JSON param)
+- Created `GET /api/v1/legislation/search?q=<query>&limit=<n>` — keyword search with 2h cache, falls back to recent bills when no query
+- Built `LegislationSearch` client component: debounced 400ms input, bill cards with status badges, Explain modal with BillTimeline + AI summary, abort controller for request cancellation
+- Created `/legislation` page
+- Build: passing | Tests: 199/199 passing
+- [x] Improve responsive timeline UI
+  - Active stage dot shows `animate-ping` pulsing ring (color-matched to stage color)
+  - CSS-only `group-hover` tooltip on every node: current stage → "Active for X days", introduced → "X days ago", completed → "Completed", pending → "Not yet reached"
+  - Converted to Client Component; connector bars rounded with overflow-hidden fill animation
+  - Build: passing | Tests: 199/199 passing
+- [x] Add Clerk authentication integration
+  - Installed @clerk/nextjs v7.0.1
+  - ConditionalClerkProvider: no-op fallback when NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY absent
+  - src/middleware.ts: protects /account, /settings, /petitions/sign; passthrough without keys
+  - src/lib/auth.ts: getAuthUser() / getAuthSession() server helpers with null fallback
+  - src/components/Navbar.tsx: sticky top nav with Briefing / Scorecards / Representatives + auth slot
+  - src/components/NavAuthButton.tsx: Clerk v7 Show component (SignedIn/SignedOut removed in v7)
+  - Footer "Weekly briefing" link fixed → /legislation
+  - Activate by adding NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY + CLERK_SECRET_KEY to env
+  - Build: passing | Tests: 281/281 passing across 35 files
+- [x] Connect homepage "See this week's briefing" and "Open profile" buttons (currently dead)
+  - "See this week's briefing" → <Link href="/legislation"> (was a dead <button>)
+  - "Open profile" dead buttons removed; replaced with "Look up any member's scorecard →" link to /scorecard
+- [x] Replace "TODO" source links in choreList items with real Congress.gov URLs
+  - Completed in the TODO cleanup loop (choreList source strings + link rendering)
+- [x] Add error boundaries to key pages
+  - `src/app/error.tsx` — root catch-all: "We hit a snag" with Try again + Back to dashboard
+  - `src/app/global-error.tsx` — root layout catch (self-contained html/body, inline styles, no deps)
+  - `src/app/representatives/error.tsx` — contextual message for API-dependent rep lookup page
+  - All three are Client Components with reset() + home link per Next.js App Router spec
+  - Fixed digest-generator.ts: Date fields serialized to ISO strings in Prisma Json[] sections (build was failing)
 - [x] GitHub flagged 8 dependency vulnerabilities (6 high, 2 moderate) on the repo that need to be addressed
   - Upgraded Next.js 16.1.3 → 16.1.6 via `npm audit fix`; all 4 CVEs resolved (DoS via Image Optimizer, RSC deserialization, PPR memory, rollup path traversal)
 - [x] Refactor feature flags to use existing LaunchDarkly flags
@@ -112,63 +178,6 @@
   - Created `/scorecard` page with header, lookup form, and methodology link footer
   - Added `/scorecard/error.tsx` error boundary
   - Build: passing | Tests: 199/199 passing across 27 files
-
-## Medium Priority
-
-- [x] Add legislation search feature
-  - Added `searchBills(query, options)` to `congress-api.ts` (Congress.gov q JSON param)
-  - Created `GET /api/v1/legislation/search?q=<query>&limit=<n>` — keyword search with 2h cache, falls back to recent bills when no query
-  - Built `LegislationSearch` client component: debounced 400ms input, bill cards with status badges, Explain modal with BillTimeline + AI summary, abort controller for request cancellation
-  - Created `/legislation` page
-  - Build: passing | Tests: 199/199 passing
-- [x] Improve responsive timeline UI
-  - Active stage dot shows `animate-ping` pulsing ring (color-matched to stage color)
-  - CSS-only `group-hover` tooltip on every node: current stage → "Active for X days", introduced → "X days ago", completed → "Completed", pending → "Not yet reached"
-  - Converted to Client Component; connector bars rounded with overflow-hidden fill animation
-  - Build: passing | Tests: 199/199 passing
-- [x] Add Clerk authentication integration
-  - Installed @clerk/nextjs v7.0.1
-  - ConditionalClerkProvider: no-op fallback when NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY absent
-  - src/middleware.ts: protects /account, /settings, /petitions/sign; passthrough without keys
-  - src/lib/auth.ts: getAuthUser() / getAuthSession() server helpers with null fallback
-  - src/components/Navbar.tsx: sticky top nav with Briefing / Scorecards / Representatives + auth slot
-  - src/components/NavAuthButton.tsx: Clerk v7 Show component (SignedIn/SignedOut removed in v7)
-  - Footer "Weekly briefing" link fixed → /legislation
-  - Activate by adding NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY + CLERK_SECRET_KEY to env
-  - Build: passing | Tests: 281/281 passing across 35 files
-- [ ] Build petition system UI and API
-  - Prisma models `Petition` and `PetitionSignature` exist
-  - No API routes or components built
-- [x] Connect homepage "See this week's briefing" and "Open profile" buttons (currently dead)
-  - "See this week's briefing" → <Link href="/legislation"> (was a dead <button>)
-  - "Open profile" dead buttons removed; replaced with "Look up any member's scorecard →" link to /scorecard
-- [x] Replace "TODO" source links in choreList items with real Congress.gov URLs
-  - Completed in the TODO cleanup loop (choreList source strings + link rendering)
-- [x] Add error boundaries to key pages
-  - `src/app/error.tsx` — root catch-all: "We hit a snag" with Try again + Back to dashboard
-  - `src/app/global-error.tsx` — root layout catch (self-contained html/body, inline styles, no deps)
-  - `src/app/representatives/error.tsx` — contextual message for API-dependent rep lookup page
-  - All three are Client Components with reset() + home link per Next.js App Router spec
-  - Fixed digest-generator.ts: Date fields serialized to ISO strings in Prisma Json[] sections (build was failing)
-
-## Low Priority
-
-- [ ] Implement Stripe membership/payment flow
-- [ ] Implement Lob.com physical mail integration
-- [ ] Add Eisenhower Fund pooled donation logic
-- [ ] Mobile-specific layout optimizations
-- [ ] Performance: evaluate if LaunchDarkly client-side SDK is needed (adds bundle weight)
-
-## Completed
-
-- [x] Project enabled for Ralph
-- [x] Codebase review and architecture documentation
-- [x] Remove debug console.log statements from homepage (LD Debug logs)
-- [x] Wire homepage email signup form to existing WaitlistForm component
-- [x] Scorecard scoring engine v1.0.0 (types + calculator + 32 tests)
-- [x] Scorecard data collection service (Congress.gov API → ScoringInput, 11 tests)
-- [x] Scorecard API route (`/api/v1/scorecard/[bioguideId]`, 10 tests)
-- [x] Fix homepage production redirect to respect `showComingSoon` feature flag
 
 ## Notes
 
