@@ -78,6 +78,14 @@
   - When flag is `false`, `NavLinks` returns null — brand logo still visible in the sticky header
   - No new tests needed (flag evaluation already covered by useFeatureFlag tests)
   - Build: passing | Tests: 320/320 passing
+- [x] **Best-practices audit + targeted anti-pattern fixes**
+  - Full codebase audit across all 127 TypeScript/TSX files
+  - `waitlist/route.ts:40` — removed unnecessary `as any` on `insertOne(signup)`
+  - `useBillDetails.ts` + `useBillSummary.ts` — restructured fetch fns: only the network call is try-caught (friendly generic on network failure; API error message propagates correctly)
+  - `autocomplete/route.ts` — replaced `any` on Google Places response with typed `PlaceSuggestion`/`GooglePlacesResponse` interfaces; swapped `||` for `??` in optional chains
+  - `launchdarkly.tsx:28` — replaced `as any` on HOC with two-step cast (`ComponentType<{}>` → `ComponentType<{children: ReactNode}>`)
+  - Audited and deferred: rate-limit handling in congress-api.ts, centralized stale-time constants, Suspense boundaries — acceptable tech-debt for MVP
+  - Build: passing | Tests: 320/320 passing
 
 ## High Priority — Previously tracked
 
