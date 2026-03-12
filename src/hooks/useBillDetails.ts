@@ -16,19 +16,19 @@ interface UseBillDetailsReturn {
 }
 
 async function fetchBillDetails(billType: string, billNumber: string, congress: number): Promise<Bill> {
+  let response: Response;
   try {
-    const response = await fetch(
+    response = await fetch(
       `/api/v1/legislation/bill?type=${encodeURIComponent(billType)}&number=${encodeURIComponent(billNumber)}&congress=${congress}`,
     );
-    const result = (await response.json()) as ApiResponse<Bill>;
-    if (!response.ok || !result.success) {
-      const errorMessage = !result.success ? result.error : "Failed to load bill details";
-      throw new Error(errorMessage || "Failed to load bill details");
-    }
-    return result.data;
   } catch {
     throw new Error("Failed to load bill details");
   }
+  const result = (await response.json()) as ApiResponse<Bill>;
+  if (!response.ok || !result.success) {
+    throw new Error((!result.success && result.error) || "Failed to load bill details");
+  }
+  return result.data;
 }
 
 export function useBillDetails({

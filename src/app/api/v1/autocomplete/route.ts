@@ -45,17 +45,25 @@ export async function GET(request: NextRequest) {
       return jsonError("Google Places API error", response.status);
     }
 
-    const data = await response.json();
+    interface PlaceSuggestion {
+      placePrediction?: { placeId?: string; text?: { text?: string } };
+      queryPrediction?: { text?: { text?: string } };
+    }
+    interface GooglePlacesResponse {
+      suggestions?: PlaceSuggestion[];
+    }
+
+    const data = (await response.json()) as GooglePlacesResponse;
 
     // Transform new API format to match our existing interface
     return jsonSuccess({
       predictions:
         data.suggestions
-          ?.map((suggestion: any) => ({
-            description: suggestion.placePrediction?.text?.text || suggestion.queryPrediction?.text?.text || "",
-            placeId: suggestion.placePrediction?.placeId || suggestion.queryPrediction?.text?.text || "",
+          ?.map((suggestion) => ({
+            description: suggestion.placePrediction?.text?.text ?? suggestion.queryPrediction?.text?.text ?? "",
+            placeId: suggestion.placePrediction?.placeId ?? suggestion.queryPrediction?.text?.text ?? "",
           }))
-          .filter((p: any) => p.description) || [],
+          .filter((p) => p.description) ?? [],
     });
   } catch (error) {
     logger.error("Autocomplete API error:", error);

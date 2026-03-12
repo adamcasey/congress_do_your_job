@@ -1,7 +1,7 @@
 "use client";
 
 import { withLDProvider, useFlags, useLDClient, useLDClientError } from "launchdarkly-react-client-sdk";
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 import { FeatureFlag, featureFlagDefaults } from "@/lib/feature-flags";
 
 const clientSideID = process.env.NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID || "";
@@ -12,7 +12,7 @@ function LaunchDarklyProviderComponent({ children }: { children: ReactNode }) {
 }
 
 export const LaunchDarklyProvider = clientSideID
-  ? withLDProvider({
+  ? (withLDProvider({
       clientSideID,
       context: {
         kind: "user",
@@ -25,7 +25,7 @@ export const LaunchDarklyProvider = clientSideID
         streaming: !isDev,
         diagnosticOptOut: isDev,
       },
-    })(LaunchDarklyProviderComponent as any)
+    })(LaunchDarklyProviderComponent as React.ComponentType<{}>) as React.ComponentType<{ children: ReactNode }>)
   : LaunchDarklyProviderComponent;
 
 export function useLaunchDarkly() {
