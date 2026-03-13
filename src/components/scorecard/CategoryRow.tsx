@@ -89,11 +89,6 @@ export function CategoryRow({ cs }: CategoryRowProps) {
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-200">
-              <p className="font-medium text-slate-700 mb-1">Formula:</p>
-              <code className="text-slate-600 font-mono text-[11px] break-all">{cs.details.formula}</code>
-            </div>
-
             <div className="pt-2 border-t border-slate-200 flex justify-between items-center">
               <span className="text-slate-500">Weighted contribution to total:</span>
               <span className="font-semibold text-slate-800">{cs.weightedScore.toFixed(1)} pts</span>

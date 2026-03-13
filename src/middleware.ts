@@ -6,6 +6,9 @@ const isProtectedRoute = createRouteMatcher([
   "/account(.*)",
   "/settings(.*)",
   "/petitions/sign(.*)",
+  "/legislation(.*)",
+  "/scorecard(.*)",
+  "/petitions(.*)",
 ]);
 
 /**
