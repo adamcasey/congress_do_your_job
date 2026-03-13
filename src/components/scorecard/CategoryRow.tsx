@@ -51,12 +51,7 @@ export function CategoryRow({ cs }: CategoryRowProps) {
 
   return (
     <div className="border-b border-slate-100 last:border-0">
-      <button
-        type="button"
-        onClick={handleToggle}
-        className="w-full text-left py-4 px-0 group"
-        aria-expanded={expanded}
-      >
+      <button type="button" onClick={handleToggle} className="w-full text-left py-4 px-0 group" aria-expanded={expanded}>
         <div className="flex items-start justify-between gap-4 mb-2">
           <div>
             <span className="font-medium text-slate-900 text-sm">{displayName}</span>
