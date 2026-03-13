@@ -295,8 +295,12 @@ function buildDefaultTheaterRatioData(): TheaterRatioData {
 // --- Bill status detection helpers ---
 
 function isWithinPeriod(bill: Bill, start: Date, end: Date): boolean {
-  const updateDate = new Date(bill.updateDate);
-  return updateDate >= start && updateDate <= end;
+  // Prefer introducedDate (always present in list responses) over updateDate
+  // (which may be absent from Congress.gov member sponsored-legislation list items).
+  const dateStr = bill.introducedDate ?? bill.updateDate;
+  if (!dateStr) return true; // If no date available, include the bill rather than silently dropping it
+  const date = new Date(dateStr);
+  return date >= start && date <= end;
 }
 
 function isEnacted(actionText: string): boolean {

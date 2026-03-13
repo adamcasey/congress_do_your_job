@@ -167,11 +167,23 @@ describe("legislation data collection", () => {
     expect(result.input.legislation.billsCosponsored).toBe(3);
   });
 
-  it("filters out bills outside the period", async () => {
+  it("filters out bills outside the period using introducedDate", async () => {
     const sponsored = [
-      makeBill({ number: "1", updateDate: "2025-03-01" }), // in period
-      makeBill({ number: "2", updateDate: "2024-12-15" }), // before period
-      makeBill({ number: "3", updateDate: "2025-08-01" }), // after period
+      makeBill({ number: "1", introducedDate: "2025-03-01" }), // in period
+      makeBill({ number: "2", introducedDate: "2024-12-15" }), // before period
+      makeBill({ number: "3", introducedDate: "2025-08-01" }), // after period
+    ];
+
+    setupMocks(makeMember(), sponsored, []);
+
+    const result = await collectScorecardData("S000148", PERIOD_START, PERIOD_END);
+
+    expect(result.input.legislation.billsSponsored).toBe(1);
+  });
+
+  it("includes bills without any date rather than silently dropping them", async () => {
+    const sponsored = [
+      makeBill({ number: "1", introducedDate: undefined as unknown as string, updateDate: undefined as unknown as string }),
     ];
 
     setupMocks(makeMember(), sponsored, []);

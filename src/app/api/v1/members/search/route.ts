@@ -7,6 +7,15 @@ import { Member } from "@/types/congress";
 
 const logger = createLogger("MemberSearchAPI");
 
+// Congress.gov may return "House of Representatives" instead of "House" — normalize to our Chamber type
+function normalizeChamber(chamber: string): string {
+  if (!chamber) return chamber;
+  const lower = chamber.toLowerCase();
+  if (lower.includes("house")) return "House";
+  if (lower.includes("senate")) return "Senate";
+  return chamber;
+}
+
 // Shared cache key for the full current-member roster
 const ALL_MEMBERS_CACHE_KEY = buildCacheKey("members", "all", "current");
 
@@ -59,7 +68,7 @@ export async function GET(request: NextRequest) {
         bioguideId: m.bioguideId,
         name: m.name,
         state: m.state,
-        chamber: m.chamber,
+        chamber: normalizeChamber(m.chamber),
         district: m.district,
         imageUrl: m.depiction?.imageUrl,
       }));
