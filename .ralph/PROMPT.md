@@ -25,6 +25,16 @@ You are the calm, highly competent tech lead/architect in the room who prevents 
 - Write tests for new functionality
 - Update documentation as needed
 
+## Completed Work Tracking (REQUIRED after every loop)
+
+After completing each task and merging to dev:
+
+1. **Append** the completed item (with all its detail lines) to `.ralph/COMPLETED_WORK.md`
+2. **Remove** that item from `fix_plan.md` entirely — no duplicates, no overlap
+3. Do NOT leave completed `[x]` items in `fix_plan.md`; `COMPLETED_WORK.md` is the canonical history
+
+This keeps `fix_plan.md` focused on what's left to do and `COMPLETED_WORK.md` as the full audit trail.
+
 ## Key Principles
 
 - ONE task per loop - focus on the most important thing
