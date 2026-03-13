@@ -255,6 +255,96 @@ describe("GET /api/v1/representatives", () => {
     });
   });
 
+  it("falls back to parsing state from divisionId when normalizedInput.state is absent", async () => {
+    const responseWithoutState = {
+      normalizedInput: { city: "Springfield", zip: "65801" },
+      offices: [
+        {
+          name: "United States Senate",
+          divisionId: "ocd-division/country:us/state:mo",
+          levels: ["country"],
+          roles: ["legislatorUpperBody"],
+          officialIndices: [0],
+        },
+      ],
+      officials: [{ name: "Jane Smith", phones: ["202-224-1234"] }],
+    };
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue(responseWithoutState),
+      }),
+    );
+    getOrFetchMock.mockImplementation(async (_key, fetcher) => ({
+      data: await fetcher(),
+      status: "MISS",
+      isStale: false,
+    }));
+
+    const response = await GET(createRequest("https://app.test/api/v1/representatives?address=123%20Main%20St%20Springfield%20MO"));
+    const body = await response.json();
+    expect(body.success).toBe(true);
+    const senator = body.data.representatives.find((r: { area: string }) => r.area === "US Senate");
+    expect(senator.state).toBe("MO");
+  });
+
+  it("returns 500 when civic response is missing offices or officials", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({ normalizedInput: { state: "MO" } }),
+      }),
+    );
+    getOrFetchMock.mockImplementation(async (_key, fetcher) => ({
+      data: await fetcher(),
+      status: "MISS",
+      isStale: false,
+    }));
+
+    const response = await GET(createRequest("https://app.test/api/v1/representatives?address=123%20Main%20St"));
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: "Failed to fetch representatives. Please try again.",
+    });
+  });
+
+  it("skips officials with out-of-bounds indices", async () => {
+    const responseWithBadIndex = {
+      ...mockCivicResponse,
+      offices: [
+        {
+          name: "United States Senate",
+          divisionId: "ocd-division/country:us/state:mo",
+          levels: ["country"],
+          roles: ["legislatorUpperBody"],
+          officialIndices: [99],
+        },
+      ],
+    };
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue(responseWithBadIndex),
+      }),
+    );
+    getOrFetchMock.mockImplementation(async (_key, fetcher) => ({
+      data: await fetcher(),
+      status: "MISS",
+      isStale: false,
+    }));
+
+    const response = await GET(createRequest("https://app.test/api/v1/representatives?address=123%20Main%20St%20Springfield%20MO"));
+    const body = await response.json();
+    expect(body.success).toBe(true);
+    expect(body.data.representatives).toHaveLength(0);
+  });
+
   it("skips non-federal offices (state/local)", async () => {
     const responseWithStateOffice = {
       ...mockCivicResponse,
