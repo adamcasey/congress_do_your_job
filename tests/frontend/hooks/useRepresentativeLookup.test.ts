@@ -107,10 +107,12 @@ describe("useRepresentativeLookup", () => {
       result.current.reset();
     });
 
-    expect(result.current.representatives).toEqual([]);
-    expect(result.current.error).toBe("");
-    expect(result.current.location).toBe("");
-    expect(result.current.state).toBe("");
-    expect(result.current.district).toBe("");
+    await waitFor(() => {
+      expect(result.current.representatives).toEqual([]);
+      expect(result.current.error).toBe("");
+      expect(result.current.location).toBe("");
+      expect(result.current.state).toBe("");
+      expect(result.current.district).toBe("");
+    });
   });
 });
