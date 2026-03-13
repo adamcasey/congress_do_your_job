@@ -182,11 +182,11 @@ export async function getBillsBySubject(subject: string, options: FetchOptions =
 export async function getMember(bioguideId: string): Promise<Member> {
   const response = await fetchCongressApi<Member>(`/member/${bioguideId}`);
 
-  if (!response.members || response.members.length === 0) {
+  if (!response.member) {
     throw new CongressApiError(`Member ${bioguideId} not found`, 404);
   }
 
-  return response.members[0];
+  return response.member;
 }
 
 /**
@@ -206,7 +206,9 @@ export async function getMembersByChamber(
 }
 
 /**
- * Get sponsored legislation for a member
+ * Get sponsored legislation for a member.
+ * Congress.gov returns a `sponsoredLegislation` key for this endpoint (not `bills`).
+ * Normalized here so callers can always read `response.bills`.
  */
 export async function getMemberSponsoredLegislation(
   bioguideId: string,
@@ -214,14 +216,14 @@ export async function getMemberSponsoredLegislation(
 ): Promise<CongressApiResponse<Bill>> {
   const { limit = 20, offset = 0 } = options;
 
-  return fetchCongressApi<Bill>(`/member/${bioguideId}/sponsored-legislation`, {
-    limit,
-    offset,
-  });
+  const raw = await fetchCongressApi<Bill>(`/member/${bioguideId}/sponsored-legislation`, { limit, offset });
+  return { ...raw, bills: raw.sponsoredLegislation ?? raw.bills ?? [] };
 }
 
 /**
- * Get member cosponsored legislation
+ * Get member cosponsored legislation.
+ * Congress.gov returns a `cosponsoredLegislation` key for this endpoint (not `bills`).
+ * Normalized here so callers can always read `response.bills`.
  */
 export async function getMemberCosponsoredLegislation(
   bioguideId: string,
@@ -229,7 +231,8 @@ export async function getMemberCosponsoredLegislation(
 ): Promise<CongressApiResponse<Bill>> {
   const { limit = 20, offset = 0 } = options;
 
-  return fetchCongressApi<Bill>(`/member/${bioguideId}/cosponsored-legislation`, { limit, offset });
+  const raw = await fetchCongressApi<Bill>(`/member/${bioguideId}/cosponsored-legislation`, { limit, offset });
+  return { ...raw, bills: raw.cosponsoredLegislation ?? raw.bills ?? [] };
 }
 
 /**
