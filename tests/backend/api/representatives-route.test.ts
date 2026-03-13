@@ -255,6 +255,29 @@ describe("GET /api/v1/representatives", () => {
     });
   });
 
+  it("uses empty error message when upstream error response body is unparseable", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: vi.fn().mockRejectedValue(new Error("not json")),
+      }),
+    );
+    getOrFetchMock.mockImplementation(async (_key, fetcher) => ({
+      data: await fetcher(),
+      status: "MISS",
+      isStale: false,
+    }));
+
+    const response = await GET(createRequest("https://app.test/api/v1/representatives?address=bad"));
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: "Failed to fetch representatives. Please try again.",
+    });
+  });
+
   it("falls back to parsing state from divisionId when normalizedInput.state is absent", async () => {
     const responseWithoutState = {
       normalizedInput: { city: "Springfield", zip: "65801" },
