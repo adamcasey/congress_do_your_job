@@ -48,10 +48,8 @@ export function PetitionSignForm({ petition, initialHasSigned }: PetitionSignFor
   if (hasSigned || isSuccess) {
     return (
       <div className="rounded-xl border border-green-200 bg-green-50 px-6 py-5">
-        <p className="text-sm font-semibold text-green-800">You've signed this petition.</p>
-        <p className="mt-1 text-sm text-green-700">
-          Your signature has been recorded. Thank you for making your voice heard.
-        </p>
+        <p className="text-sm font-semibold text-green-800">You&apos;ve signed this petition.</p>
+        <p className="mt-1 text-sm text-green-700">Your signature has been recorded. Thank you for making your voice heard.</p>
       </div>
     );
   }
@@ -88,8 +86,7 @@ export function PetitionSignForm({ petition, initialHasSigned }: PetitionSignFor
       {/* Optional custom message */}
       <div>
         <label htmlFor="custom-message" className="mb-1.5 block text-sm font-medium text-slate-700">
-          Personal note{" "}
-          <span className="font-normal text-slate-400">(optional — added after the template)</span>
+          Personal note <span className="font-normal text-slate-400">(optional — added after the template)</span>
         </label>
         <textarea
           id="custom-message"
