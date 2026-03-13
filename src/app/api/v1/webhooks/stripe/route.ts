@@ -167,10 +167,11 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
-  if (!invoice.subscription) return;
+  const subscriptionId = invoice.parent?.subscription_details?.subscription;
+  if (!subscriptionId) return;
   const membersCollection = await getCollection<MemberDocument>("members");
   await membersCollection.updateOne(
-    { stripeSubscriptionId: invoice.subscription as string },
+    { stripeSubscriptionId: subscriptionId as string },
     { $set: { status: "past_due", updatedAt: new Date() } },
   );
 }

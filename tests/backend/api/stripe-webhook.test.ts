@@ -160,7 +160,7 @@ describe("POST /api/v1/webhooks/stripe", () => {
     constructEventMock.mockReturnValue({
       id: "evt_failed",
       type: "invoice.payment_failed",
-      data: { object: { subscription: "sub_fail" } },
+      data: { object: { parent: { subscription_details: { subscription: "sub_fail" } } } },
     });
 
     const res = await POST(createRequest("{}"));
