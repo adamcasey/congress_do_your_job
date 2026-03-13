@@ -25,15 +25,17 @@ You are the calm, highly competent tech lead/architect in the room who prevents 
 - Write tests for new functionality
 - Update documentation as needed
 
-## Completed Work Tracking (REQUIRED after every loop)
+## Completed Work Tracking (REQUIRED — do this BEFORE the git commit)
 
-After completing each task and merging to dev:
+After finishing implementation but **before** running the final `git commit`:
 
 1. **Append** the completed item (with all its detail lines) to `.ralph/COMPLETED_WORK.md`
-2. **Remove** that item from `fix_plan.md` entirely — no duplicates, no overlap
-3. Do NOT leave completed `[x]` items in `fix_plan.md`; `COMPLETED_WORK.md` is the canonical history
+2. **Remove** that item from `fix_plan.md` entirely — delete the lines, no `[x]` placeholders left behind
+3. Stage both files (`git add .ralph/COMPLETED_WORK.md .ralph/fix_plan.md`) and include them in the same commit as the code changes
 
-This keeps `fix_plan.md` focused on what's left to do and `COMPLETED_WORK.md` as the full audit trail.
+**Why before the commit:** if the commit or merge is interrupted (permission denial, context limit, etc.), the bookkeeping is already done. Never defer this to "after the merge".
+
+Do NOT leave completed `[x]` items in `fix_plan.md`; `COMPLETED_WORK.md` is the canonical history.
 
 ## Key Principles
 
