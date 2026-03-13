@@ -8,7 +8,10 @@ export interface CongressApiResponse<T> {
   bills?: T[];
   summaries?: Summary[];
   amendments?: T[];
+  member?: T;
   members?: T[];
+  sponsoredLegislation?: T[];
+  cosponsoredLegislation?: T[];
   pagination?: Pagination;
   request?: RequestMetadata;
 }
