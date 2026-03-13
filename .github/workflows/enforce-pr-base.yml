@@ -1,0 +1,103 @@
+name: Enforce PR Base Branch
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  check-base-branch:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Check PR base branch
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const headBranch = pr.head.ref;
+            const baseBranch = pr.base.ref;
+            const prNumber = pr.number;
+
+            // Define allowed base branches for different head branch types
+            const branchRules = {
+              // Feature branches should target dev
+              'feature/': 'dev',
+              // Hotfix branches can target main
+              'hotfix/': 'main',
+              // Demo branch merges to dev
+              'demo': 'dev',
+              // Dev branch merges to main
+              'dev': 'main'
+            };
+
+            let expectedBase = null;
+            let ruleMatched = false;
+
+            // Check which rule applies to this head branch
+            for (const [prefix, targetBase] of Object.entries(branchRules)) {
+              if (headBranch.startsWith(prefix) || headBranch === prefix) {
+                expectedBase = targetBase;
+                ruleMatched = true;
+                break;
+              }
+            }
+
+            // Default: feature branches should target dev
+            if (!ruleMatched && baseBranch !== 'dev') {
+              expectedBase = 'dev';
+            }
+
+            // If we have an expected base and it doesn't match
+            if (expectedBase && baseBranch !== expectedBase) {
+              const commentBody = `## ⚠️ Incorrect Base Branch
+
+This pull request is targeting \`${baseBranch}\`, but based on your branch name (\`${headBranch}\`), it should target \`${expectedBase}\`.
+
+**Branch Workflow:**
+- \`feature/*\` branches → merge into \`dev\`
+- \`demo\` branch → merge into \`dev\`
+- \`dev\` branch → merge into \`main\`
+- \`hotfix/*\` branches → merge into \`main\`
+
+**To fix this:**
+1. Close this pull request
+2. Create a new pull request with the correct base branch:
+   \`\`\`bash
+   gh pr create --base ${expectedBase} --head ${headBranch}
+   \`\`\`
+
+Or update this PR's base branch via GitHub UI:
+1. Go to this PR page
+2. Click "Edit" next to the title
+3. Change the base branch to \`${expectedBase}\`
+
+See [CLAUDE.md](../blob/dev/CLAUDE.md#git-workflow) for more details on our branching strategy.`;
+
+              // Post comment on the PR
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: commentBody
+              });
+
+              // Add a label to indicate the issue
+              try {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  labels: ['wrong-base-branch']
+                });
+              } catch (error) {
+                console.log('Label "wrong-base-branch" does not exist. Skipping label addition.');
+              }
+
+              // Set the action to fail
+              core.setFailed(`PR is targeting ${baseBranch} but should target ${expectedBase}`);
+            } else {
+              console.log(`✅ PR base branch (${baseBranch}) is correct for head branch (${headBranch})`);
+            }
