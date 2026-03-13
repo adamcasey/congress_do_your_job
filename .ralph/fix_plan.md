@@ -10,11 +10,17 @@
 
 ## High Priority
 
+- [x] The scorecard feature under `/scorecard` has been fixed:
+  - Loading UI (animated skeleton) already existed and displays while scorecard loads
+  - Score = 51 for all legislators fixed: `isWithinPeriod` now uses `introducedDate` (always present in Congress.gov list responses) instead of `updateDate` (which is absent from member sponsored-legislation list items, causing all bills to be filtered out)
+  - Chamber label fixed: `members/search` API now normalizes "House of Representatives" → "House" before returning, so the `m.chamber === "House"` check works correctly
+  - Formula section removed from the expanded category detail panel in the UI
+
 ## Medium Priority
 
 ## Low Priority
 
-- [ ] Implement Stripe membership/payment flow
+- [x] Implement Stripe membership/payment flow
 - [ ] Implement Lob.com physical mail integration
 - [ ] Add Eisenhower Fund pooled donation logic
 - [ ] Mobile-specific layout optimizations
