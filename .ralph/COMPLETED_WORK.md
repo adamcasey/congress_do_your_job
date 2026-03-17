@@ -189,6 +189,12 @@
   - Added `/legislation`, `/scorecard`, `/petitions` to Clerk middleware protection in `src/middleware.ts`
   - Completes the Stripe membership flow: unauthenticated users are now redirected to sign-in before accessing member-only pages
   - 362 tests passing; merged `feature/stripe-membership-flow` → dev → main
+- [x] **Order bills by most recent activity on /legislation page** (2026-03-16)
+  - Root cause 1: `buildApiUrl` passed `sort` through `URLSearchParams.set()`, which percent-encodes `+` to `%2B`. Congress.gov's sort syntax is `updateDate+desc` with a literal `+`, so encoding broke the sort parameter silently.
+  - Fix: `sort` key is now appended to the URL string directly (no percent-encoding) while all other params still go through `URLSearchParams` for safe encoding.
+  - Root cause 2: For keyword search results, bills with equal title-relevance scores had no secondary sort — order was whatever Congress.gov returned.
+  - Fix: `rankBills()` secondary-sorts equal-relevance bills by `updateDate` descending, so most recently active bills surface first within each relevance tier.
+  - Tests: 14/14 passing; type-check clean
 - [x] **Fix legislation search — SAVE Act and similar bills not surfacing** (2026-03-16)
   - Root cause: route fetched only `limit=8` bills from Congress.gov (sorted by updateDate), then re-ranked just those 8. Exact-match bills buried past position 8 by date never appeared.
   - Fix: keyword search now fetches `SEARCH_FETCH_LIMIT=100` bills at offset=0 from Congress.gov, ranks the full batch, caches the ranked list per-query (not per-page), and slices by the client's offset/limit after cache retrieval

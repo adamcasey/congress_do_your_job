@@ -16,11 +16,20 @@ function scoreBill(bill: Bill, query: string, queryWords: string[]): number {
   return Math.round((matched / queryWords.length) * 70);
 }
 
-/** Re-rank bills so that title-matching results surface first. */
+/** Re-rank bills so that title-matching results surface first.
+ *  Bills with equal relevance are sub-sorted by updateDate descending
+ *  so the most recently active bill appears first within each tier. */
 function rankBills(bills: Bill[], query: string): Bill[] {
   const q = query.toLowerCase().trim();
   const qWords = q.split(/\s+/).filter(Boolean);
-  return [...bills].sort((a, b) => scoreBill(b, q, qWords) - scoreBill(a, q, qWords));
+  return [...bills].sort((a, b) => {
+    const scoreDiff = scoreBill(b, q, qWords) - scoreBill(a, q, qWords);
+    if (scoreDiff !== 0) return scoreDiff;
+    // Secondary sort: most recently updated first
+    const aDate = a.updateDate ? new Date(a.updateDate).getTime() : 0;
+    const bDate = b.updateDate ? new Date(b.updateDate).getTime() : 0;
+    return bDate - aDate;
+  });
 }
 
 /** Strip punctuation so "Protecting our Communities..." still matches without perfect spelling. */

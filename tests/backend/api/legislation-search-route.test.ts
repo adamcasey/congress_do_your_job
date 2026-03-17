@@ -108,6 +108,22 @@ describe("GET /api/v1/legislation/search", () => {
     expect(body.data.bills[0].title).toBe("Healthcare Reform and Access Act");
   });
 
+  it("sub-sorts equal-relevance bills by updateDate descending", async () => {
+    // Both bills contain "infrastructure" — equal relevance score
+    // The more recently updated one should surface first
+    searchBillsMock.mockResolvedValue({
+      bills: [
+        { ...makeBill("Infrastructure Maintenance Act", "1"), updateDate: "2025-01-15" },
+        { ...makeBill("Infrastructure Investment Fund", "2"), updateDate: "2026-03-01" },
+      ],
+      pagination: { count: 2 },
+    });
+
+    const response = await GET(createRequest("https://app.test/api/v1/legislation/search?q=infrastructure"));
+    const body = await response.json();
+    expect(body.data.bills[0].title).toBe("Infrastructure Investment Fund"); // newer date first
+  });
+
   it("returns paginated slice from ranked batch when offset is provided", async () => {
     const bills = Array.from({ length: 20 }, (_, i) => makeBill(`Bill ${String(i + 1).padStart(2, "0")}`, String(i + 1)));
     searchBillsMock.mockResolvedValue({ bills, pagination: { count: 20 } });
