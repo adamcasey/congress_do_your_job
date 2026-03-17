@@ -14,7 +14,6 @@
   - Investigate why this is happening by searching Vercel and NextJS docs and compare their guides on setting up the different environments to how we're doing it.
   - `dev.congressdoyourjob.com` should be using the `NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID` from `env.development` and not `.env.production`
 - [ ] Setup a cronjob to refresh the legislation status for all bills shown on the `/legislation` page every night at midnight EST
-- [ ] Set an order to the bills shown on the `/legislation` page so those with the most recent activity are at the top
 
 ## Medium Priority
 
