@@ -65,7 +65,7 @@ describe("GET /api/v1/legislation/search", () => {
     expect(searchBillsMock).not.toHaveBeenCalled();
   });
 
-  it("searches by keyword when query is present", async () => {
+  it("fetches SEARCH_FETCH_LIMIT=100 bills at offset 0 for keyword search", async () => {
     searchBillsMock.mockResolvedValue({
       bills: [makeBill("Infrastructure Investment Act", "1")],
       pagination: { count: 1 },
@@ -73,24 +73,25 @@ describe("GET /api/v1/legislation/search", () => {
 
     const response = await GET(createRequest("https://app.test/api/v1/legislation/search?q=infrastructure"));
     expect(response.status).toBe(200);
-    expect(searchBillsMock).toHaveBeenCalledWith("infrastructure", expect.objectContaining({ congress: 119 }));
+    expect(searchBillsMock).toHaveBeenCalledWith(
+      "infrastructure",
+      expect.objectContaining({ congress: 119, limit: 100, offset: 0 }),
+    );
   });
 
-  it("ranks exact title match first", async () => {
-    const exactTitle = "Protecting our Communities from Sexual Predators Act";
+  it("ranks exact title match first regardless of API ordering", async () => {
+    const exactTitle = "SAVE Act";
     searchBillsMock.mockResolvedValue({
       bills: [
         makeBill("Unrelated Bill About Infrastructure", "2"),
-        makeBill(exactTitle, "1"),
-        makeBill("Another Community Safety Bill", "3"),
+        makeBill("Another Bill That Mentions SAVE", "3"),
+        makeBill(exactTitle, "1"), // exact match buried in API results
       ],
       pagination: { count: 3 },
     });
 
     const response = await GET(
-      createRequest(
-        `https://app.test/api/v1/legislation/search?q=${encodeURIComponent(exactTitle.toLowerCase())}`,
-      ),
+      createRequest(`https://app.test/api/v1/legislation/search?q=${encodeURIComponent("save act")}`),
     );
     const body = await response.json();
     expect(body.data.bills[0].title).toBe(exactTitle);
@@ -105,6 +106,24 @@ describe("GET /api/v1/legislation/search", () => {
     const response = await GET(createRequest("https://app.test/api/v1/legislation/search?q=healthcare+reform"));
     const body = await response.json();
     expect(body.data.bills[0].title).toBe("Healthcare Reform and Access Act");
+  });
+
+  it("returns paginated slice from ranked batch when offset is provided", async () => {
+    const bills = Array.from({ length: 20 }, (_, i) => makeBill(`Bill ${String(i + 1).padStart(2, "0")}`, String(i + 1)));
+    searchBillsMock.mockResolvedValue({ bills, pagination: { count: 20 } });
+
+    // Page 2: offset=8, limit=8 → should return bills[8..15] from ranked list
+    const response = await GET(
+      createRequest("https://app.test/api/v1/legislation/search?q=bill&limit=8&offset=8"),
+    );
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.data.bills).toHaveLength(8);
+    // API was still called with offset=0 and limit=100 — pagination is our responsibility
+    expect(searchBillsMock).toHaveBeenCalledWith(
+      "bill",
+      expect.objectContaining({ offset: 0, limit: 100 }),
+    );
   });
 
   it("falls back to normalized query when original returns 0 results", async () => {
@@ -168,7 +187,14 @@ describe("GET /api/v1/legislation/search", () => {
     expect(body.error).toBe("Query too long");
   });
 
-  it("returns 500 when cache responds without data", async () => {
+  it("returns 500 when cache responds without data for keyword search", async () => {
+    getOrFetchMock.mockResolvedValue({ data: null, status: "MISS", isStale: false });
+
+    const response = await GET(createRequest("https://app.test/api/v1/legislation/search?q=test"));
+    expect(response.status).toBe(500);
+  });
+
+  it("returns 500 when cache responds without data for recent bills", async () => {
     getOrFetchMock.mockResolvedValue({ data: null, status: "MISS", isStale: false });
 
     const response = await GET(createRequest("https://app.test/api/v1/legislation/search"));
