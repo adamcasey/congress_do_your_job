@@ -226,6 +226,20 @@
   - Updated `Term.chamber` in `types/congress.ts` from `Chamber` to `string` (API returns "House of Representatives" not "House")
   - Added optional `endYear`, `district`, `stateCode`, `stateName`, `memberType` fields to `Term` interface to match actual API response shape
   - Tests: 11/11 passing; type-check clean
+- [x] **Eisenhower Fund pooled donation logic** (2026-03-16)
+  - `src/lib/stripe.ts` — added `FUND_TIERS` config (starter $5/mo, advocate $10/mo, champion $20/mo), `FundTierKey`, `FUND_PLEDGE_TYPE` constant, `FundPledgeDocument` MongoDB type
+  - `src/types/fund.ts` — `FundTierKey`, `FundPledgeStatus`, `FundStatsResponse`
+  - `POST /api/v1/fund/pledge` — creates Stripe subscription checkout with `type: "fund_pledge"` metadata; validates tier; reads price IDs from `STRIPE_FUND_{TIER}_PRICE_ID` env vars
+  - `GET /api/v1/fund/stats` — queries `fund_pledges` collection for active pledges, sums `monthlyAmountCents`, returns `activePledgers` + `monthlyPoolFormatted`; 5-min Redis cache
+  - Stripe webhook handler — `handleCheckoutCompleted` branches on `subscription.metadata.type === FUND_PLEDGE_TYPE` → writes to `fund_pledges` collection + sends pledge confirmation email; `handleSubscriptionUpdated`/`handleSubscriptionDeleted`/`handlePaymentFailed` route to correct collection based on metadata
+  - `src/components/fund/FundPledgeForm.tsx` — tier selector (3 cards), Stripe redirect, error state
+  - `/fund` page — explains the fund, live pool stats, pledge CTA, "How it works" methodology block
+  - `/fund/success` page — pledge confirmed confirmation
+  - `/fund/error.tsx` — error boundary
+  - NavLinks — added "Fund" link
+  - middleware.ts — `/fund(.*)` added to protected routes
+  - 11 tests in `tests/backend/api/fund-pledge-route.test.ts` + `fund-stats-route.test.ts`; updated stripe-webhook.test.ts mock to spread actual exports
+  - Tests: 395/395 passing; type-check clean
 - [x] **Lob.com physical mail integration** (2026-03-16)
   - `src/types/petition.ts` — added `MailAddress` type; `recipientName?`/`recipientAddress?` on `PetitionDocument`; `lobMailId?`/`lobMailCost?` on `PetitionSignatureDocument`; `hasPhysicalMailOption` on `PetitionDetail`; `senderAddress?` on `SignPetitionRequest`
   - `src/lib/lob.ts` — new Lob.com REST client: `sendLetter()` (Basic-auth POST to `/v1/letters`), `buildLetterHtml()` (HTML template with XSS-safe `escapeHtml()`), `LobApiError` class
