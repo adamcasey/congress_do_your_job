@@ -189,6 +189,14 @@
   - Added `/legislation`, `/scorecard`, `/petitions` to Clerk middleware protection in `src/middleware.ts`
   - Completes the Stripe membership flow: unauthenticated users are now redirected to sign-in before accessing member-only pages
   - 362 tests passing; merged `feature/stripe-membership-flow` → dev → main
+- [x] **Fix legislation search — SAVE Act and similar bills not surfacing** (2026-03-16)
+  - Root cause: route fetched only `limit=8` bills from Congress.gov (sorted by updateDate), then re-ranked just those 8. Exact-match bills buried past position 8 by date never appeared.
+  - Fix: keyword search now fetches `SEARCH_FETCH_LIMIT=100` bills at offset=0 from Congress.gov, ranks the full batch, caches the ranked list per-query (not per-page), and slices by the client's offset/limit after cache retrieval
+  - "Load More" pages read from the same ranked cache — zero extra Congress.gov API calls for subsequent pages
+  - Cache key for searches: `legislation:ranked:{congress}-{query}` (no offset/limit); recent-bills key unchanged
+  - `count` capped at `Math.min(API_total, rankedBills.length)` so client doesn't paginate beyond what's ranked
+  - Updated test suite: 13 tests including new pagination-slice and exact-offset-0 assertions
+  - Tests: 13/13 passing; type-check clean
 - [x] **Fix scorecard chamber label — all legislators still shown as "Sen."** (2026-03-16)
   - Root cause: Congress.gov `/member` list endpoint does not always return a top-level `chamber` field; `normalizeChamber(undefined)` returned `""`, causing `m.chamber === "House"` to always fail → all members labeled "Sen."
   - Fix: added `deriveChamber(m)` in `members/search/route.ts` which checks `m.chamber` first, then falls back to `m.terms?.at(-1)?.chamber` (Congress.gov always includes `terms[]` in the list response)
