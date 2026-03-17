@@ -189,6 +189,16 @@
   - Added `/legislation`, `/scorecard`, `/petitions` to Clerk middleware protection in `src/middleware.ts`
   - Completes the Stripe membership flow: unauthenticated users are now redirected to sign-in before accessing member-only pages
   - 362 tests passing; merged `feature/stripe-membership-flow` → dev → main
+- [x] **Fix dev.congressdoyourjob.com using production LaunchDarkly keys** (2026-03-16)
+  - Root cause: Vercel sets NODE_ENV="production" for ALL deployments (production AND preview). Next.js therefore only loads .env.production on any Vercel deployment. .env.development is never loaded on Vercel.
+  - Vercel provides NEXT_PUBLIC_VERCEL_ENV = "production" | "preview" | "development" at build time — this correctly distinguishes production from preview (dev.congressdoyourjob.com) deployments.
+  - Fix: `launchdarkly.tsx` now reads `NEXT_PUBLIC_VERCEL_ENV` and selects:
+    - `NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID` (prod key) when `NEXT_PUBLIC_VERCEL_ENV === "production"`
+    - `NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID_DEV` (dev key) for preview and local dev
+  - Added `NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID_DEV` to `.env.production` (required so the preview Vercel build can access the dev key, since .env.production is loaded for all Vercel builds)
+  - Added `NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID_DEV` to `.env.development` and `.env.example` for consistency
+  - Enhanced module-load log to show `vercelEnv` and `isProductionDeployment` for easier debugging
+  - Tests: 372/372 passing; type-check clean
 - [x] **Nightly cron job to refresh legislation cache** (2026-03-16)
   - New route: `GET /api/cron/refresh-legislation`
   - Fetches 96 bills (12 pages × 8) from Congress.gov in a single API call sorted by `updateDate+desc`
