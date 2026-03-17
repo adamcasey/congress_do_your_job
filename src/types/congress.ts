@@ -142,10 +142,14 @@ export interface Member {
 }
 
 export interface Term {
-  chamber: Chamber;
+  chamber: string; // Congress.gov returns "House of Representatives" or "Senate" — normalized by normalizeChamber()
   congress: number;
   startYear: number;
-  endYear: number;
+  endYear?: number; // absent for the current/active term
+  district?: number;
+  stateCode?: string;
+  stateName?: string;
+  memberType?: string;
 }
 
 export interface Vote {

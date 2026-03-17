@@ -10,6 +10,15 @@
 
 ## High Priority
 
+- [ ] The dev url is using our production env keys and should only be using dev environment keys.
+  - Investigate why this is happening by searching Vercel and NextJS docs and compare their guides on setting up the different environments to how we're doing it.
+  - `dev.congressdoyourjob.com` should be using the `NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID` from `env.development` and not `.env.production`
+- [ ] Setup a cronjob to refresh the legislation status for all bills shown on the `/legislation` page every night at midnight EST
+- [ ] Set an order to the bills shown on the `/legislation` page so those with the most recent activity are at the top
+- [ ] The search for legislation is broken and doesn't return expected data when searching
+  - For example, entering "SAVE Act" into the search bar should return the existing legislation titled "SAVE Act" at the very top of the list
+  - Investigate how legislation search works and make sure we are implementing fuzzy search that first tries to match user input to the bill title, then the bill topic, then by sponsors and cosponsors
+
 ## Medium Priority
 
 ## Low Priority
