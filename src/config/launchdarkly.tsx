@@ -4,14 +4,29 @@ import { withLDProvider, useFlags, useLDClient, useLDClientError } from "launchd
 import React, { ReactNode, useEffect } from "react";
 import { FeatureFlag, featureFlagDefaults } from "@/lib/feature-flags";
 
-const clientSideID = process.env.NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID || "";
+// Vercel sets NODE_ENV="production" for ALL deployments (production AND preview).
+// NEXT_PUBLIC_VERCEL_ENV distinguishes them: "production" | "preview" | "development".
+// It is undefined when running locally without Vercel CLI — in which case NODE_ENV
+// is "development" and .env.development is loaded with the dev LD key.
+const vercelEnv = process.env.NEXT_PUBLIC_VERCEL_ENV;
+const isProductionDeployment = vercelEnv === "production";
+
+// Production deploys (congressdoyourjob.com) use the prod LD environment.
+// Preview deploys (dev.congressdoyourjob.com) and local dev use the dev LD environment.
+const clientSideID = isProductionDeployment
+  ? (process.env.NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID ?? "")
+  : (process.env.NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID_DEV ??
+     process.env.NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID ??
+     "");
+
 const isDev = process.env.NODE_ENV === "development";
-const env = process.env.NODE_ENV ?? "unknown";
+const env = vercelEnv ?? process.env.NODE_ENV ?? "unknown";
 
 // Log at module load time (runs once when the module is first imported)
 console.log("[LaunchDarkly] Module loaded", {
   env,
-  isDev,
+  vercelEnv: vercelEnv ?? "(local — NEXT_PUBLIC_VERCEL_ENV not set)",
+  isProductionDeployment,
   clientSideID: clientSideID
     ? `${clientSideID.slice(0, 8)}...${clientSideID.slice(-4)}`
     : "(not set — NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID is missing)",
