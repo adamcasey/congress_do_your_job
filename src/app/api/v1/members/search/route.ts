@@ -8,12 +8,20 @@ import { Member } from "@/types/congress";
 const logger = createLogger("MemberSearchAPI");
 
 // Congress.gov may return "House of Representatives" instead of "House" — normalize to our Chamber type
-function normalizeChamber(chamber: string): string {
-  if (!chamber) return chamber;
+function normalizeChamber(chamber: string | undefined): string {
+  if (!chamber) return "";
   const lower = chamber.toLowerCase();
   if (lower.includes("house")) return "House";
   if (lower.includes("senate")) return "Senate";
   return chamber;
+}
+
+// Derive chamber from the member record. The /member list endpoint may not include
+// a top-level chamber field for all members, so fall back to the most recent term.
+function deriveChamber(m: Member): string {
+  if (m.chamber) return normalizeChamber(m.chamber as string);
+  const lastTerm = m.terms?.at(-1);
+  return normalizeChamber(lastTerm?.chamber);
 }
 
 // Shared cache key for the full current-member roster
@@ -68,7 +76,7 @@ export async function GET(request: NextRequest) {
         bioguideId: m.bioguideId,
         name: m.name,
         state: m.state,
-        chamber: normalizeChamber(m.chamber),
+        chamber: deriveChamber(m),
         district: m.district,
         imageUrl: m.depiction?.imageUrl,
       }));
