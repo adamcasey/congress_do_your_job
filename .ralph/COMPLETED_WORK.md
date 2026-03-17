@@ -189,3 +189,9 @@
   - Added `/legislation`, `/scorecard`, `/petitions` to Clerk middleware protection in `src/middleware.ts`
   - Completes the Stripe membership flow: unauthenticated users are now redirected to sign-in before accessing member-only pages
   - 362 tests passing; merged `feature/stripe-membership-flow` → dev → main
+- [x] **Fix scorecard chamber label — all legislators still shown as "Sen."** (2026-03-16)
+  - Root cause: Congress.gov `/member` list endpoint does not always return a top-level `chamber` field; `normalizeChamber(undefined)` returned `""`, causing `m.chamber === "House"` to always fail → all members labeled "Sen."
+  - Fix: added `deriveChamber(m)` in `members/search/route.ts` which checks `m.chamber` first, then falls back to `m.terms?.at(-1)?.chamber` (Congress.gov always includes `terms[]` in the list response)
+  - Updated `Term.chamber` in `types/congress.ts` from `Chamber` to `string` (API returns "House of Representatives" not "House")
+  - Added optional `endYear`, `district`, `stateCode`, `stateName`, `memberType` fields to `Term` interface to match actual API response shape
+  - Tests: 11/11 passing; type-check clean
