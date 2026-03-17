@@ -15,8 +15,8 @@
 
 ## Low Priority
 
-- [ ] Implement Lob.com physical mail integration
-- [ ] Add Eisenhower Fund pooled donation logic
+- [x] Implement Lob.com physical mail integration
+- [x] Add Eisenhower Fund pooled donation logic
 - [ ] Mobile-specific layout optimizations
 - [ ] Performance: evaluate if LaunchDarkly client-side SDK is needed (adds bundle weight)
 

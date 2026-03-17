@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { label: "Briefing", href: "/legislation" },
   { label: "Scorecards", href: "/scorecard" },
   { label: "Petitions", href: "/petitions" },
+  { label: "Fund", href: "/fund" },
   { label: "Representatives", href: "/representatives" },
 ];
 

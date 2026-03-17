@@ -7,9 +7,10 @@ const { getStripeClientMock, getCollectionMock, resendMock } = vi.hoisted(() => 
   resendMock: { emails: { send: vi.fn() } },
 }));
 
-vi.mock("@/lib/stripe", () => ({
-  getStripeClient: getStripeClientMock,
-}));
+vi.mock("@/lib/stripe", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/stripe")>();
+  return { ...actual, getStripeClient: getStripeClientMock };
+});
 
 vi.mock("@/lib/mongodb", () => ({
   getCollection: getCollectionMock,
@@ -127,6 +128,7 @@ describe("POST /api/v1/webhooks/stripe", () => {
         object: {
           id: "sub_upd",
           status: "past_due",
+          metadata: {},
           items: { data: [{ current_period_start: 1000000, current_period_end: 1100000 }] },
           cancel_at_period_end: false,
         },
@@ -145,7 +147,7 @@ describe("POST /api/v1/webhooks/stripe", () => {
     constructEventMock.mockReturnValue({
       id: "evt_deleted",
       type: "customer.subscription.deleted",
-      data: { object: { id: "sub_del", status: "canceled", current_period_start: 1000000, current_period_end: 1100000, cancel_at_period_end: false } },
+      data: { object: { id: "sub_del", status: "canceled", metadata: {}, current_period_start: 1000000, current_period_end: 1100000, cancel_at_period_end: false } },
     });
 
     const res = await POST(createRequest("{}"));
