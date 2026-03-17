@@ -189,6 +189,13 @@
   - Added `/legislation`, `/scorecard`, `/petitions` to Clerk middleware protection in `src/middleware.ts`
   - Completes the Stripe membership flow: unauthenticated users are now redirected to sign-in before accessing member-only pages
   - 362 tests passing; merged `feature/stripe-membership-flow` → dev → main
+- [x] **Nightly cron job to refresh legislation cache** (2026-03-16)
+  - New route: `GET /api/cron/refresh-legislation`
+  - Fetches 96 bills (12 pages × 8) from Congress.gov in a single API call sorted by `updateDate+desc`
+  - Splits into pages of 8 and writes each page into Redis under the exact cache keys the `/legislation` search route reads: `legislation:search:{congress}-recent-8-{offset}:v1`
+  - All `/legislation` page visits after midnight EST see pre-warmed cache with zero cold-start latency
+  - Registered in `vercel.json` at `0 5 * * *` (05:00 UTC = midnight US Eastern Standard Time)
+  - 7 tests in `tests/backend/api/refresh-legislation-cron.test.ts`; full suite 372/372 passing
 - [x] **Order bills by most recent activity on /legislation page** (2026-03-16)
   - Root cause 1: `buildApiUrl` passed `sort` through `URLSearchParams.set()`, which percent-encodes `+` to `%2B`. Congress.gov's sort syntax is `updateDate+desc` with a literal `+`, so encoding broke the sort parameter silently.
   - Fix: `sort` key is now appended to the URL string directly (no percent-encoding) while all other params still go through `URLSearchParams` for safe encoding.
