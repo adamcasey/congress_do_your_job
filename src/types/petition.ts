@@ -4,6 +4,16 @@ export type PetitionStatus = "active" | "closed" | "successful";
 export type DeliveryMethod = "email" | "physical_mail";
 export type DeliveryStatus = "pending" | "sent" | "delivered" | "failed";
 
+/** US mailing address used for Lob.com physical letters */
+export interface MailAddress {
+  name: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  state: string; // 2-letter state code (e.g. "DC", "MO")
+  zip: string; // 5-digit ZIP or ZIP+4
+}
+
 /** Raw MongoDB document shape for the `petitions` collection */
 export interface PetitionDocument {
   _id: ObjectId;
@@ -18,6 +28,9 @@ export interface PetitionDocument {
   goal?: number;
   signatureCount: number;
   lettersDelivered: number;
+  /** Populated when the petition supports physical mail via Lob.com */
+  recipientName?: string;
+  recipientAddress?: MailAddress;
   createdAt: Date;
   updatedAt: Date;
   closedAt?: Date;
@@ -32,6 +45,10 @@ export interface PetitionSignatureDocument {
   deliveredAt?: Date;
   deliveryStatus: DeliveryStatus;
   customMessage?: string;
+  /** Lob.com letter ID — set after a successful physical mail send */
+  lobMailId?: string;
+  /** Lob.com letter cost in USD — set after a successful physical mail send */
+  lobMailCost?: number;
   signedAt: Date;
 }
 
@@ -54,6 +71,8 @@ export interface PetitionDetail extends PetitionSummary {
   targetLevel: string;
   targetOffice?: string;
   lettersDelivered: number;
+  /** True when the petition has a recipientAddress configured for Lob.com mail */
+  hasPhysicalMailOption: boolean;
   createdAt: string;
   closedAt?: string;
 }
@@ -62,4 +81,6 @@ export interface PetitionDetail extends PetitionSummary {
 export interface SignPetitionRequest {
   deliveryMethod: DeliveryMethod;
   customMessage?: string;
+  /** Required when deliveryMethod is "physical_mail" */
+  senderAddress?: MailAddress;
 }

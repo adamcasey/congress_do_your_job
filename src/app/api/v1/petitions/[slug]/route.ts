@@ -26,6 +26,7 @@ function toDetail(doc: PetitionDocument): PetitionDetail {
     targetLevel: doc.targetLevel,
     targetOffice: doc.targetOffice,
     lettersDelivered: doc.lettersDelivered,
+    hasPhysicalMailOption: Boolean(doc.recipientAddress),
     createdAt: doc.createdAt.toISOString(),
     closedAt: doc.closedAt?.toISOString(),
   };

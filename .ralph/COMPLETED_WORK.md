@@ -226,3 +226,11 @@
   - Updated `Term.chamber` in `types/congress.ts` from `Chamber` to `string` (API returns "House of Representatives" not "House")
   - Added optional `endYear`, `district`, `stateCode`, `stateName`, `memberType` fields to `Term` interface to match actual API response shape
   - Tests: 11/11 passing; type-check clean
+- [x] **Lob.com physical mail integration** (2026-03-16)
+  - `src/types/petition.ts` — added `MailAddress` type; `recipientName?`/`recipientAddress?` on `PetitionDocument`; `lobMailId?`/`lobMailCost?` on `PetitionSignatureDocument`; `hasPhysicalMailOption` on `PetitionDetail`; `senderAddress?` on `SignPetitionRequest`
+  - `src/lib/lob.ts` — new Lob.com REST client: `sendLetter()` (Basic-auth POST to `/v1/letters`), `buildLetterHtml()` (HTML template with XSS-safe `escapeHtml()`), `LobApiError` class
+  - `GET /api/v1/petitions/[slug]` — `toDetail()` now sets `hasPhysicalMailOption: Boolean(doc.recipientAddress)`
+  - `POST /api/v1/petitions/[slug]/sign` — validates `senderAddress` when `physical_mail` selected; validates petition has `recipientAddress`; calls `sendLetter()` BEFORE inserting signature record; sets `deliveryStatus: "sent"` on success; returns 503 if Lob fails (no signature record created)
+  - `src/components/petitions/PetitionSignForm.tsx` — physical mail option hidden when `petition.hasPhysicalMailOption === false`; address form (name, line1, line2 optional, city, state, ZIP) shown when `physical_mail` selected; `senderAddress` included in mutation payload
+  - 12 tests in `src/lib/__tests__/lob.test.ts` covering auth header, address mapping, success/error paths, HTML escaping
+  - Tests: 384/384 passing; type-check clean
