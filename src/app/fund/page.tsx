@@ -18,8 +18,11 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://congressdoyourjob.co
 async function getFundStats(): Promise<FundStatsResponse | null> {
   try {
     const res = await fetch(`${APP_URL}/api/v1/fund/stats`, { next: { revalidate: 300 } });
+    if (!res.ok) return null;
     const json = (await res.json()) as ApiResponse<FundStatsResponse>;
-    return json.success && json.data ? json.data : null;
+    const data = json.success ? json.data : null;
+    if (!data || typeof data.activePledgers !== "number") return null;
+    return data;
   } catch {
     return null;
   }
@@ -55,7 +58,7 @@ export default async function FundPage() {
           {stats && (
             <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-2 max-w-sm mx-auto">
               <div className="rounded-2xl bg-white/80 p-6 text-center ring-1 ring-slate-200/80 shadow-sm">
-                <p className="text-3xl font-bold text-slate-900">{stats.activePledgers.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-slate-900">{stats.activePledgers?.toLocaleString() ?? "—"}</p>
                 <p className="mt-1 text-sm text-slate-500">active pledgers</p>
               </div>
               <div className="rounded-2xl bg-white/80 p-6 text-center ring-1 ring-slate-200/80 shadow-sm">
