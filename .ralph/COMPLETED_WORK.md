@@ -278,3 +278,16 @@
   - fund/page.tsx stats grid: removed redundant `sm:grid-cols-2` (column count already set by `grid-cols-2`)
   - Files modified: 8 pages + Footer.tsx (9 files total)
   - Tests: 400/400 passing; type-check clean
+- [x] **Performance: evaluate and remove LaunchDarkly client-side SDK** (2026-03-17)
+  - Evaluation: `launchdarkly-js-client-sdk` = 60KB minified (~20KB gzipped) for 3 simple boolean flags. No user targeting, no gradual rollouts. The SDK also opens a streaming WebSocket on every page load. Overkill for MVP.
+  - Decision: Remove entirely. Replace with `NEXT_PUBLIC_*` build-time env vars + `COMING_SOON_MODE` server env var in middleware. Vercel env var change + 2-min redeploy is the acceptable tradeoff.
+  - `src/middleware.ts`: Added `comingSoonRedirect()` — when `COMING_SOON_MODE=true`, redirects all non-API routes to `/coming-soon` server-side (no bundle cost, no CLS flash, no SDK init wait).
+  - `NEXT_PUBLIC_SHOW_BUDGET_TIMER=true` replaces `BUDGET_BILL_TIMER` flag in `page.tsx` and `coming-soon/page.tsx`
+  - `NEXT_PUBLIC_SHOW_HEADER_NAVIGATION=false` to hide (default: true) replaces `SHOW_HEADER_NAVIGATION` flag in `NavLinks.tsx`
+  - Removed `FlagGate` wrapper from `representatives`, `fund`, `membership`, `membership/success` pages
+  - Removed `LaunchDarklyProvider` from root `layout.tsx`
+  - Removed dead `useRouter` + coming-soon redirect `useEffect` from `page.tsx` (was incorrectly inverted, never actually fired)
+  - Stubbed out obsolete files (pending file deletion): `src/config/launchdarkly.tsx`, `src/lib/launchdarkly-provider.tsx`, `src/components/FlagGate.tsx`, `src/lib/feature-flags.ts`
+  - Removed `launchdarkly-react-client-sdk` from `package.json` + ran `npm install`
+  - Updated `.env.example` to document new env vars, removed LD key documentation
+  - Tests: 392/392 passing (400 - 9 deleted LD tests + 1 env var sanity check); type-check clean

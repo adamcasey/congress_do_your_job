@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { LaunchDarklyProvider } from "@/lib/launchdarkly-provider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { ClerkProvider } from "@/components/providers/ClerkProvider";
 import { Navbar } from "@/components/Navbar";
@@ -45,12 +44,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ClerkProvider>
           <QueryProvider>
-            <LaunchDarklyProvider>
-              <Navbar />
-              {children}
-              <Footer />
-              <SpeedInsights />
-            </LaunchDarklyProvider>
+            <Navbar />
+            {children}
+            <Footer />
+            <SpeedInsights />
           </QueryProvider>
         </ClerkProvider>
       </body>

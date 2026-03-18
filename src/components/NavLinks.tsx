@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { NavAuthButton } from "./NavAuthButton";
-import { useFeatureFlag } from "@/config/launchdarkly";
-import { FeatureFlag } from "@/lib/feature-flags";
 
 const NAV_LINKS = [
   { label: "Briefing", href: "/legislation" },
@@ -15,13 +13,14 @@ const NAV_LINKS = [
 
 const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
+// Show nav by default; set NEXT_PUBLIC_SHOW_HEADER_NAVIGATION=false to hide.
+const showNav = process.env.NEXT_PUBLIC_SHOW_HEADER_NAVIGATION !== "false";
+
 /**
- * Client component that renders nav links gated on the show-header-nagivation flag.
- * Returns null when the flag is disabled, showing only the brand logo in the header.
+ * Renders nav links gated on the NEXT_PUBLIC_SHOW_HEADER_NAVIGATION env var.
+ * Returns null when disabled, showing only the brand logo in the header.
  */
 export function NavLinks() {
-  const showNav = useFeatureFlag(FeatureFlag.SHOW_HEADER_NAVIGATION);
-
   if (!showNav) return null;
 
   return (

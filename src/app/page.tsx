@@ -1,10 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import Link from "next/link";
-import { FeatureFlag } from "@/lib/feature-flags";
-import { useFeatureFlag } from "@/config/launchdarkly";
 import { freePressFont, latoFont } from "@/styles/fonts";
 import { BudgetCountdown } from "@/components/BudgetCountdown";
 import { RecentBills } from "@/components/legislation/RecentBills";
@@ -228,18 +224,10 @@ function getBudgetStats(dateString: string) {
   return { daysSinceBudget, lastBudgetDateLabel };
 }
 
+const showBudgetTimer = process.env.NEXT_PUBLIC_SHOW_BUDGET_TIMER === "true";
+
 export default function Home() {
-  const router = useRouter();
   const { data: statsData, loading: statsLoading } = useCongressStats();
-
-  const showComingSoon = useFeatureFlag(FeatureFlag.COMING_SOON_LANDING_PAGE);
-  const showBudgetTimer = useFeatureFlag(FeatureFlag.BUDGET_BILL_TIMER);
-
-  useEffect(() => {
-    if (process.env.NODE_ENV === "production" && !showComingSoon) {
-      router.push("/coming-soon");
-    }
-  }, [showComingSoon, router]);
 
   const lastBudgetDate = process.env.NEXT_PUBLIC_BUDGET_LAST_PASSED_DATE ?? "2024-03-23";
   const { daysSinceBudget, lastBudgetDateLabel } = getBudgetStats(lastBudgetDate);
