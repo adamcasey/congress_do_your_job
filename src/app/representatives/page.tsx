@@ -13,12 +13,12 @@ export default function RepresentativesPage() {
   return (
     <FlagGate flag={FeatureFlag.COMING_SOON_LANDING_PAGE}>
       <main className="min-h-screen bg-gradient-to-br from-[#e4f0f9] via-[#e4f0f9] to-[#fde3e0]">
-        <div className="mx-auto max-w-5xl px-6 py-12 md:py-16">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-12 md:py-16">
           <BackButton href="/">Back to Dashboard</BackButton>
 
           <header className="mb-10 mt-8 text-center">
             <h1
-              className={`${freePressFont.className} text-4xl leading-tight tracking-tight text-slate-900 md:text-5xl lg:text-6xl mb-4`}
+              className={`${freePressFont.className} text-3xl leading-tight tracking-tight text-slate-900 sm:text-4xl md:text-5xl lg:text-6xl mb-4`}
             >
               Find Your Representatives
             </h1>
