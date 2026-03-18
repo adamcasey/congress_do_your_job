@@ -4,25 +4,9 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ScorecardCard } from "./ScorecardCard";
 import { SearchBar } from "@/components/ui";
-import { CalculatedScorecard } from "@/types/scorecard";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { ApiResponse } from "@/lib/api-response";
-
-interface MemberSuggestion {
-  bioguideId: string;
-  name: string;
-  state: string;
-  chamber: string;
-  district?: number;
-  imageUrl?: string;
-}
-
-interface ScorecardData {
-  scorecard: CalculatedScorecard;
-  dataSources: Record<string, string>;
-}
-
-type Period = "session" | "yearly" | "quarterly";
+import type { MemberSuggestion, ScorecardData, Period } from "./types";
 
 const PERIOD_LABELS: Record<Period, string> = {
   session: "Full Session",

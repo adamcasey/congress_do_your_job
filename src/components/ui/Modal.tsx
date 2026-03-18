@@ -2,13 +2,7 @@
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-
-interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  children: React.ReactNode;
-}
+import type { ModalProps } from "./types";
 
 // useSyncExternalStore returns false on the server and true on the client,
 // avoiding the setState-in-useEffect anti-pattern for SSR portal hydration.

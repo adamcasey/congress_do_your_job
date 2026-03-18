@@ -240,6 +240,15 @@
   - middleware.ts — `/fund(.*)` added to protected routes
   - 11 tests in `tests/backend/api/fund-pledge-route.test.ts` + `fund-stats-route.test.ts`; updated stripe-webhook.test.ts mock to spread actual exports
   - Tests: 395/395 passing; type-check clean
+- [x] **Route type subdirectories — extract all inline types from components** (2026-03-17)
+  - Created `types/index.ts` in `src/components/legislation/`, `scorecard/`, `petitions/`, and `ui/`
+  - Moved ALL inline `interface` / `type` definitions out of their component files and into the feature's `types/index.ts`
+  - legislation/types: BillDetailModalProps, BillTimelineProps, Stage, RecentBillsProps
+  - scorecard/types: ScorecardGaugeProps, ScorecardCardProps, ScorecardCategoryBreakdownProps, CategoryRowProps, MemberSuggestion, ScorecardData, Period
+  - petitions/types: PetitionCardProps, PetitionSignFormProps
+  - ui/types: Status, DataStatus, AlertProps, BackButtonProps, ButtonProps, EmptyStateProps, InputProps, ModalProps, SearchBarProps, SectionHeaderProps
+  - `src/components/ui/index.ts` updated to re-export `Status` and `DataStatus` from `./types` (preserves all public API)
+  - 20 files modified + 4 new type files created; type-check clean; 400/400 tests passing
 - [x] **Fix /legislation duplicate bills and search accuracy** (2026-03-17)
   - Root cause (duplicates): Offset-based pagination on a `updateDate+desc` sorted list. Bills updated between page 1 and page 2 fetches shift position, causing the same bill to appear in multiple pages. Compounded by per-page Redis caching (page 1 may be a stale cache hit while page 2 is a fresh fetch).
   - Fix (server): `deduplicateBills()` applied to the Congress.gov API response before `rankBills()` runs, eliminating duplicates in the ranked batch.
