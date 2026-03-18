@@ -5,11 +5,7 @@ import { BillTimeline } from "./BillTimeline";
 import { Modal } from "@/components/ui/Modal";
 import { useBillDetails, useBillSummary } from "@/hooks";
 import { formatDate, stripHtmlTags, extractSentences } from "@/utils/dates";
-
-interface BillDetailModalProps {
-  bill: Bill;
-  onClose: () => void;
-}
+import type { BillDetailModalProps } from "./types";
 
 export function BillDetailModal({ bill, onClose }: BillDetailModalProps) {
   const { data: billDetails, loading: loadingDetails } = useBillDetails({

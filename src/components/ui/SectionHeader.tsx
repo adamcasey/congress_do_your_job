@@ -1,4 +1,4 @@
-export type DataStatus = "todo" | "partial" | "live";
+import type { DataStatus, SectionHeaderProps } from "./types";
 
 const dataStatusBadge: Record<DataStatus, { label: string; classes: string }> = {
   todo: { label: "Static data", classes: "bg-white/70 text-slate-500 ring-1 ring-slate-200" },
@@ -6,12 +6,6 @@ const dataStatusBadge: Record<DataStatus, { label: string; classes: string }> = 
   live: { label: "Live data", classes: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" },
 };
 
-interface SectionHeaderProps {
-  title: string;
-  eyebrow?: string;
-  description?: string;
-  dataStatus?: DataStatus;
-}
 
 export function SectionHeader({ title, eyebrow, description, dataStatus = "todo" }: SectionHeaderProps) {
   const badge = dataStatusBadge[dataStatus];

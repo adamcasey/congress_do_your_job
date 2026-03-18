@@ -1,20 +1,7 @@
 "use client";
 
-import { ChangeEvent, FocusEvent, useId } from "react";
-
-interface SearchBarProps {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  isLoading?: boolean;
-  label?: string;
-  labelClassName?: string;
-  id?: string;
-  className?: string;
-  autoComplete?: string;
-  disabled?: boolean;
-  onFocus?: (e: FocusEvent<HTMLInputElement>) => void;
-}
+import { ChangeEvent, useId } from "react";
+import type { SearchBarProps } from "./types";
 
 export function SearchBar({
   value,

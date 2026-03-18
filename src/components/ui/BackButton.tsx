@@ -1,10 +1,5 @@
 import Link from "next/link";
-import { ReactNode } from "react";
-
-interface BackButtonProps {
-  href: string;
-  children: ReactNode;
-}
+import type { BackButtonProps } from "./types";
 
 export function BackButton({ href, children }: BackButtonProps) {
   return (

@@ -6,11 +6,7 @@ import { Bill } from "@/types/congress";
 import { formatDate, stripHtmlTags, extractSentences } from "@/utils/dates";
 import { Modal } from "@/components/ui/Modal";
 import { BillTimeline } from "./BillTimeline";
-
-interface RecentBillsProps {
-  limit?: number;
-  days?: number;
-}
+import type { RecentBillsProps } from "./types";
 
 export function RecentBills({ limit = 10, days = 7 }: RecentBillsProps) {
   const { data, loading, error } = useRecentLegislation({ limit, days });
