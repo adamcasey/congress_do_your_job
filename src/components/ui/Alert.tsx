@@ -1,10 +1,4 @@
-import { ReactNode } from "react";
-
-interface AlertProps {
-  variant: "success" | "error" | "info";
-  title?: string;
-  children: ReactNode;
-}
+import type { AlertProps } from "./types";
 
 export function Alert({ variant, title, children }: AlertProps) {
   const variants = {

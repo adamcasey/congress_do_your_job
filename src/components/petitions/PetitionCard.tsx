@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { PetitionSummary } from "@/types/petition";
+import type { PetitionCardProps } from "./types";
 
 const CATEGORY_COLORS: Record<string, string> = {
   budget: "bg-blue-100 text-blue-700",
@@ -10,9 +10,6 @@ const CATEGORY_COLORS: Record<string, string> = {
   default: "bg-slate-100 text-slate-600",
 };
 
-interface PetitionCardProps {
-  petition: PetitionSummary;
-}
 
 export function PetitionCard({ petition }: PetitionCardProps) {
   const categoryColor = CATEGORY_COLORS[petition.category.toLowerCase()] ?? CATEGORY_COLORS.default;

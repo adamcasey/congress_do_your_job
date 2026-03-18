@@ -2,13 +2,9 @@
 
 import { useState, FormEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
-import type { PetitionDetail, SignPetitionRequest, DeliveryMethod, MailAddress } from "@/types/petition";
+import type { SignPetitionRequest, DeliveryMethod, MailAddress } from "@/types/petition";
 import type { ApiResponse } from "@/lib/api-response";
-
-interface PetitionSignFormProps {
-  petition: PetitionDetail;
-  initialHasSigned: boolean;
-}
+import type { PetitionSignFormProps } from "./types";
 
 const EMPTY_ADDRESS: MailAddress = { name: "", line1: "", line2: "", city: "", state: "", zip: "" };
 

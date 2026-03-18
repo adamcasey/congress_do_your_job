@@ -2,13 +2,7 @@ import { CalculatedScorecard } from "@/types/scorecard";
 import { ScorecardGauge } from "./ScorecardGauge";
 import { ScorecardCategoryBreakdown } from "./ScorecardCategoryBreakdown";
 import { formatDate } from "@/lib/format-date";
-
-interface ScorecardCardProps {
-  scorecard: CalculatedScorecard;
-  memberName?: string;
-  periodLabel?: string;
-  dataSourceNote?: string;
-}
+import type { ScorecardCardProps } from "./types";
 
 export function ScorecardCard({ scorecard, memberName, periodLabel, dataSourceNote }: ScorecardCardProps) {
   const period = periodLabel ?? `${formatDate(scorecard.periodStart)} – ${formatDate(scorecard.periodEnd)}`;

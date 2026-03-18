@@ -2,18 +2,7 @@
 
 import { Bill } from "@/types/congress";
 import { formatDate } from "@/utils/dates";
-
-interface BillTimelineProps {
-  bill: Bill;
-}
-
-interface Stage {
-  label: string;
-  key: string;
-  activeColor: string;
-  ringColor: string;
-  barColor: string;
-}
+import type { BillTimelineProps, Stage } from "./types";
 
 const STAGES: Stage[] = [
   { label: "Introduced", key: "introduced", activeColor: "bg-emerald-500", ringColor: "bg-emerald-400", barColor: "bg-emerald-400" },

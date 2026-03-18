@@ -1,11 +1,7 @@
 "use client";
 
-import { CategoryScore } from "@/types/scorecard";
+import type { ScorecardCategoryBreakdownProps } from "./types";
 import { CategoryRow } from "./CategoryRow";
-
-interface ScorecardCategoryBreakdownProps {
-  categoryScores: CategoryScore[];
-}
 
 export function ScorecardCategoryBreakdown({ categoryScores }: ScorecardCategoryBreakdownProps) {
   return (

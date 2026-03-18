@@ -1,4 +1,4 @@
-export type Status = "advanced" | "stalled" | "overdue" | "scheduled" | "passed" | "update";
+import type { Status } from "./types";
 
 export const statusStyles: Record<Status, { label: string; classes: string }> = {
   advanced: { label: "Moved", classes: "bg-emerald-100 text-emerald-800 border-emerald-200" },

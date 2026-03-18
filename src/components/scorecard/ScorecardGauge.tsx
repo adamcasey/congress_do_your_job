@@ -1,12 +1,6 @@
 "use client";
 
-import { ScorecardGrade } from "@/types/scorecard";
-
-interface ScorecardGaugeProps {
-  score: number;
-  grade: ScorecardGrade;
-  size?: "sm" | "md" | "lg";
-}
+import type { ScorecardGaugeProps } from "./types";
 
 const gradeColors: Record<string, { stroke: string; text: string; bg: string }> = {
   "A+": { stroke: "#10b981", text: "text-emerald-600", bg: "bg-emerald-50" },

@@ -1,8 +1,5 @@
-import { InputHTMLAttributes, forwardRef } from "react";
-
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  error?: boolean;
-}
+import { forwardRef } from "react";
+import type { InputProps } from "./types";
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(({ className = "", error, ...props }, ref) => {
   const baseStyles =

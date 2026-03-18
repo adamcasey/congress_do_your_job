@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CategoryScore, ScoreCategory } from "@/types/scorecard";
+import type { CategoryRowProps } from "./types";
 
 const categoryDisplayNames: Record<ScoreCategory, string> = {
   [ScoreCategory.ATTENDANCE]: "Attendance",
@@ -36,9 +37,6 @@ function formatInputKey(key: string): string {
     .trim();
 }
 
-interface CategoryRowProps {
-  cs: CategoryScore;
-}
 
 export function CategoryRow({ cs }: CategoryRowProps) {
   const [expanded, setExpanded] = useState(false);
