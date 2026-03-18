@@ -240,6 +240,14 @@
   - middleware.ts — `/fund(.*)` added to protected routes
   - 11 tests in `tests/backend/api/fund-pledge-route.test.ts` + `fund-stats-route.test.ts`; updated stripe-webhook.test.ts mock to spread actual exports
   - Tests: 395/395 passing; type-check clean
+- [x] **Fix /legislation duplicate bills and search accuracy** (2026-03-17)
+  - Root cause (duplicates): Offset-based pagination on a `updateDate+desc` sorted list. Bills updated between page 1 and page 2 fetches shift position, causing the same bill to appear in multiple pages. Compounded by per-page Redis caching (page 1 may be a stale cache hit while page 2 is a fresh fetch).
+  - Fix (server): `deduplicateBills()` applied to the Congress.gov API response before `rankBills()` runs, eliminating duplicates in the ranked batch.
+  - Fix (client): `LegislationSearch.tsx` now deduplicates by `${bill.congress}-${bill.type}-${bill.number}` key when flattening pages from `useInfiniteQuery`, guarding against any position-shift duplicates that slip through.
+  - Root cause (search): Queries like "HR 1234" or "S 42" were treated as full-text searches. Congress.gov's text search does not reliably match bill numbers, so the specific bill was often missing from results.
+  - Fix (search): `parseBillNumber()` detects bill-number patterns (HR, S, HJRES, SJRES, HCONRES, SCONRES, HRES, SRES) with optional dots/spaces. When matched, `getBill()` direct lookup is tried first; if found, returned immediately (count=1, no pagination needed). If the direct lookup returns 404, falls through to the normal full-text search path.
+  - 5 new tests in `tests/backend/api/legislation-search-route.test.ts` (bill number direct lookup × 4, deduplication × 1)
+  - Tests: 400/400 passing; type-check clean
 - [x] **Lob.com physical mail integration** (2026-03-16)
   - `src/types/petition.ts` — added `MailAddress` type; `recipientName?`/`recipientAddress?` on `PetitionDocument`; `lobMailId?`/`lobMailCost?` on `PetitionSignatureDocument`; `hasPhysicalMailOption` on `PetitionDetail`; `senderAddress?` on `SignPetitionRequest`
   - `src/lib/lob.ts` — new Lob.com REST client: `sendLetter()` (Basic-auth POST to `/v1/letters`), `buildLetterHtml()` (HTML template with XSS-safe `escapeHtml()`), `LobApiError` class
