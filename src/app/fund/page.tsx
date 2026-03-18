@@ -1,6 +1,4 @@
 import { Metadata } from "next";
-import { FlagGate } from "@/components/FlagGate";
-import { FeatureFlag } from "@/lib/feature-flags";
 import { BackButton } from "@/components/ui";
 import { freePressFont } from "@/styles/fonts";
 import { FundPledgeForm } from "@/components/fund/FundPledgeForm";
@@ -32,8 +30,7 @@ export default async function FundPage() {
   const stats = await getFundStats();
 
   return (
-    <FlagGate flag={FeatureFlag.COMING_SOON_LANDING_PAGE}>
-      <main className="min-h-screen bg-gradient-to-br from-[#e4f0f9] via-[#e4f0f9] to-[#fde3e0]">
+    <main className="min-h-screen bg-gradient-to-br from-[#e4f0f9] via-[#e4f0f9] to-[#fde3e0]">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 py-12 md:py-16">
           <BackButton href="/">Back to Dashboard</BackButton>
 
@@ -85,7 +82,6 @@ export default async function FundPage() {
           </footer>
         </div>
       </main>
-    </FlagGate>
   );
 }
 
