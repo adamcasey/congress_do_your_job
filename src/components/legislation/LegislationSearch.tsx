@@ -36,7 +36,14 @@ export function LegislationSearch() {
   const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, error } =
     useLegislationSearch(debouncedQuery);
 
-  const bills = data?.pages.flatMap((p) => p.bills) ?? [];
+  const allBills = data?.pages.flatMap((p) => p.bills) ?? [];
+  const seen = new Set<string>();
+  const bills = allBills.filter((bill) => {
+    const key = `${bill.congress}-${bill.type}-${bill.number}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
   const totalCount = data?.pages[0]?.count ?? 0;
   const isSearching = debouncedQuery.length >= 2;
 

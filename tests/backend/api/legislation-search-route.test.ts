@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/v1/legislation/search/route";
 
-const { searchBillsMock, getBillsMock, buildCacheKeyMock, getOrFetchMock, MockCongressApiError } = vi.hoisted(
+const { searchBillsMock, getBillsMock, getBillMock, buildCacheKeyMock, getOrFetchMock, MockCongressApiError } = vi.hoisted(
   () => {
     class HoistedCongressApiError extends Error {
       statusCode?: number;
@@ -14,6 +14,7 @@ const { searchBillsMock, getBillsMock, buildCacheKeyMock, getOrFetchMock, MockCo
     return {
       searchBillsMock: vi.fn(),
       getBillsMock: vi.fn(),
+      getBillMock: vi.fn(),
       buildCacheKeyMock: vi.fn(),
       getOrFetchMock: vi.fn(),
       MockCongressApiError: HoistedCongressApiError,
@@ -24,6 +25,7 @@ const { searchBillsMock, getBillsMock, buildCacheKeyMock, getOrFetchMock, MockCo
 vi.mock("@/lib/congress-api", () => ({
   searchBills: searchBillsMock,
   getBills: getBillsMock,
+  getBill: getBillMock,
   CongressApiError: MockCongressApiError,
   getCurrentCongress: () => 119,
 }));
@@ -229,5 +231,96 @@ describe("GET /api/v1/legislation/search", () => {
 
     const response = await GET(createRequest("https://app.test/api/v1/legislation/search?q=test"));
     expect(response.status).toBe(500);
+  });
+
+  describe("bill number direct lookup", () => {
+    it("returns single bill for HR number query", async () => {
+      const bill = makeBill("Some Act", "1234");
+      getOrFetchMock.mockImplementation(async (_key: string, fetcher: () => Promise<unknown>) => ({
+        data: await fetcher(),
+        status: "MISS",
+        isStale: false,
+      }));
+      getBillMock.mockResolvedValue(bill);
+
+      const response = await GET(createRequest("https://app.test/api/v1/legislation/search?q=HR+1234"));
+      expect(response.status).toBe(200);
+      const body = await response.json();
+      expect(body.data.bills).toHaveLength(1);
+      expect(body.data.bills[0].number).toBe("1234");
+      expect(getBillMock).toHaveBeenCalledWith("hr", "1234", 119);
+      expect(searchBillsMock).not.toHaveBeenCalled();
+    });
+
+    it("handles dotted notation HR number (H.R. 5)", async () => {
+      const bill = makeBill("Test Act", "5");
+      getOrFetchMock.mockImplementation(async (_key: string, fetcher: () => Promise<unknown>) => ({
+        data: await fetcher(),
+        status: "MISS",
+        isStale: false,
+      }));
+      getBillMock.mockResolvedValue(bill);
+
+      const response = await GET(createRequest("https://app.test/api/v1/legislation/search?q=H.R.+5"));
+      const body = await response.json();
+      expect(body.data.bills).toHaveLength(1);
+      expect(getBillMock).toHaveBeenCalledWith("hr", "5", 119);
+    });
+
+    it("falls through to text search when direct lookup finds no bill", async () => {
+      // First getOrFetch call (direct): returns empty bills
+      // Second getOrFetch call (ranked batch): returns search results
+      getOrFetchMock
+        .mockImplementationOnce(async (_key: string, fetcher: () => Promise<unknown>) => ({
+          data: await fetcher(),
+          status: "MISS",
+          isStale: false,
+        }))
+        .mockImplementationOnce(async (_key: string, fetcher: () => Promise<unknown>) => ({
+          data: await fetcher(),
+          status: "MISS",
+          isStale: false,
+        }));
+      getBillMock.mockRejectedValue(new MockCongressApiError("Not found", 404));
+      searchBillsMock.mockResolvedValue({
+        bills: [makeBill("HR 1234 Companion Bill", "5678")],
+        pagination: { count: 1 },
+      });
+
+      const response = await GET(createRequest("https://app.test/api/v1/legislation/search?q=HR+1234"));
+      const body = await response.json();
+      expect(body.data.bills).toHaveLength(1);
+      expect(searchBillsMock).toHaveBeenCalled();
+    });
+
+    it("recognizes Senate bill number pattern", async () => {
+      const bill = makeBill("Senate Act", "42");
+      getOrFetchMock.mockImplementation(async (_key: string, fetcher: () => Promise<unknown>) => ({
+        data: await fetcher(),
+        status: "MISS",
+        isStale: false,
+      }));
+      getBillMock.mockResolvedValue(bill);
+
+      const response = await GET(createRequest("https://app.test/api/v1/legislation/search?q=S+42"));
+      const body = await response.json();
+      expect(body.data.count).toBe(1);
+      expect(getBillMock).toHaveBeenCalledWith("s", "42", 119);
+    });
+  });
+
+  describe("deduplication", () => {
+    it("deduplicates bills with the same congress+type+number from API response", async () => {
+      const dupBill = makeBill("Climate Act", "10");
+      searchBillsMock.mockResolvedValue({
+        bills: [dupBill, dupBill, makeBill("Infrastructure Act", "11")],
+        pagination: { count: 3 },
+      });
+
+      const response = await GET(createRequest("https://app.test/api/v1/legislation/search?q=climate"));
+      const body = await response.json();
+      // Should deduplicate: 2 unique bills returned, not 3
+      expect(body.data.bills).toHaveLength(2);
+    });
   });
 });
