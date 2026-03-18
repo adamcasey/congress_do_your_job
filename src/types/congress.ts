@@ -130,7 +130,7 @@ export interface Member {
   depiction?: {
     imageUrl: string;
   };
-  terms: Term[];
+  terms: TermItem;
   sponsoredLegislation?: {
     count: number;
     url: string;
@@ -141,15 +141,12 @@ export interface Member {
   };
 }
 
-export interface Term {
-  chamber: string; // Congress.gov returns "House of Representatives" or "Senate" — normalized by normalizeChamber()
-  congress: number;
-  startYear: number;
-  endYear?: number; // absent for the current/active term
-  district?: number;
-  stateCode?: string;
-  stateName?: string;
-  memberType?: string;
+export interface TermItem {
+  item: {
+    chamber: string;
+    startYear: number;
+    endYear?: number;
+  }[];
 }
 
 export interface Vote {
