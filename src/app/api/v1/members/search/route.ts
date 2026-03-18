@@ -20,7 +20,7 @@ function normalizeChamber(chamber: string | undefined): string {
 // a top-level chamber field for all members, so fall back to the most recent term.
 function deriveChamber(m: Member): string {
   if (m.chamber) return normalizeChamber(m.chamber as string);
-  const lastTerm = m.terms?.at(-1);
+  const lastTerm = m.terms.item.at(-1);
   return normalizeChamber(lastTerm?.chamber);
 }
 
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch and cache the full roster once; all queries share this cached list
     const rosterResult = await getOrFetch<{ members: Member[] }>(
-      ALL_MEMBERS_CACHE_KEY,
+      "ALL_MEMBERS_CACHE_KEY",
       async () => {
         const members = await getAllCurrentMembers();
         return { members };
