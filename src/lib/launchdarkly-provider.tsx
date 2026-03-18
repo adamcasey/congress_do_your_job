@@ -1,3 +1,2 @@
-"use client";
-
-export { LaunchDarklyProvider } from "@/config/launchdarkly";
+// LaunchDarkly removed. Feature flags now use NEXT_PUBLIC_* env vars.
+export {};
