@@ -265,3 +265,16 @@
   - `src/components/petitions/PetitionSignForm.tsx` — physical mail option hidden when `petition.hasPhysicalMailOption === false`; address form (name, line1, line2 optional, city, state, ZIP) shown when `physical_mail` selected; `senderAddress` included in mutation payload
   - 12 tests in `src/lib/__tests__/lob.test.ts` covering auth header, address mapping, success/error paths, HTML escaping
   - Tests: 384/384 passing; type-check clean
+- [x] **Mobile-specific layout optimizations** (2026-03-17)
+  - Systematic `px-6` → `px-4 sm:px-6` on all inner page containers: representatives, scorecard, legislation, membership, fund, scorecard/methodology (×2), coming-soon, Footer
+  - Footer vertical padding: `py-14` → `py-10 sm:py-14`
+  - Hero heading responsive text: all `text-4xl md:text-5xl` headings now scale with `text-3xl sm:text-4xl md:text-5xl`; coming-soon brand heading `text-5xl` → `text-3xl sm:text-5xl`; coming-soon inner `h1` `text-4xl` → `text-2xl sm:text-4xl`
+  - coming-soon card padding: `p-10` → `p-6 sm:p-10`
+  - Home page hero weekly briefing h2: `text-4xl md:text-5xl` → `text-3xl sm:text-4xl md:text-5xl`
+  - Home page hero metrics grid: `grid-cols-2` (fixed) → `grid-cols-1 sm:grid-cols-2` (mobile stack)
+  - Home page all white section cards: `p-8` → `p-6 md:p-8`
+  - Home page 3-column grids (productivity metrics, member profiles, civic actions): `md:grid-cols-3` → `sm:grid-cols-2 md:grid-cols-3`
+  - Home page hero section and CTA section: `px-8 py-10` → `px-4 sm:px-8 py-6 sm:py-10`
+  - fund/page.tsx stats grid: removed redundant `sm:grid-cols-2` (column count already set by `grid-cols-2`)
+  - Files modified: 8 pages + Footer.tsx (9 files total)
+  - Tests: 400/400 passing; type-check clean
