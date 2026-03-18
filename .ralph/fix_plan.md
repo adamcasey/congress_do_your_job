@@ -10,9 +10,6 @@
 
 ## High Priority
 
-- [ ] `/legislation` has multiple bugs
-  - It is showing duplicate legislative bills
-  - Searching does not return expected results
 - [ ] All routes should have their own `type` subdirectory that contains all the types/interface definitions for components at the route
   - Refactor the entire codebase to remove any interface/type definitions that are in the same file as the components using them
 
