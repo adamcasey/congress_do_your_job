@@ -110,7 +110,7 @@ export default function MethodologyPage() {
     <main className="min-h-screen bg-white">
       {/* Header */}
       <div className="border-b border-slate-200">
-        <div className="max-w-3xl mx-auto px-6 py-10">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
           <Link href="/" className="text-sm text-slate-500 hover:text-slate-800 transition-colors mb-6 inline-block">
             ← Back to home
           </Link>
@@ -129,7 +129,7 @@ export default function MethodologyPage() {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 py-12 space-y-16">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-16">
         {/* Principles */}
         <section>
           <h2 className="text-xl font-semibold text-slate-900 mb-4">Core Principles</h2>

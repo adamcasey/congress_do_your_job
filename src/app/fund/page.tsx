@@ -34,7 +34,7 @@ export default async function FundPage() {
   return (
     <FlagGate flag={FeatureFlag.COMING_SOON_LANDING_PAGE}>
       <main className="min-h-screen bg-gradient-to-br from-[#e4f0f9] via-[#e4f0f9] to-[#fde3e0]">
-        <div className="mx-auto max-w-4xl px-6 py-12 md:py-16">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-12 md:py-16">
           <BackButton href="/">Back to Dashboard</BackButton>
 
           <header className="mb-12 mt-8 text-center">
@@ -42,7 +42,7 @@ export default async function FundPage() {
               The Eisenhower Fund
             </p>
             <h1
-              className={`${freePressFont.className} text-4xl leading-tight tracking-tight text-slate-900 md:text-5xl mb-4`}
+              className={`${freePressFont.className} text-3xl leading-tight tracking-tight text-slate-900 sm:text-4xl md:text-5xl mb-4`}
             >
               Reward legislators
               <br />
@@ -56,7 +56,7 @@ export default async function FundPage() {
           </header>
 
           {stats && (
-            <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-2 max-w-sm mx-auto">
+            <div className="mb-10 grid grid-cols-2 gap-4 max-w-sm mx-auto">
               <div className="rounded-2xl bg-white/80 p-6 text-center ring-1 ring-slate-200/80 shadow-sm">
                 <p className="text-3xl font-bold text-slate-900">{stats.activePledgers?.toLocaleString() ?? "—"}</p>
                 <p className="mt-1 text-sm text-slate-500">active pledgers</p>

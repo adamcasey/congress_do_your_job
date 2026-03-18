@@ -306,7 +306,7 @@ export default function Home() {
             </div>
           </div>
 
-          <section className="relative overflow-hidden rounded-3xl border border-amber-100 bg-gradient-to-r from-amber-50 via-white to-emerald-50 px-8 py-10 shadow-xl shadow-amber-100/40">
+          <section className="relative overflow-hidden rounded-3xl border border-amber-100 bg-gradient-to-r from-amber-50 via-white to-emerald-50 px-4 sm:px-8 py-6 sm:py-10 shadow-xl shadow-amber-100/40">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,rgba(148,163,184,0.35)_1px,transparent_1px)] bg-[size:22px_22px] opacity-40" />
             <div className="absolute inset-y-0 right-0 w-1/2 max-w-md bg-gradient-to-l from-emerald-100/50 via-white to-transparent blur-3xl" />
             <div className="relative grid gap-10 lg:grid-cols-[1.3fr_1fr]">
@@ -314,7 +314,7 @@ export default function Home() {
                 <p className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600 ring-1 ring-amber-100">
                   Weekly civic briefing
                 </p>
-                <h2 className={`${freePressFont.className} text-4xl font-semibold leading-tight md:text-5xl`}>
+                <h2 className={`${freePressFont.className} text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl`}>
                   What your representatives actually did this week - no spin, no red/blue.
                 </h2>
                 <p className="max-w-2xl text-lg text-slate-700">
@@ -349,7 +349,7 @@ export default function Home() {
                     <span className="text-slate-200">Week over week</span>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-sm font-medium text-slate-800">
+                <div className="grid grid-cols-1 gap-3 text-sm font-medium text-slate-800 sm:grid-cols-2">
                   {heroMetrics.map((item) => (
                     <div key={item.label} className="rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
                       <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{item.label}</p>
@@ -363,7 +363,7 @@ export default function Home() {
           </section>
         </header>
 
-        <section className="grid gap-6 rounded-3xl border border-slate-200/80 bg-white/90 p-8 shadow-lg shadow-slate-200/60">
+        <section className="grid gap-6 rounded-3xl border border-slate-200/80 bg-white/90 p-6 md:p-8 shadow-lg shadow-slate-200/60">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Live Data</p>
@@ -398,7 +398,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="grid gap-6 rounded-3xl border border-slate-200/80 bg-white/90 p-8 shadow-lg shadow-slate-200/60">
+        <section className="grid gap-6 rounded-3xl border border-slate-200/80 bg-white/90 p-6 md:p-8 shadow-lg shadow-slate-200/60">
           <SectionHeader
             eyebrow="Chores list"
             title="What Congress still owes the public"
@@ -440,14 +440,14 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="grid gap-6 rounded-3xl border border-slate-200/80 bg-white/90 p-8 shadow-lg shadow-slate-200/60">
+        <section className="grid gap-6 rounded-3xl border border-slate-200/80 bg-white/90 p-6 md:p-8 shadow-lg shadow-slate-200/60">
           <SectionHeader
             eyebrow="Productivity dashboard"
             title="Behavior over rhetoric"
             description="Daily-updated stats designed to feel like Strava for Congress: reps, recovery, and accountability."
             dataStatus="partial"
           />
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
             {productivityMetrics.map((metric) => {
               const band = metric.tone ? scoreBands[metric.tone] : scoreBands.neutral;
               return (
@@ -471,13 +471,13 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="grid gap-6 rounded-3xl border border-slate-200/80 bg-white/90 p-8 shadow-lg shadow-slate-200/60">
+        <section className="grid gap-6 rounded-3xl border border-slate-200/80 bg-white/90 p-6 md:p-8 shadow-lg shadow-slate-200/60">
           <SectionHeader
             eyebrow="Member profiles"
             title="Behavior-first scorecards"
             description="Vote attendance, committee work, and documented decorum events. No party labels, no ideology."
           />
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
             {officials.map((official) => (
               <article
                 key={official.name}
@@ -510,13 +510,13 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="grid gap-6 rounded-3xl border border-slate-200/80 bg-white/90 p-8 shadow-lg shadow-slate-200/60">
+        <section className="grid gap-6 rounded-3xl border border-slate-200/80 bg-white/90 p-6 md:p-8 shadow-lg shadow-slate-200/60">
           <SectionHeader
             eyebrow="Civic actions"
             title="Calm actions you can take in one tap"
             description="Carefully worded letters and petitions. No outrage. No party framing."
           />
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
             {civicActions.map((action) => (
               <article
                 key={action.title}
@@ -541,7 +541,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden rounded-3xl border border-emerald-100 bg-gradient-to-r from-emerald-50 via-white to-amber-50 px-8 py-10 shadow-lg shadow-emerald-100/50">
+        <section className="relative overflow-hidden rounded-3xl border border-emerald-100 bg-gradient-to-r from-emerald-50 via-white to-amber-50 px-4 sm:px-8 py-6 sm:py-10 shadow-lg shadow-emerald-100/50">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,rgba(148,163,184,0.35)_1px,transparent_1px)] bg-[size:20px_20px] opacity-50" />
           <div className="relative grid gap-6 md:grid-cols-[1.2fr_1fr]">
             <div className="space-y-3">

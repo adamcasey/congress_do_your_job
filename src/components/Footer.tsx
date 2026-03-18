@@ -32,7 +32,7 @@ export default function Footer() {
       <div className="absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-amber-100/50 blur-3xl" />
       <div className="absolute -right-24 top-0 h-72 w-72 rounded-full bg-emerald-100/40 blur-3xl" />
 
-      <div className="relative mx-auto max-w-6xl px-6 py-14">
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14">
         <div className="grid gap-12 md:grid-cols-[1.3fr_1fr]">
           <div className="space-y-5">
             <div className="flex items-center gap-4">
