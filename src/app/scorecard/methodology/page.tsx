@@ -8,7 +8,17 @@ export const metadata = {
     "Transparent, documented methodology for how we calculate Civility & Productivity Scorecards for members of Congress.",
 };
 
-const categories = [
+type CategoryEntry = {
+  category: ScoreCategory;
+  name: string;
+  weight: number;
+  description: string;
+  formula: string;
+  dataSource: string;
+  notes: string | string[];
+};
+
+const categories: CategoryEntry[] = [
   {
     category: ScoreCategory.ATTENDANCE,
     name: "Attendance",
@@ -36,7 +46,7 @@ const categories = [
       "Bill enacted into law: 15 points",
       "Amendment proposed: 2 points",
       "Amendment adopted: 4 points",
-    ].join(" · "),
+    ],
   },
   {
     category: ScoreCategory.BIPARTISANSHIP,
@@ -84,8 +94,8 @@ const categories = [
       "ratio ≥ 1.0 → score 90–100 (more work than theater)",
       "ratio ≥ 0.5 → score 70–89 (balanced)",
       "ratio ≥ 0.2 → score 40–69 (leaning theater)",
-      "ratio < 0.2  → score 0–39 (all theater, no work)",
-    ].join(" · "),
+      "ratio < 0.2 → score 0–39 (all theater, no work)",
+    ],
   },
 ];
 
@@ -212,9 +222,14 @@ export default function MethodologyPage() {
               <p className="text-slate-600 leading-relaxed">{cat.description}</p>
 
               <div className="space-y-2">
-                <div className="bg-slate-50 rounded-xl p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Formula</p>
-                  <code className="text-sm text-slate-700 font-mono break-all">{cat.formula}</code>
+                <div className="bg-slate-50 rounded-xl border border-slate-100 px-5 py-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Formula</p>
+                  <p
+                    className="text-[15px] text-slate-800 leading-relaxed italic tracking-wide"
+                    style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
+                  >
+                    {cat.formula}
+                  </p>
                 </div>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <div className="bg-slate-50 rounded-xl p-4">
@@ -223,7 +238,18 @@ export default function MethodologyPage() {
                   </div>
                   <div className="bg-slate-50 rounded-xl p-4">
                     <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Notes</p>
-                    <p className="text-sm text-slate-700">{cat.notes}</p>
+                    {Array.isArray(cat.notes) ? (
+                      <ul className="space-y-1">
+                        {cat.notes.map((note, i) => (
+                          <li key={i} className="flex gap-2 text-sm text-slate-700">
+                            <span className="text-slate-400 flex-shrink-0 mt-px">·</span>
+                            <span>{note}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-slate-700">{cat.notes}</p>
+                    )}
                   </div>
                 </div>
               </div>

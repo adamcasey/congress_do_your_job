@@ -13,8 +13,6 @@
 
 ## Medium Priority
 
-- [ ] the `/methodology` page should reformat the "formula" UI so it reads less like computer code and more like a math formula
-
 ## Low Priority
 
 - [x] Implement Lob.com physical mail integration
