@@ -309,3 +309,9 @@
   - Removed `launchdarkly-react-client-sdk` from `package.json` + ran `npm install`
   - Updated `.env.example` to document new env vars, removed LD key documentation
   - Tests: 392/392 passing (400 - 9 deleted LD tests + 1 env var sanity check); type-check clean
+- [x] **Methodology page formula display — math typesetting** (2026-03-20)
+  - Changed formula rendering from `<code className="font-mono">` to serif italic typography (`Georgia, Times New Roman, serif`) styled like a math textbook
+  - Added `CategoryEntry` type so `notes` field can be `string | string[]`
+  - Changed Legislation and Theater Ratio notes from `.join(" · ")` string to proper arrays
+  - Array notes now render as a bullet list (`·` leader per item) instead of a single joined string
+  - No new tests needed (pure visual/presentation change); type-check clean
