@@ -1,4 +1,4 @@
-import { CongressApiResponse, Bill, Member, Vote, Amendment } from "@/types/congress";
+import { CongressApiResponse, Bill, Member, Vote, Amendment, HouseVoteListItem, HouseVoteDetail, MemberRollCallVote } from "@/types/congress";
 
 const CONGRESS_API_BASE = "https://api.congress.gov/v3";
 const CURRENT_CONGRESS = 119; // 119th Congress (2025-2027)
@@ -323,6 +323,91 @@ export function getCurrentCongress(): number {
  */
 export function getCongressFromYear(year: number): number {
   return Math.floor((year - 1789) / 2) + 1;
+}
+
+/**
+ * Get recent House roll-call vote list for a congress.
+ * Returns lightweight vote records — does NOT include individual member positions.
+ */
+export async function getHouseVotes(
+  congress: number = CURRENT_CONGRESS,
+  options: { limit?: number; offset?: number } = {},
+): Promise<CongressApiResponse<HouseVoteListItem>> {
+  const { limit = 20, offset = 0 } = options;
+  return fetchCongressApi<HouseVoteListItem>(`/house-vote/${congress}`, {
+    limit,
+    offset,
+    sort: "date+desc",
+  });
+}
+
+/**
+ * Get full detail for a single House roll-call vote, including how each
+ * member voted. The Congress.gov response nests member votes under
+ * houseRollCallVote.members.houseRollCallMember[].
+ */
+export async function getHouseVoteDetail(
+  congress: number,
+  session: number,
+  rollNumber: number,
+): Promise<HouseVoteDetail> {
+  const raw = await fetchCongressApi<Record<string, unknown>>(
+    `/house-vote/${congress}/${session}/${rollNumber}`,
+  );
+
+  const vote = raw.houseRollCallVote as Record<string, unknown> | undefined;
+  if (!vote) {
+    throw new CongressApiError(`House vote ${congress}/${session}/${rollNumber} not found`, 404);
+  }
+
+  // Congress.gov nests member votes under members.houseRollCallMember
+  const rawMembers = (vote.members as Record<string, unknown> | undefined)
+    ?.houseRollCallMember;
+  const memberVotes: MemberRollCallVote[] = Array.isArray(rawMembers)
+    ? rawMembers.map((m: Record<string, unknown>) => ({
+        bioguideId: String(m.bioguideId ?? ""),
+        name: String(m.name ?? ""),
+        party: String(m.party ?? ""),
+        state: String(m.state ?? ""),
+        vote: (m.vote ?? "Not Voting") as MemberRollCallVote["vote"],
+      }))
+    : [];
+
+  // Parse vote totals from votePartyTotal array
+  const partyTotals = vote.votePartyTotal as Array<Record<string, unknown>> | undefined;
+  let yea = 0, nay = 0, present = 0, notVoting = 0;
+  if (Array.isArray(partyTotals)) {
+    for (const row of partyTotals) {
+      yea += Number(row.yea ?? 0);
+      nay += Number(row.nay ?? 0);
+      present += Number(row.present ?? 0);
+      notVoting += Number(row.notVoting ?? 0);
+    }
+  }
+
+  const billData = vote.bill as Record<string, unknown> | undefined;
+
+  return {
+    congress: Number(vote.congress ?? congress),
+    session: Number(vote.session ?? session),
+    rollNumber: Number(vote.rollNumber ?? rollNumber),
+    date: String(vote.date ?? ""),
+    question: String(vote.question ?? ""),
+    result: String(vote.result ?? ""),
+    type: vote.type ? String(vote.type) : undefined,
+    description: vote.description ? String(vote.description) : undefined,
+    url: String(vote.url ?? ""),
+    bill: billData
+      ? {
+          congress: Number(billData.congress ?? congress),
+          number: String(billData.number ?? ""),
+          type: String(billData.type ?? "") as import("@/types/congress").BillType,
+          url: String(billData.url ?? ""),
+        }
+      : undefined,
+    voteTotals: { yea, nay, present, notVoting },
+    memberVotes,
+  };
 }
 
 export { CongressApiError };

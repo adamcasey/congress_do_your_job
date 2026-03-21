@@ -10,9 +10,6 @@
 
 ## High Priority
 
-- [ ] Implement the roll-call vote API
-  - Use Congress.gov API `house-vote/` endpoint
-  - This only returns roll-call data for House members so Senate members should display some sort of "coming soon" data accordingly
 
 ## Medium Priority
 
