@@ -249,6 +249,15 @@
   - ui/types: Status, DataStatus, AlertProps, BackButtonProps, ButtonProps, EmptyStateProps, InputProps, ModalProps, SearchBarProps, SectionHeaderProps
   - `src/components/ui/index.ts` updated to re-export `Status` and `DataStatus` from `./types` (preserves all public API)
   - 20 files modified + 4 new type files created; type-check clean; 400/400 tests passing
+- [x] **Roll-call vote API and VotingRecord UI** (2026-03-20)
+  - New types `HouseVoteListItem`, `HouseVoteDetail`, `MemberRollCallVote` in `types/congress.ts`; added `houseRollCallVotes` and `houseRollCallVote` keys to `CongressApiResponse<T>`
+  - `congress-api.ts`: added `getHouseVotes(congress, options)` and `getHouseVoteDetail(congress, session, rollNumber)` — detail endpoint parses `votePartyTotal[]` for totals and `members.houseRollCallMember[]` for individual positions
+  - `GET /api/v1/votes/[bioguideId]`: looks up member chamber; Senate → `{ available: false, unavailableReason: "..." }`; House → fetches recent vote list then concurrently fetches details via `Promise.allSettled` (failed fetches skipped gracefully), filtered for member's position per vote. Cached 2h per member.
+  - `src/hooks/useVotingRecord.ts`: `useQuery` hook, enabled prop controls fetch timing
+  - `src/components/scorecard/VotingRecord.tsx`: shows roll number, date, description, bill ref, overall result, and per-member `Yea/Nay/Present/Not Voting` badge. Senate "coming soon" panel. Loading skeleton + empty state.
+  - Wired into `ScorecardLookup.tsx` below `ScorecardCard` — appears after scorecard loads
+  - 9 tests in `tests/backend/api/votes-route.test.ts`
+  - Tests: 401/401 passing; type-check clean
 - [x] **Fix /legislation duplicate bills and search accuracy** (2026-03-17)
   - Root cause (duplicates): Offset-based pagination on a `updateDate+desc` sorted list. Bills updated between page 1 and page 2 fetches shift position, causing the same bill to appear in multiple pages. Compounded by per-page Redis caching (page 1 may be a stale cache hit while page 2 is a fresh fetch).
   - Fix (server): `deduplicateBills()` applied to the Congress.gov API response before `rankBills()` runs, eliminating duplicates in the ranked batch.
