@@ -8,3 +8,4 @@ export { useBillSummary } from "./useBillSummary";
 export { useBillDetails } from "./useBillDetails";
 export { useDebounce } from "./useDebounce";
 export { useLegislationSearch } from "./useLegislationSearch";
+export { useVotingRecord } from "./useVotingRecord";

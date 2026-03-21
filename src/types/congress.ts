@@ -12,6 +12,10 @@ export interface CongressApiResponse<T> {
   members?: T[];
   sponsoredLegislation?: T[];
   cosponsoredLegislation?: T[];
+  /** House roll-call vote list: /house-vote/{congress} */
+  houseRollCallVotes?: T[];
+  /** House roll-call vote detail: /house-vote/{congress}/{session}/{rollNumber} */
+  houseRollCallVote?: T;
   pagination?: Pagination;
   request?: RequestMetadata;
 }
@@ -183,6 +187,45 @@ export interface MemberVote {
   party: string;
   state: string;
   vote: "Yea" | "Nay" | "Present" | "Not Voting";
+}
+
+/** One entry from the /house-vote/{congress} list endpoint */
+export interface HouseVoteListItem {
+  congress: number;
+  session: number;
+  rollNumber: number;
+  date: string;
+  question: string;
+  result: string;
+  type?: string;
+  description?: string;
+  url: string;
+  bill?: {
+    congress: number;
+    number: string;
+    type: BillType;
+    url: string;
+  };
+}
+
+/** How a single member voted on a House roll-call */
+export interface MemberRollCallVote {
+  bioguideId: string;
+  name: string;
+  party: string;
+  state: string;
+  vote: "Yea" | "Nay" | "Present" | "Not Voting";
+}
+
+/** Full detail from /house-vote/{congress}/{session}/{rollNumber} */
+export interface HouseVoteDetail extends HouseVoteListItem {
+  voteTotals?: {
+    yea: number;
+    nay: number;
+    present: number;
+    notVoting: number;
+  };
+  memberVotes?: MemberRollCallVote[];
 }
 
 export interface Amendment {

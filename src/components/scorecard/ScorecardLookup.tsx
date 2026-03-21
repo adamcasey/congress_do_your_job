@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ScorecardCard } from "./ScorecardCard";
+import { VotingRecord } from "./VotingRecord";
 import { SearchBar } from "@/components/ui";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { ApiResponse } from "@/lib/api-response";
@@ -198,6 +199,15 @@ export function ScorecardLookup() {
       {/* Scorecard result */}
       {showScorecard && (
         <ScorecardCard scorecard={scorecard.scorecard} memberName={selectedMember.name} periodLabel={PERIOD_LABELS[period]} />
+      )}
+
+      {/* Roll-call voting record (House members only) */}
+      {showScorecard && selectedMember && (
+        <VotingRecord
+          bioguideId={selectedMember.bioguideId}
+          memberName={selectedMember.name}
+          enabled={true}
+        />
       )}
     </div>
   );
