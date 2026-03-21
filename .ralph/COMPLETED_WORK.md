@@ -278,6 +278,15 @@
   - fund/page.tsx stats grid: removed redundant `sm:grid-cols-2` (column count already set by `grid-cols-2`)
   - Files modified: 8 pages + Footer.tsx (9 files total)
   - Tests: 400/400 passing; type-check clean
+- [x] **Fix /legislation page — search accuracy, duplicates, and bill summaries** (2026-03-20)
+  - Root cause (search): `searchBills()` sent `q={"search":"SAVE Act"}` — Congress.gov expects `q={"query":"SAVE Act"}`. Wrong JSON key caused the API to ignore the query and return unrelated results.
+  - Fix: Changed `JSON.stringify({ search: query })` → `JSON.stringify({ query })` in `congress-api.ts`.
+  - Root cause (duplicates in recent view): `getBills()` result was not passed through `deduplicateBills()` in the no-query path.
+  - Fix: Added `deduplicateBills()` call to the recent bills branch of the search route.
+  - Root cause (bad summaries): `maxLength=300` was *characters*, but the prompt said "3-5 sentences" — Gemini's output was hard-truncated at 400 chars (often mid-sentence), producing gibberish.
+  - Fix: Increased `maxLength` to 800 (characters), rewrote the prompt with explicit sentence-by-sentence structure (what bill does → mechanism → impact → optional detail), and replaced hard truncation with a sentence-boundary cut.
+  - Also increased the CRS fallback from 2 sentences to 4.
+  - Files: `src/lib/congress-api.ts`, `src/app/api/v1/legislation/search/route.ts`, `src/lib/gemini-api.ts`, `src/services/bill-summary.ts`
 - [x] **Performance: evaluate and remove LaunchDarkly client-side SDK** (2026-03-17)
   - Evaluation: `launchdarkly-js-client-sdk` = 60KB minified (~20KB gzipped) for 3 simple boolean flags. No user targeting, no gradual rollouts. The SDK also opens a streaming WebSocket on every page load. Overkill for MVP.
   - Decision: Remove entirely. Replace with `NEXT_PUBLIC_*` build-time env vars + `COMING_SOON_MODE` server env var in middleware. Vercel env var change + 2-min redeploy is the acceptable tradeoff.
