@@ -1,0 +1,317 @@
+### All completed work
+
+## Completed
+
+- [x] Project enabled for Ralph
+- [x] Codebase review and architecture documentation
+- [x] Remove debug console.log statements from homepage (LD Debug logs)
+- [x] Wire homepage email signup form to existing WaitlistForm component
+- [x] Scorecard scoring engine v1.0.0 (types + calculator + 32 tests)
+- [x] Scorecard data collection service (Congress.gov API → ScoringInput, 11 tests)
+- [x] Scorecard API route (`/api/v1/scorecard/[bioguideId]`, 10 tests)
+- [x] Fix homepage production redirect to respect `showComingSoon` feature flag
+- [x] **Remove all LaunchDarkly references from the backend**
+  - Audited all files under `src/app/api/`, `src/lib/`, `src/middleware.ts` — no server-side LD imports found
+  - `launchdarkly-node-server-sdk` is not present in package.json; all evaluation is client-side via `launchdarkly-react-client-sdk`
+  - Build: passing | Tests: 281/281 passing
+- [x] **Navbar styling overhaul**
+  - border-b-2 + shadow-sm on solid white bg; icon h-10/w-10 (28px img); brand text-lg font-semibold
+  - Nav links + auth consolidated into single right-side flex group; padding px-4/semibold
+- [x] **Legislation list pagination** (`/legislation`)
+  - API route now accepts `offset` param; default page size changed to 8
+  - Created `useLegislationSearch` hook using `useInfiniteQuery` (8 results/page)
+  - `LegislationSearch` refactored to use the hook: raw `useState+useEffect` fetch removed, named handlers extracted, "Load More" button added
+  - 5 tests added in `tests/frontend/hooks/useLegislationSearch.test.ts`
+  - Build: passing | Tests: 286/286 passing
+- [x] **Fix BillDetailsModal positioning**
+  - Root cause: `backdrop-blur-sm` on ancestor can trap `fixed` descendants; `overflow = "unset"` was wrong cleanup
+  - Fix: `createPortal` renders modal directly on `document.body`, bypassing CSS containment from any ancestor
+  - Fix: save/restore `document.body.style.overflow` properly instead of hardcoding `"unset"`
+  - Added `mx-4` for mobile safety; `aria-modal` + `role="dialog"` + `aria-labelledby` for a11y
+  - Build: passing | Tests: 286/286 passing
+- [x] **Event handler refactor (entire codebase)**
+  - Full audit confirmed no violations remain; all setState calls in event props are already wrapped in named handlers
+  - `LegislationSearch.tsx` was fixed in the pagination loop; `RecentBills`, `ScorecardLookup`, `RepresentativeLookup` were already clean
+  - Build: passing | Tests: 286/286 passing
+- [x] **One component per file (entire codebase)**
+  - `StatusBadge` → `src/components/ui/StatusBadge.tsx` (with `Status` type + `statusStyles`)
+  - `SectionHeader` → `src/components/ui/SectionHeader.tsx` (with `DataStatus` type)
+  - Both exported from `src/components/ui/index.ts`; `src/app/page.tsx` updated to import them
+  - `BillDetailModal` → `src/components/legislation/BillDetailModal.tsx`; `LegislationSearch.tsx` updated to import it
+  - `CategoryRow` → `src/components/scorecard/CategoryRow.tsx` (with helpers `getBarColor`, `formatInputKey`, display maps)
+  - `ScorecardCategoryBreakdown.tsx` reduced to a thin wrapper that imports `CategoryRow`
+  - Build: passing | Tests: 286/286 passing
+- [x] **react-query adoption (entire codebase)**
+  - `useWaitlistSignup`, `useRepresentativeLookup`, `useAddressAutocomplete` converted to `useMutation`
+  - All paginated lists use `useInfiniteQuery`; all queries use `useQuery`
+  - No raw `useState+useEffect` fetch patterns remain
+  - Build: passing | Tests: 286/286 passing
+- [x] **Fix legislation search relevance** (`/legislation`)
+  - scoreBill() scores exact → 100, prefix → 90, contains → 80, word-fraction → ≤70
+  - rankBills() re-sorts API results so highest-scoring title surfaces first
+  - normalizeQuery() strips punctuation; retries with normalized form on 0-result responses
+  - 11 tests in tests/backend/api/legislation-search-route.test.ts
+  - Build: passing | Tests: 297/297 passing
+- [x] **Reusable SearchBar component with clear button**
+  - `src/components/ui/SearchBar.tsx`: search icon left, loading spinner or X clear button right
+  - `onChange(value: string)` signature; onFocus/disabled/label/labelClassName props
+  - Replaced ad-hoc inputs in `LegislationSearch` and `ScorecardLookup`; removed duplicate spinner/icon markup
+  - 12 tests in `tests/frontend/components/SearchBar.test.tsx`
+  - Build: passing | Tests: 309/309 passing
+- [x] Add a debugger for debugging code locally during development
+  - Root cause: no `.vscode/launch.json` — VSCode had no debug configurations defined
+  - Added `.vscode/launch.json` with three configs: server-side (node-terminal), client-side (chrome), full-stack (node-terminal + serverReadyAction → debugWithChrome)
+  - Removed `.vscode/` from `.gitignore` so debug configs are shared with all contributors
+  - Added `dev:debug` script (`NODE_OPTIONS='--inspect' next dev`) as a terminal-based alternative
+  - Usage: open Run & Debug panel in VSCode → select "Next.js: debug full stack" → set breakpoints → F5
+  - Build: passing | Tests: 320/320 passing
+- [x] The member scorecard search is broken and doesn't return correct members when searching by name
+  - Root cause: Congress.gov `/member?q=<name>` treats `q` as a bioguideId filter, not a name search
+  - Fix: added `getAllCurrentMembers()` to `congress-api.ts` that paginates through all ~535 current members
+  - Fix: `/api/v1/members/search` route now caches the full roster once (`members:all:current`) then filters by name client-side
+  - Removed per-query Congress API calls; all searches now filter from the cached roster in-memory
+  - 11 tests in `tests/backend/api/members-search-route.test.ts`
+  - Build: passing | Tests: 320/320 passing
+- [x] Put the new header behind the feature-flag, "show-header-nagivation"
+  - Added `FeatureFlag.SHOW_HEADER_NAVIGATION = "showHeaderNavigation"` with default `true`
+  - Extracted nav links into `src/components/NavLinks.tsx` (Client Component) gated on the flag
+  - `Navbar` stays a Server Component; only `<NavLinks />` is client-rendered
+  - When flag is `false`, `NavLinks` returns null — brand logo still visible in the sticky header
+  - No new tests needed (flag evaluation already covered by useFeatureFlag tests)
+  - Build: passing | Tests: 320/320 passing
+- [x] **Best-practices audit + targeted anti-pattern fixes**
+  - Full codebase audit across all 127 TypeScript/TSX files
+  - `waitlist/route.ts:40` — removed unnecessary `as any` on `insertOne(signup)`
+  - `useBillDetails.ts` + `useBillSummary.ts` — restructured fetch fns: only the network call is try-caught (friendly generic on network failure; API error message propagates correctly)
+  - `autocomplete/route.ts` — replaced `any` on Google Places response with typed `PlaceSuggestion`/`GooglePlacesResponse` interfaces; swapped `||` for `??` in optional chains
+  - `launchdarkly.tsx:28` — replaced `as any` on HOC with two-step cast (`ComponentType<{}>` → `ComponentType<{children: ReactNode}>`)
+  - Audited and deferred: rate-limit handling in congress-api.ts, centralized stale-time constants, Suspense boundaries — acceptable tech-debt for MVP
+  - Build: passing | Tests: 320/320 passing
+- [x] GitHub flagged 8 dependency vulnerabilities (6 high, 2 moderate) on the repo that need to be addressed
+- Upgraded Next.js 16.1.3 → 16.1.6 via `npm audit fix`; all 4 CVEs resolved (DoS via Image Optimizer, RSC deserialization, PPR memory, rollup path traversal)
+- [x] Refactor feature flags to use existing LaunchDarkly flags
+  - Added useFeatureFlag(flag) hook to src/config/launchdarkly.tsx; eliminates the hasLdState+in-check+Boolean cast pattern duplicated in 3 components
+  - Removed launchdarkly-node-server-sdk (installed but never used; all evaluation is client-side via launchdarkly-react-client-sdk)
+  - Removed dead featureFlagKeys export
+  - FlagGate, homepage, coming-soon page all updated to use the new hook
+  - 9 tests added in tests/frontend/hooks/useFeatureFlag.test.ts
+  - Build: passing | Tests: 275/275 passing across 34 files
+- [x] Add the latest react-query
+  - Installed @tanstack/react-query v5.90+; wrapped app layout with QueryClientProvider
+  - Refactored useCongressStats, useRecentLegislation, useBillDetails, useBillSummary, useDistrictSnapshot to useQuery
+  - Added useDebounce hook; ScorecardLookup reduced from 8→3 useState hooks via useQuery
+  - Moved formatDate to shared src/lib/format-date.ts (resolved ScorecardCard TODO)
+  - Added tests/frontend/test-utils.tsx with createQueryWrapper for test isolation
+  - Build: passing | Tests: 266/266 passing across 33 files
+- [x] Go through codebase and complete all lingering `TODO` comments
+  - choreList source strings → real Congress.gov search/topic URLs with link rendering
+  - dataStatusBadge.todo.label: "TODO: connect to live data" → "Static data" (was user-visible)
+  - Added "Look up any member's scorecard →" link from homepage to /scorecard
+  - scorecard/page.tsx: removed stale expose-to-dashboard comment
+  - cache.ts: replaced DataDog TODO with accurate Sentry doc comment
+  - scorecard-data-collector.ts: converted committee endpoint TODO to informational comment
+  - Build: passing | Tests: 275/275 passing
+- [x] Wire up scorecard UI for beta testing
+  - Added `searchMembers()` to `congress-api.ts` (GET /member?q=... with currentMember filter)
+  - Created `GET /api/v1/members/search?q=<name>` — returns matching current members, cached 30d
+  - Built `ScorecardLookup` client component: debounced member search autocomplete, period selector (session/yearly/quarterly), scorecard display with loading skeleton and error state
+  - Created `/scorecard` page with header, lookup form, and methodology link footer
+  - Added `/scorecard/error.tsx` error boundary
+  - Build: passing | Tests: 199/199 passing across 27 files
+- [x] Add legislation search feature
+  - Added `searchBills(query, options)` to `congress-api.ts` (Congress.gov q JSON param)
+  - Created `GET /api/v1/legislation/search?q=<query>&limit=<n>` — keyword search with 2h cache, falls back to recent bills when no query
+  - Built `LegislationSearch` client component: debounced 400ms input, bill cards with status badges, Explain modal with BillTimeline + AI summary, abort controller for request cancellation
+  - Created `/legislation` page
+  - Build: passing | Tests: 199/199 passing
+- [x] Improve responsive timeline UI
+  - Active stage dot shows `animate-ping` pulsing ring (color-matched to stage color)
+  - CSS-only `group-hover` tooltip on every node: current stage → "Active for X days", introduced → "X days ago", completed → "Completed", pending → "Not yet reached"
+  - Converted to Client Component; connector bars rounded with overflow-hidden fill animation
+  - Build: passing | Tests: 199/199 passing
+- [x] Add Clerk authentication integration
+  - Installed @clerk/nextjs v7.0.1
+  - ConditionalClerkProvider: no-op fallback when NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY absent
+  - src/middleware.ts: protects /account, /settings, /petitions/sign; passthrough without keys
+  - src/lib/auth.ts: getAuthUser() / getAuthSession() server helpers with null fallback
+  - src/components/Navbar.tsx: sticky top nav with Briefing / Scorecards / Representatives + auth slot
+  - src/components/NavAuthButton.tsx: Clerk v7 Show component (SignedIn/SignedOut removed in v7)
+  - Footer "Weekly briefing" link fixed → /legislation
+  - Activate by adding NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY + CLERK_SECRET_KEY to env
+  - Build: passing | Tests: 281/281 passing across 35 files
+- [x] Build petition system UI and API
+  - `src/types/petition.ts` — `PetitionDocument`, `PetitionSignatureDocument`, `PetitionSummary`, `PetitionDetail`, `SignPetitionRequest` types
+  - `GET /api/v1/petitions` — lists petitions by status (default: active), Redis-cached 5 min
+  - `GET /api/v1/petitions/[slug]` — petition detail + `hasSigned` flag for authenticated users, cached 5 min
+  - `POST /api/v1/petitions/[slug]/sign` — requires Clerk auth; validates petition is active + no duplicate; atomically increments `signatureCount`; busts detail + list cache on success
+  - `src/components/petitions/PetitionCard.tsx` — compact card with progress bar and category badge
+  - `src/components/petitions/PetitionSignForm.tsx` — Client Component; delivery method selector, optional custom message, success/error states
+  - `/petitions` page and `/petitions/[slug]` page with letter preview, progress, and sign form
+  - `src/app/petitions/error.tsx` — error boundary
+  - "Petitions" link added to navbar
+  - Seed petitions via MongoDB shell or admin script (not in scope for MVP)
+  - 17 tests in `tests/backend/api/petitions-route.test.ts`
+  - Build: passing | Tests: 337/337 passing across 40 files
+- [x] Connect homepage "See this week's briefing" and "Open profile" buttons (currently dead)
+  - "See this week's briefing" → <Link href="/legislation"> (was a dead <button>)
+  - "Open profile" dead buttons removed; replaced with "Look up any member's scorecard →" link to /scorecard
+- [x] Replace "TODO" source links in choreList items with real Congress.gov URLs
+  - Completed in the TODO cleanup loop (choreList source strings + link rendering)
+- [x] Add error boundaries to key pages
+  - `src/app/error.tsx` — root catch-all: "We hit a snag" with Try again + Back to dashboard
+  - `src/app/global-error.tsx` — root layout catch (self-contained html/body, inline styles, no deps)
+  - `src/app/representatives/error.tsx` — contextual message for API-dependent rep lookup page
+  - All three are Client Components with reset() + home link per Next.js App Router spec
+  - Fixed digest-generator.ts: Date fields serialized to ISO strings in Prisma Json[] sections (build was failing)
+- [x] **Fix scorecard — every member scored 51**
+  - Root cause: Congress.gov `/member/{id}/sponsored-legislation` returns `sponsoredLegislation` key (not `bills`), and `/member/{id}/cosponsored-legislation` returns `cosponsoredLegislation` key. `CongressApiResponse<T>` only had `bills?: T[]`, so both arrays were always empty → legislation score = 0 → weighted default sum = 51.4 → rounded to 51.
+  - Fix: added `sponsoredLegislation?: T[]` and `cosponsoredLegislation?: T[]` to `CongressApiResponse<T>` in `types/congress.ts`
+  - Fix: `getMemberSponsoredLegislation` and `getMemberCosponsoredLegislation` in `congress-api.ts` now normalize the response by mapping API-specific keys to `bills` before returning
+  - Removed leftover debug `console.log` from `members/search/route.ts`
+  - Tests: 337/337 passing; merged feature/fix-scorecard-bugs → dev → main
+- [x] **Fix representative chamber detection — all reps incorrectly labeled Senator** (2026-03-12)
+  - Root cause: 5calls API did not return reliable chamber (House vs Senate) information per representative
+  - Fix: replaced 5calls API with Google Civic Information API (`civicinfo.googleapis.com/v2/representatives`)
+  - Google Civic API returns `legislatorUpperBody` (Senate) and `legislatorLowerBody` (House) roles explicitly
+  - `mapCivicResponseToRepresentatives()` maps roles → `area: "US Senate"` or `area: "US House"`; skips non-federal offices
+  - Parses congressional district number from OCD division ID (e.g. `ocd-division/country:us/state:mo/cd:7` → "7")
+  - Uses existing `GOOGLE_API_KEY` env var (no new credentials needed)
+  - 11 tests in `tests/backend/api/representatives-route.test.ts`; full suite 339/339 passing; merged → dev → main
+- [x] **Fix scorecard display bugs v2 — chamber labels, score=51, formula display** (2026-03-13)
+  - Root cause (score=51): `isWithinPeriod()` filtered on `bill.updateDate`, which Congress.gov `/member/{id}/sponsored-legislation` list endpoint omits; `new Date(undefined)` = Invalid Date, all bills dropped, math defaulted to 50.7 → `Math.round` → 51
+  - Fix: switched to `bill.introducedDate` (always present in list responses) with `updateDate` as fallback; bills missing both dates are now included rather than dropped
+  - Root cause (chamber label): Congress.gov returns `"House of Representatives"` not `"House"`, so `m.chamber === "House"` always failed → everyone labeled Sen.
+  - Fix: `members/search` API normalizes `"House of Representatives"` → `"House"` before returning
+  - Fix: removed raw `<code>` formula block from `CategoryRow.tsx` expanded detail panel
+  - Updated `scorecard-data-collector.test.ts` to use `introducedDate` for period filter tests
+  - 362 tests passing; merged `feature/fix-scorecard-v2` → dev → main
+- [x] **Stripe membership flow — middleware route protection** (2026-03-13)
+  - Added `/legislation`, `/scorecard`, `/petitions` to Clerk middleware protection in `src/middleware.ts`
+  - Completes the Stripe membership flow: unauthenticated users are now redirected to sign-in before accessing member-only pages
+  - 362 tests passing; merged `feature/stripe-membership-flow` → dev → main
+- [x] **Fix dev.congressdoyourjob.com using production LaunchDarkly keys** (2026-03-16)
+  - Root cause: Vercel sets NODE_ENV="production" for ALL deployments (production AND preview). Next.js therefore only loads .env.production on any Vercel deployment. .env.development is never loaded on Vercel.
+  - Vercel provides NEXT_PUBLIC_VERCEL_ENV = "production" | "preview" | "development" at build time — this correctly distinguishes production from preview (dev.congressdoyourjob.com) deployments.
+  - Fix: `launchdarkly.tsx` now reads `NEXT_PUBLIC_VERCEL_ENV` and selects:
+    - `NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID` (prod key) when `NEXT_PUBLIC_VERCEL_ENV === "production"`
+    - `NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID_DEV` (dev key) for preview and local dev
+  - Added `NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID_DEV` to `.env.production` (required so the preview Vercel build can access the dev key, since .env.production is loaded for all Vercel builds)
+  - Added `NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_ID_DEV` to `.env.development` and `.env.example` for consistency
+  - Enhanced module-load log to show `vercelEnv` and `isProductionDeployment` for easier debugging
+  - Tests: 372/372 passing; type-check clean
+- [x] **Nightly cron job to refresh legislation cache** (2026-03-16)
+  - New route: `GET /api/cron/refresh-legislation`
+  - Fetches 96 bills (12 pages × 8) from Congress.gov in a single API call sorted by `updateDate+desc`
+  - Splits into pages of 8 and writes each page into Redis under the exact cache keys the `/legislation` search route reads: `legislation:search:{congress}-recent-8-{offset}:v1`
+  - All `/legislation` page visits after midnight EST see pre-warmed cache with zero cold-start latency
+  - Registered in `vercel.json` at `0 5 * * *` (05:00 UTC = midnight US Eastern Standard Time)
+  - 7 tests in `tests/backend/api/refresh-legislation-cron.test.ts`; full suite 372/372 passing
+- [x] **Order bills by most recent activity on /legislation page** (2026-03-16)
+  - Root cause 1: `buildApiUrl` passed `sort` through `URLSearchParams.set()`, which percent-encodes `+` to `%2B`. Congress.gov's sort syntax is `updateDate+desc` with a literal `+`, so encoding broke the sort parameter silently.
+  - Fix: `sort` key is now appended to the URL string directly (no percent-encoding) while all other params still go through `URLSearchParams` for safe encoding.
+  - Root cause 2: For keyword search results, bills with equal title-relevance scores had no secondary sort — order was whatever Congress.gov returned.
+  - Fix: `rankBills()` secondary-sorts equal-relevance bills by `updateDate` descending, so most recently active bills surface first within each relevance tier.
+  - Tests: 14/14 passing; type-check clean
+- [x] **Fix legislation search — SAVE Act and similar bills not surfacing** (2026-03-16)
+  - Root cause: route fetched only `limit=8` bills from Congress.gov (sorted by updateDate), then re-ranked just those 8. Exact-match bills buried past position 8 by date never appeared.
+  - Fix: keyword search now fetches `SEARCH_FETCH_LIMIT=100` bills at offset=0 from Congress.gov, ranks the full batch, caches the ranked list per-query (not per-page), and slices by the client's offset/limit after cache retrieval
+  - "Load More" pages read from the same ranked cache — zero extra Congress.gov API calls for subsequent pages
+  - Cache key for searches: `legislation:ranked:{congress}-{query}` (no offset/limit); recent-bills key unchanged
+  - `count` capped at `Math.min(API_total, rankedBills.length)` so client doesn't paginate beyond what's ranked
+  - Updated test suite: 13 tests including new pagination-slice and exact-offset-0 assertions
+  - Tests: 13/13 passing; type-check clean
+- [x] **Fix scorecard chamber label — all legislators still shown as "Sen."** (2026-03-16)
+  - Root cause: Congress.gov `/member` list endpoint does not always return a top-level `chamber` field; `normalizeChamber(undefined)` returned `""`, causing `m.chamber === "House"` to always fail → all members labeled "Sen."
+  - Fix: added `deriveChamber(m)` in `members/search/route.ts` which checks `m.chamber` first, then falls back to `m.terms?.at(-1)?.chamber` (Congress.gov always includes `terms[]` in the list response)
+  - Updated `Term.chamber` in `types/congress.ts` from `Chamber` to `string` (API returns "House of Representatives" not "House")
+  - Added optional `endYear`, `district`, `stateCode`, `stateName`, `memberType` fields to `Term` interface to match actual API response shape
+  - Tests: 11/11 passing; type-check clean
+- [x] **Eisenhower Fund pooled donation logic** (2026-03-16)
+  - `src/lib/stripe.ts` — added `FUND_TIERS` config (starter $5/mo, advocate $10/mo, champion $20/mo), `FundTierKey`, `FUND_PLEDGE_TYPE` constant, `FundPledgeDocument` MongoDB type
+  - `src/types/fund.ts` — `FundTierKey`, `FundPledgeStatus`, `FundStatsResponse`
+  - `POST /api/v1/fund/pledge` — creates Stripe subscription checkout with `type: "fund_pledge"` metadata; validates tier; reads price IDs from `STRIPE_FUND_{TIER}_PRICE_ID` env vars
+  - `GET /api/v1/fund/stats` — queries `fund_pledges` collection for active pledges, sums `monthlyAmountCents`, returns `activePledgers` + `monthlyPoolFormatted`; 5-min Redis cache
+  - Stripe webhook handler — `handleCheckoutCompleted` branches on `subscription.metadata.type === FUND_PLEDGE_TYPE` → writes to `fund_pledges` collection + sends pledge confirmation email; `handleSubscriptionUpdated`/`handleSubscriptionDeleted`/`handlePaymentFailed` route to correct collection based on metadata
+  - `src/components/fund/FundPledgeForm.tsx` — tier selector (3 cards), Stripe redirect, error state
+  - `/fund` page — explains the fund, live pool stats, pledge CTA, "How it works" methodology block
+  - `/fund/success` page — pledge confirmed confirmation
+  - `/fund/error.tsx` — error boundary
+  - NavLinks — added "Fund" link
+  - middleware.ts — `/fund(.*)` added to protected routes
+  - 11 tests in `tests/backend/api/fund-pledge-route.test.ts` + `fund-stats-route.test.ts`; updated stripe-webhook.test.ts mock to spread actual exports
+  - Tests: 395/395 passing; type-check clean
+- [x] **Route type subdirectories — extract all inline types from components** (2026-03-17)
+  - Created `types/index.ts` in `src/components/legislation/`, `scorecard/`, `petitions/`, and `ui/`
+  - Moved ALL inline `interface` / `type` definitions out of their component files and into the feature's `types/index.ts`
+  - legislation/types: BillDetailModalProps, BillTimelineProps, Stage, RecentBillsProps
+  - scorecard/types: ScorecardGaugeProps, ScorecardCardProps, ScorecardCategoryBreakdownProps, CategoryRowProps, MemberSuggestion, ScorecardData, Period
+  - petitions/types: PetitionCardProps, PetitionSignFormProps
+  - ui/types: Status, DataStatus, AlertProps, BackButtonProps, ButtonProps, EmptyStateProps, InputProps, ModalProps, SearchBarProps, SectionHeaderProps
+  - `src/components/ui/index.ts` updated to re-export `Status` and `DataStatus` from `./types` (preserves all public API)
+  - 20 files modified + 4 new type files created; type-check clean; 400/400 tests passing
+- [x] **Roll-call vote API and VotingRecord UI** (2026-03-20)
+  - New types `HouseVoteListItem`, `HouseVoteDetail`, `MemberRollCallVote` in `types/congress.ts`; added `houseRollCallVotes` and `houseRollCallVote` keys to `CongressApiResponse<T>`
+  - `congress-api.ts`: added `getHouseVotes(congress, options)` and `getHouseVoteDetail(congress, session, rollNumber)` — detail endpoint parses `votePartyTotal[]` for totals and `members.houseRollCallMember[]` for individual positions
+  - `GET /api/v1/votes/[bioguideId]`: looks up member chamber; Senate → `{ available: false, unavailableReason: "..." }`; House → fetches recent vote list then concurrently fetches details via `Promise.allSettled` (failed fetches skipped gracefully), filtered for member's position per vote. Cached 2h per member.
+  - `src/hooks/useVotingRecord.ts`: `useQuery` hook, enabled prop controls fetch timing
+  - `src/components/scorecard/VotingRecord.tsx`: shows roll number, date, description, bill ref, overall result, and per-member `Yea/Nay/Present/Not Voting` badge. Senate "coming soon" panel. Loading skeleton + empty state.
+  - Wired into `ScorecardLookup.tsx` below `ScorecardCard` — appears after scorecard loads
+  - 9 tests in `tests/backend/api/votes-route.test.ts`
+  - Tests: 401/401 passing; type-check clean
+- [x] **Fix /legislation duplicate bills and search accuracy** (2026-03-17)
+  - Root cause (duplicates): Offset-based pagination on a `updateDate+desc` sorted list. Bills updated between page 1 and page 2 fetches shift position, causing the same bill to appear in multiple pages. Compounded by per-page Redis caching (page 1 may be a stale cache hit while page 2 is a fresh fetch).
+  - Fix (server): `deduplicateBills()` applied to the Congress.gov API response before `rankBills()` runs, eliminating duplicates in the ranked batch.
+  - Fix (client): `LegislationSearch.tsx` now deduplicates by `${bill.congress}-${bill.type}-${bill.number}` key when flattening pages from `useInfiniteQuery`, guarding against any position-shift duplicates that slip through.
+  - Root cause (search): Queries like "HR 1234" or "S 42" were treated as full-text searches. Congress.gov's text search does not reliably match bill numbers, so the specific bill was often missing from results.
+  - Fix (search): `parseBillNumber()` detects bill-number patterns (HR, S, HJRES, SJRES, HCONRES, SCONRES, HRES, SRES) with optional dots/spaces. When matched, `getBill()` direct lookup is tried first; if found, returned immediately (count=1, no pagination needed). If the direct lookup returns 404, falls through to the normal full-text search path.
+  - 5 new tests in `tests/backend/api/legislation-search-route.test.ts` (bill number direct lookup × 4, deduplication × 1)
+  - Tests: 400/400 passing; type-check clean
+- [x] **Lob.com physical mail integration** (2026-03-16)
+  - `src/types/petition.ts` — added `MailAddress` type; `recipientName?`/`recipientAddress?` on `PetitionDocument`; `lobMailId?`/`lobMailCost?` on `PetitionSignatureDocument`; `hasPhysicalMailOption` on `PetitionDetail`; `senderAddress?` on `SignPetitionRequest`
+  - `src/lib/lob.ts` — new Lob.com REST client: `sendLetter()` (Basic-auth POST to `/v1/letters`), `buildLetterHtml()` (HTML template with XSS-safe `escapeHtml()`), `LobApiError` class
+  - `GET /api/v1/petitions/[slug]` — `toDetail()` now sets `hasPhysicalMailOption: Boolean(doc.recipientAddress)`
+  - `POST /api/v1/petitions/[slug]/sign` — validates `senderAddress` when `physical_mail` selected; validates petition has `recipientAddress`; calls `sendLetter()` BEFORE inserting signature record; sets `deliveryStatus: "sent"` on success; returns 503 if Lob fails (no signature record created)
+  - `src/components/petitions/PetitionSignForm.tsx` — physical mail option hidden when `petition.hasPhysicalMailOption === false`; address form (name, line1, line2 optional, city, state, ZIP) shown when `physical_mail` selected; `senderAddress` included in mutation payload
+  - 12 tests in `src/lib/__tests__/lob.test.ts` covering auth header, address mapping, success/error paths, HTML escaping
+  - Tests: 384/384 passing; type-check clean
+- [x] **Mobile-specific layout optimizations** (2026-03-17)
+  - Systematic `px-6` → `px-4 sm:px-6` on all inner page containers: representatives, scorecard, legislation, membership, fund, scorecard/methodology (×2), coming-soon, Footer
+  - Footer vertical padding: `py-14` → `py-10 sm:py-14`
+  - Hero heading responsive text: all `text-4xl md:text-5xl` headings now scale with `text-3xl sm:text-4xl md:text-5xl`; coming-soon brand heading `text-5xl` → `text-3xl sm:text-5xl`; coming-soon inner `h1` `text-4xl` → `text-2xl sm:text-4xl`
+  - coming-soon card padding: `p-10` → `p-6 sm:p-10`
+  - Home page hero weekly briefing h2: `text-4xl md:text-5xl` → `text-3xl sm:text-4xl md:text-5xl`
+  - Home page hero metrics grid: `grid-cols-2` (fixed) → `grid-cols-1 sm:grid-cols-2` (mobile stack)
+  - Home page all white section cards: `p-8` → `p-6 md:p-8`
+  - Home page 3-column grids (productivity metrics, member profiles, civic actions): `md:grid-cols-3` → `sm:grid-cols-2 md:grid-cols-3`
+  - Home page hero section and CTA section: `px-8 py-10` → `px-4 sm:px-8 py-6 sm:py-10`
+  - fund/page.tsx stats grid: removed redundant `sm:grid-cols-2` (column count already set by `grid-cols-2`)
+  - Files modified: 8 pages + Footer.tsx (9 files total)
+  - Tests: 400/400 passing; type-check clean
+- [x] **Fix /legislation page — search accuracy, duplicates, and bill summaries** (2026-03-20)
+  - Root cause (search): `searchBills()` sent `q={"search":"SAVE Act"}` — Congress.gov expects `q={"query":"SAVE Act"}`. Wrong JSON key caused the API to ignore the query and return unrelated results.
+  - Fix: Changed `JSON.stringify({ search: query })` → `JSON.stringify({ query })` in `congress-api.ts`.
+  - Root cause (duplicates in recent view): `getBills()` result was not passed through `deduplicateBills()` in the no-query path.
+  - Fix: Added `deduplicateBills()` call to the recent bills branch of the search route.
+  - Root cause (bad summaries): `maxLength=300` was *characters*, but the prompt said "3-5 sentences" — Gemini's output was hard-truncated at 400 chars (often mid-sentence), producing gibberish.
+  - Fix: Increased `maxLength` to 800 (characters), rewrote the prompt with explicit sentence-by-sentence structure (what bill does → mechanism → impact → optional detail), and replaced hard truncation with a sentence-boundary cut.
+  - Also increased the CRS fallback from 2 sentences to 4.
+  - Files: `src/lib/congress-api.ts`, `src/app/api/v1/legislation/search/route.ts`, `src/lib/gemini-api.ts`, `src/services/bill-summary.ts`
+- [x] **Performance: evaluate and remove LaunchDarkly client-side SDK** (2026-03-17)
+  - Evaluation: `launchdarkly-js-client-sdk` = 60KB minified (~20KB gzipped) for 3 simple boolean flags. No user targeting, no gradual rollouts. The SDK also opens a streaming WebSocket on every page load. Overkill for MVP.
+  - Decision: Remove entirely. Replace with `NEXT_PUBLIC_*` build-time env vars + `COMING_SOON_MODE` server env var in middleware. Vercel env var change + 2-min redeploy is the acceptable tradeoff.
+  - `src/middleware.ts`: Added `comingSoonRedirect()` — when `COMING_SOON_MODE=true`, redirects all non-API routes to `/coming-soon` server-side (no bundle cost, no CLS flash, no SDK init wait).
+  - `NEXT_PUBLIC_SHOW_BUDGET_TIMER=true` replaces `BUDGET_BILL_TIMER` flag in `page.tsx` and `coming-soon/page.tsx`
+  - `NEXT_PUBLIC_SHOW_HEADER_NAVIGATION=false` to hide (default: true) replaces `SHOW_HEADER_NAVIGATION` flag in `NavLinks.tsx`
+  - Removed `FlagGate` wrapper from `representatives`, `fund`, `membership`, `membership/success` pages
+  - Removed `LaunchDarklyProvider` from root `layout.tsx`
+  - Removed dead `useRouter` + coming-soon redirect `useEffect` from `page.tsx` (was incorrectly inverted, never actually fired)
+  - Stubbed out obsolete files (pending file deletion): `src/config/launchdarkly.tsx`, `src/lib/launchdarkly-provider.tsx`, `src/components/FlagGate.tsx`, `src/lib/feature-flags.ts`
+  - Removed `launchdarkly-react-client-sdk` from `package.json` + ran `npm install`
+  - Updated `.env.example` to document new env vars, removed LD key documentation
+  - Tests: 392/392 passing (400 - 9 deleted LD tests + 1 env var sanity check); type-check clean
+- [x] **Methodology page formula display — math typesetting** (2026-03-20)
+  - Changed formula rendering from `<code className="font-mono">` to serif italic typography (`Georgia, Times New Roman, serif`) styled like a math textbook
+  - Added `CategoryEntry` type so `notes` field can be `string | string[]`
+  - Changed Legislation and Theater Ratio notes from `.join(" · ")` string to proper arrays
+  - Array notes now render as a bullet list (`·` leader per item) instead of a single joined string
+  - No new tests needed (pure visual/presentation change); type-check clean

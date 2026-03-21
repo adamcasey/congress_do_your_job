@@ -1,6 +1,6 @@
 # CongressDoYourJob.com
 
-Less theater. More laws.
+Less theater. More legislation.
 
 A calm, non-partisan platform that shows — in plain English — what your elected officials actually did this week, from Congress down to your city council. No spin, no outrage, just facts.
 

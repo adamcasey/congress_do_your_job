@@ -1,0 +1,317 @@
+// CongressDoYourJob.com - Prisma Schema
+// Database: MongoDB Atlas
+// Strategy: Hybrid Prisma + MongoDB (use Prisma for type safety, MongoDB for complex aggregations)
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
+
+// ============================================================================
+// CORE MODELS
+// ============================================================================
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String?
+  lastName  String?
+
+  // User's saved address (for representative lookup)
+  address          String?
+  city             String?
+  state            String?
+  zipCode          String?
+  congressionalDistrict String?
+
+  // Embedded representatives (denormalized for performance)
+  representatives  Representative[]
+
+  // Membership info
+  membershipTier   String?
+  membershipStatus String?
+  stripeCustomerId String?  @unique
+
+  // Preferences
+  emailDigest      Boolean  @default(true)
+  emailReminders   Boolean  @default(true)
+
+  // Metadata
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  lastLoginAt      DateTime?
+
+  // Relations
+  petitionSignatures PetitionSignature[]
+
+  @@map("users")
+}
+
+// Embedded type for representatives in User model
+type Representative {
+  officialId   String
+  name         String
+  office       String
+  level        String
+  party        String?
+  photoUrl     String?
+  contactEmail String?
+  contactPhone String?
+  addedAt      DateTime @default(now())
+}
+
+model ElectedOfficial {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Basic info
+  firstName        String
+  lastName         String
+  fullName         String
+  photoUrl         String?
+
+  // Office details
+  office           String
+  level            String
+  jurisdiction     String
+  district         String?
+  chamber          String?
+
+  // Political info (stored but not displayed per project philosophy)
+  party            String?
+
+  // Contact info
+  contactEmail     String?
+  contactPhone     String?
+  website          String?
+  socialMedia      SocialMediaLinks?
+
+  // Office addresses
+  offices          OfficeLocation[]
+
+  // Term info
+  termStart        DateTime?
+  termEnd          DateTime?
+  isCurrentOfficial Boolean @default(true)
+
+  // External IDs (for API syncing)
+  bioguideId       String?  @unique
+  govtrackId       String?  @unique
+  openStatesId     String?  @unique
+
+  // Current scorecard snapshot (denormalized for performance)
+  currentScore     Float?
+  lastScoreUpdate  DateTime?
+
+  // Metadata
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  scorecards       Scorecard[]
+
+  @@map("elected_officials")
+  @@index([level, jurisdiction, isCurrentOfficial])
+  @@index([currentScore])
+}
+
+// Embedded types for ElectedOfficial
+type SocialMediaLinks {
+  twitter   String?
+  facebook  String?
+  instagram String?
+  youtube   String?
+}
+
+type OfficeLocation {
+  type    String
+  address String
+  city    String
+  state   String
+  zipCode String
+  phone   String?
+}
+
+model Scorecard {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Reference to official
+  officialId  String   @db.ObjectId
+  official    ElectedOfficial @relation(fields: [officialId], references: [id], onDelete: Cascade)
+
+  // Time period
+  periodType  String
+  periodStart DateTime
+  periodEnd   DateTime
+
+  // Overall score
+  totalScore  Float
+
+  // Score components (detailed breakdown)
+  components  ScoreComponent[]
+
+  // Metadata
+  calculatedAt DateTime @default(now())
+  methodology  String
+
+  @@map("scorecards")
+  @@index([officialId, periodStart])
+  @@index([periodType, periodStart])
+}
+
+// Embedded type for score breakdown
+type ScoreComponent {
+  category    String
+  score       Float
+  weight      Float
+  details     Json?
+}
+
+// ============================================================================
+// PHASE 2 MODELS (Petitions & Community Features)
+// ============================================================================
+
+model Petition {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Petition details
+  title           String
+  slug            String   @unique
+  description     String
+  category        String
+
+  // Template letter
+  letterTemplate  String
+
+  // Targeting
+  targetLevel     String
+  targetOffice    String?
+
+  // Status
+  status          String
+  goal            Int?
+
+  // Results
+  signatureCount  Int      @default(0)
+  lettersDelivered Int     @default(0)
+
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  closedAt        DateTime?
+
+  // Relations
+  signatures      PetitionSignature[]
+
+  @@map("petitions")
+  @@index([status, createdAt])
+}
+
+model PetitionSignature {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Relations
+  petitionId   String   @db.ObjectId
+  petition     Petition @relation(fields: [petitionId], references: [id], onDelete: Cascade)
+
+  userId       String   @db.ObjectId
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Delivery details
+  deliveryMethod String
+  deliveredAt    DateTime?
+  deliveryStatus String
+
+  // Physical mail (Lob.com)
+  lobMailId      String?  @unique
+  lobMailCost    Float?
+
+  // Custom message (optional)
+  customMessage  String?
+
+  // Metadata
+  signedAt       DateTime @default(now())
+
+  @@map("petition_signatures")
+  @@unique([petitionId, userId])
+  @@index([petitionId, deliveryStatus])
+}
+
+// ============================================================================
+// CONTENT MODELS (Weekly Digest)
+// ============================================================================
+
+model DigestEdition {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Edition details
+  editionNumber   Int      @unique
+  weekStart       DateTime
+  weekEnd         DateTime
+
+  // Content sections
+  headline        String
+  summary         String
+
+  sections        DigestSection[]
+
+  // Publishing
+  status          String
+  publishedAt     DateTime?
+
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("digest_editions")
+  @@index([weekStart])
+  @@index([status, publishedAt])
+}
+
+// Embedded type for digest sections
+type DigestSection {
+  sectionType     String
+  title           String
+  content         String
+  items           Json[]
+  order           Int
+}
+
+// ============================================================================
+// LEGISLATION MODELS (Bill Summaries & Analysis)
+// ============================================================================
+
+model BillSummary {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Bill identification (composite key for uniqueness)
+  billType        String
+  billNumber      String
+  congress        Int
+
+  // AI-generated summary
+  summary         String
+  model           String
+  generatedAt     DateTime @default(now())
+
+  // Original bill data (cached for reference)
+  title           String
+  introducedDate  DateTime?
+  sponsors        Json?
+
+  // Full bill text (for context)
+  fullTextUrl     String?
+
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("bill_summaries")
+  @@unique([billType, billNumber, congress])
+  @@index([congress, updatedAt])
+}
