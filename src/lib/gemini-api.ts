@@ -48,7 +48,7 @@ export interface SummarizeBillOptions {
 export async function summarizeBill({
   billText,
   billTitle,
-  maxLength = 300,
+  maxLength = 800,
   metadata,
 }: SummarizeBillOptions): Promise<string> {
   const approvedSources = Object.values(APPROVED_SOURCES_ENUM).join(", ");
@@ -66,7 +66,7 @@ ${metadata.sponsors?.length ? `- Sponsors: ${metadata.sponsors.map((s) => `${s.f
       : "";
 
   try {
-    const prompt = `You are summarizing U.S. congressional legislation for a non-partisan civic engagement platform.
+    const prompt = `You are summarizing U.S. congressional legislation for a non-partisan civic engagement platform called CongressDoYourJob.com.
 
 Bill Title: ${billTitle}
 ${metadataSection}
@@ -74,13 +74,15 @@ Official Bill Text / Summary:
 ${billText}
 
 Instructions:
-- Write a concise, plain-English summary in 3-5 sentences (max ${maxLength} characters)
-- Focus on WHAT the bill does, not WHY or political motivations
-- Use narrative voice and professional prose (clear, precise, like NPR reporting)
-- Avoid jargon, partisan framing, and superlatives
-- Start with the core action (e.g., "This bill establishes...", "This bill requires...", "This bill amends...")
-- Be factual and neutral
-- If the provided text is sparse, use the metadata above and search for context from these approved sources: ${approvedSources}
+- Write exactly 3-4 complete sentences in plain English that a typical American can understand
+- Sentence 1: State the core action of the bill (what it does, not its name). Start with "This bill..." or "This legislation..."
+- Sentence 2: Explain the primary mechanism or requirement the bill creates (who must do what, or what changes)
+- Sentence 3: Describe the practical impact on people, agencies, or the country
+- Sentence 4 (optional): Add a relevant detail such as funding amounts, eligibility criteria, or key exceptions if meaningful
+- DO NOT repeat the bill title or acronym as the summary — explain the substance
+- DO NOT include political opinions, party mentions, or editorial judgment
+- DO NOT use jargon without explanation
+- If the official text is sparse or missing, draw on the metadata and these approved sources for context: ${approvedSources}
 
 Summary:`;
 
@@ -95,8 +97,11 @@ Summary:`;
 
     const summary = response.text.trim();
 
-    if (summary.length > maxLength + 100) {
-      return summary.substring(0, maxLength) + "...";
+    // Allow up to 1.5x maxLength before hard-truncating to avoid mid-sentence cuts
+    if (summary.length > maxLength * 1.5) {
+      const truncated = summary.substring(0, maxLength);
+      const lastPeriod = truncated.lastIndexOf(".");
+      return lastPeriod > maxLength * 0.5 ? truncated.substring(0, lastPeriod + 1) : truncated + "...";
     }
 
     return summary;

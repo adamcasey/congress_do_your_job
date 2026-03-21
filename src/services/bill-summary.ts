@@ -111,7 +111,7 @@ export async function getOrCreateBillSummary(
     const aiSummary = await summarizeBill({
       billText,
       billTitle: bill.title,
-      maxLength: 300,
+      maxLength: 800,
       metadata,
     });
 
@@ -142,7 +142,7 @@ export async function getOrCreateBillSummary(
     // Return the best available text as a fallback without storing in DB.
     if (summaryText) {
       const sentences = summaryText.match(/[^.!?]+[.!?]+/g) || [];
-      const fallbackSummary = sentences.slice(0, 2).join(" ").trim();
+      const fallbackSummary = sentences.slice(0, 4).join(" ").trim();
       return {
         summary: fallbackSummary || bill.title,
         source: "fallback",

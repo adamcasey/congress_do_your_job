@@ -216,7 +216,7 @@ export async function GET(request: NextRequest) {
       recentCacheKey,
       async () => {
         const response = await getBills({ limit, offset, sort: "updateDate+desc" });
-        const bills = response.bills ?? [];
+        const bills = deduplicateBills(response.bills ?? []);
         const count = response.pagination?.count ?? bills.length;
         return { bills, count, query: q };
       },
