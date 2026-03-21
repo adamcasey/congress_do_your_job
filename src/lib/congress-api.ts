@@ -116,7 +116,7 @@ export async function searchBills(query: string, options: SearchBillsOptions = {
   const { limit = 20, offset = 0, congress = CURRENT_CONGRESS } = options;
 
   return fetchCongressApi<Bill>(`/bill/${congress}`, {
-    q: JSON.stringify({ search: query }),
+    q: JSON.stringify({ query }),
     limit,
     offset,
     sort: "updateDate+desc",
