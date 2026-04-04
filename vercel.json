@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/refresh-legislation",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/sync-bills",
+      "schedule": "0 * * * *"
     }
   ]
 }

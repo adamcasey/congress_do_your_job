@@ -1,4 +1,13 @@
-import { CongressApiResponse, Bill, Member, Vote, Amendment, HouseVoteListItem, HouseVoteDetail, MemberRollCallVote } from "@/types/congress";
+import {
+  CongressApiResponse,
+  Bill,
+  Member,
+  Vote,
+  Amendment,
+  HouseVoteListItem,
+  HouseVoteDetail,
+  MemberRollCallVote,
+} from "@/types/congress";
 
 const CONGRESS_API_BASE = "https://api.congress.gov/v3";
 const CURRENT_CONGRESS = 119; // 119th Congress (2025-2027)
@@ -70,6 +79,10 @@ async function fetchCongressApi<T>(
   params?: Record<string, string | number | undefined>,
 ): Promise<CongressApiResponse<T>> {
   const url = buildApiUrl(path, params);
+  // Strip API key from logged URL for safety
+  const safeUrl = url.replace(/api_key=[^&]+/, "api_key=REDACTED");
+  console.log("[congress-api] fetchCongressApi url:", safeUrl);
+  console.log("[congress-api] fetchCongressApi params:", JSON.stringify(params, null, 2));
 
   try {
     const response = await fetch(url, {
@@ -79,8 +92,11 @@ async function fetchCongressApi<T>(
       },
     });
 
+    console.log("[congress-api] response status:", response.status, response.statusText);
+
     if (!response.ok) {
       const errorBody = await response.text();
+      console.log("[congress-api] error body:", errorBody);
       throw new CongressApiError(
         `Congress.gov API error: ${response.status} ${response.statusText}`,
         response.status,
@@ -88,7 +104,12 @@ async function fetchCongressApi<T>(
       );
     }
 
-    return await response.json();
+    const json = await response.json();
+    console.log("[congress-api] response keys:", Object.keys(json));
+    console.log("[congress-api] pagination:", JSON.stringify(json.pagination));
+    console.log("[congress-api] bills count:", json.bills?.length ?? "no bills key");
+    console.log("[congress-api] first 3 bills:", JSON.stringify(json.bills?.slice(0, 3), null, 2));
+    return json;
   } catch (error) {
     if (error instanceof CongressApiError) {
       throw error;
@@ -114,12 +135,12 @@ interface SearchBillsOptions {
  */
 export async function searchBills(query: string, options: SearchBillsOptions = {}): Promise<CongressApiResponse<Bill>> {
   const { limit = 20, offset = 0, congress = CURRENT_CONGRESS } = options;
-
+  console.log("[congress-api] searchBills q:", JSON.stringify({ query }));
   return fetchCongressApi<Bill>(`/bill/${congress}`, {
     q: JSON.stringify({ query }),
     limit,
     offset,
-    sort: "updateDate+desc",
+    sort: "relevance",
   });
 }
 
@@ -346,14 +367,8 @@ export async function getHouseVotes(
  * member voted. The Congress.gov response nests member votes under
  * houseRollCallVote.members.houseRollCallMember[].
  */
-export async function getHouseVoteDetail(
-  congress: number,
-  session: number,
-  rollNumber: number,
-): Promise<HouseVoteDetail> {
-  const raw = await fetchCongressApi<Record<string, unknown>>(
-    `/house-vote/${congress}/${session}/${rollNumber}`,
-  );
+export async function getHouseVoteDetail(congress: number, session: number, rollNumber: number): Promise<HouseVoteDetail> {
+  const raw = await fetchCongressApi<Record<string, unknown>>(`/house-vote/${congress}/${session}/${rollNumber}`);
 
   const vote = raw.houseRollCallVote as Record<string, unknown> | undefined;
   if (!vote) {
@@ -361,8 +376,7 @@ export async function getHouseVoteDetail(
   }
 
   // Congress.gov nests member votes under members.houseRollCallMember
-  const rawMembers = (vote.members as Record<string, unknown> | undefined)
-    ?.houseRollCallMember;
+  const rawMembers = (vote.members as Record<string, unknown> | undefined)?.houseRollCallMember;
   const memberVotes: MemberRollCallVote[] = Array.isArray(rawMembers)
     ? rawMembers.map((m: Record<string, unknown>) => ({
         bioguideId: String(m.bioguideId ?? ""),
@@ -375,7 +389,10 @@ export async function getHouseVoteDetail(
 
   // Parse vote totals from votePartyTotal array
   const partyTotals = vote.votePartyTotal as Array<Record<string, unknown>> | undefined;
-  let yea = 0, nay = 0, present = 0, notVoting = 0;
+  let yea = 0,
+    nay = 0,
+    present = 0,
+    notVoting = 0;
   if (Array.isArray(partyTotals)) {
     for (const row of partyTotals) {
       yea += Number(row.yea ?? 0);
