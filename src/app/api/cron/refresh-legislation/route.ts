@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { getBills, CongressApiError, getCurrentCongress } from "@/lib/congress-api";
 import { setCached, buildCacheKey, CacheTTL } from "@/lib/cache";
+import { upsertBills } from "@/lib/bill-index";
 import { Bill } from "@/types/congress";
 import { createLogger } from "@/lib/logger";
 import { jsonError, jsonSuccess } from "@/lib/api-response";
@@ -38,6 +39,7 @@ export async function GET(request: NextRequest) {
   const stats = {
     billsFetched: 0,
     pagesCached: 0,
+    billsIndexed: 0,
     errors: 0,
   };
 
@@ -57,6 +59,14 @@ export async function GET(request: NextRequest) {
     if (bills.length === 0) {
       logger.warn("No bills returned from Congress.gov");
       return jsonSuccess({ message: "No bills returned", stats });
+    }
+
+    // Keep the bill_index in sync so title search stays fresh.
+    try {
+      stats.billsIndexed = await upsertBills(bills);
+    } catch (indexError) {
+      logger.warn("bill_index upsert failed (non-fatal):", indexError);
+      stats.errors++;
     }
 
     // Split the fetched bills into UI pages and write each page to cache.
