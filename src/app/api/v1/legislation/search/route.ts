@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { searchBills, getBills, getBill, CongressApiError, getCurrentCongress } from "@/lib/congress-api";
+import { getBills, getBill, CongressApiError, getCurrentCongress } from "@/lib/congress-api";
+import { searchBillsByTitle } from "@/lib/bill-index";
 import { getOrFetch, buildCacheKey, CacheTTL } from "@/lib/cache";
 import { Bill } from "@/types/congress";
 import { createLogger } from "@/lib/logger";
@@ -31,23 +32,17 @@ function scoreBill(bill: Bill, query: string, queryWords: string[]): number {
   if (title.startsWith(query)) return 90;
   if (title.includes(query)) return 80;
 
-  // Filter stop words so "and", "the", "act" don't pollute per-word ratios.
   const significant = queryWords.filter((w) => w.length >= 2 && !TITLE_STOP_WORDS.has(w));
-  // Fall back to all words if the entire query is stop words (e.g. "the act").
   const matchWords = significant.length > 0 ? significant : queryWords;
   if (matchWords.length === 0) return 0;
 
-  // Split title into individual tokens for word-boundary comparison.
   const titleTokens = title.split(/[\s\-–,;:()[\]{}'"]+/).filter(Boolean);
 
   let score = 0;
   for (const qw of matchWords) {
     if (titleTokens.some((tw) => tw === qw)) {
-      // Exact word match — full weight
       score += 1;
     } else if (titleTokens.some((tw) => tw.startsWith(qw) || (qw.startsWith(tw) && tw.length >= 4))) {
-      // Prefix match (e.g. "veteran" ↔ "veterans", "heal" ↔ "healthcare")
-      // Require at least 4 chars on the title side to avoid single-letter false positives.
       score += 0.6;
     }
   }
@@ -57,34 +52,26 @@ function scoreBill(bill: Bill, query: string, queryWords: string[]): number {
 }
 
 /** Re-rank bills so that title-matching results surface first.
- *  Bills with equal relevance are sub-sorted by updateDate descending
- *  so the most recently active bill appears first within each tier. */
+ *  Bills with equal relevance are sub-sorted by updateDate descending. */
 function rankBills(bills: Bill[], query: string): Bill[] {
   const q = query.toLowerCase().trim();
   const qWords = q.split(/\s+/).filter(Boolean);
   return [...bills].sort((a, b) => {
     const scoreDiff = scoreBill(b, q, qWords) - scoreBill(a, q, qWords);
     if (scoreDiff !== 0) return scoreDiff;
-    // Secondary sort: most recently updated first
     const aDate = a.updateDate ? new Date(a.updateDate).getTime() : 0;
     const bDate = b.updateDate ? new Date(b.updateDate).getTime() : 0;
     return bDate - aDate;
   });
 }
 
-/** Strip punctuation so "Protecting our Communities..." still matches without perfect spelling. */
+/** Strip punctuation so queries like "Protecting our Communities..." still match cleanly. */
 function normalizeQuery(q: string): string {
   return q
     .replace(/[^a-z0-9\s]/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
-
-// Fetch this many bills from Congress.gov per keyword search so ranking has a
-// representative sample. Congress.gov's default ordering (updateDate desc) does
-// not sort by relevance, so fetching only 8 would miss a bill titled exactly
-// "SAVE Act" if it happened to be the 15th result by date.
-const SEARCH_FETCH_LIMIT = 100;
 
 /** Bill number patterns for direct lookup (e.g. "HR 1234", "S 5", "H.J.Res 45"). */
 const BILL_NUMBER_PATTERNS: Array<{ regex: RegExp; type: string }> = [
@@ -127,7 +114,7 @@ interface SearchResponse {
 
 interface RankedBatch {
   rankedBills: Bill[];
-  fetchedCount: number; // total count reported by the Congress.gov API
+  fetchedCount: number;
 }
 
 /**
@@ -135,10 +122,12 @@ interface RankedBatch {
  * GET /api/v1/legislation/search?q=<query>&limit=<n>&offset=<n>
  *
  * When q is provided:
- *   - If q matches a bill number pattern (e.g. "HR 1234"), performs a direct lookup first
- *   - Otherwise fetches up to SEARCH_FETCH_LIMIT bills from Congress.gov (cached per query)
- *   - Deduplicates results before re-ranking by title relevance
- *   - All "Load More" pages read from the same ranked cache — no extra API calls
+ *   - If q matches a bill number pattern (e.g. "HR 1234"), performs a direct
+ *     Congress.gov lookup first.
+ *   - Otherwise queries the local bill_index MongoDB collection by title.
+ *     Results are re-ranked with scoreBill() so exact title matches surface first.
+ *   - All "Load More" pages read from the same Redis-cached ranked batch —
+ *     no repeated DB queries per page.
  *
  * When q is omitted, returns recent bills ordered by updateDate desc.
  */
@@ -155,8 +144,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (q.length >= 2) {
-      // Direct bill number lookup (e.g. "HR 1234", "S 5", "H.J.Res 45").
-      // Bypasses full-text search for precise, user-intent-matching results.
+      // 1. Direct bill number lookup (e.g. "HR 1234", "S 5", "H.J.Res 45").
       const billRef = parseBillNumber(q);
       if (billRef) {
         const directCacheKey = buildCacheKey(
@@ -171,7 +159,6 @@ export async function GET(request: NextRequest) {
               const bill = await getBill(billRef.type, billRef.number, congress);
               return { bills: [bill], count: 1, query: q };
             } catch {
-              // Bill not found — return empty so caller falls through to text search
               return { bills: [], count: 0, query: q };
             }
           },
@@ -187,32 +174,27 @@ export async function GET(request: NextRequest) {
             },
           });
         }
-        // Fall through to text search if direct lookup found nothing
+        // Fall through to title search if bill number not found
       }
 
-      // Pre-normalize query before sending to Congress.gov so punctuation like
-      // "&" or "–" doesn't silently drop matches.  The original q is preserved
-      // in the response for display purposes; the normalized form is used for
-      // the API call AND as the cache key so equivalent queries share a cache entry.
+      // 2. Title search via local bill_index MongoDB collection.
       const normalizedQ = normalizeQuery(q.toLowerCase());
-      const apiQuery = normalizedQ.length >= 2 ? normalizedQ : q;
+      const searchQuery = normalizedQ.length >= 2 ? normalizedQ : q;
 
       // Cache the full ranked batch keyed by query only (not per-page).
-      // Pagination is applied after cache retrieval so all pages share one API call.
+      // All "Load More" pages slice from this same cached array.
       const rankCacheKey = buildCacheKey(
         "legislation",
         "ranked",
-        `${congress}-${encodeURIComponent(apiQuery)}`,
+        `${congress}-${encodeURIComponent(searchQuery)}`,
       );
 
       const batchResult = await getOrFetch<RankedBatch>(
         rankCacheKey,
         async () => {
-          const response = await searchBills(apiQuery, { limit: SEARCH_FETCH_LIMIT, offset: 0, congress });
-          const bills = deduplicateBills(response.bills ?? []);
-          const fetchedCount = response.pagination?.count ?? bills.length;
-
-          return { rankedBills: rankBills(bills, q), fetchedCount };
+          const bills = await searchBillsByTitle(searchQuery, 100);
+          const deduped = deduplicateBills(bills);
+          return { rankedBills: rankBills(deduped, q), fetchedCount: deduped.length };
         },
         CacheTTL.LEGISLATIVE_DATA,
       );
@@ -223,12 +205,9 @@ export async function GET(request: NextRequest) {
 
       const { rankedBills, fetchedCount } = batchResult.data;
       const pageBills = rankedBills.slice(offset, offset + limit);
-      // Report the smaller of Congress.gov's total count and our fetched batch,
-      // so the client doesn't try to paginate beyond what we've ranked.
-      const count = Math.min(fetchedCount, rankedBills.length);
 
       return jsonSuccess(
-        { bills: pageBills, count, query: q },
+        { bills: pageBills, count: fetchedCount, query: q },
         {
           headers: {
             "X-Cache-Status": batchResult.status,
@@ -239,7 +218,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // No query — return recent bills with offset-based pagination
+    // 3. No query — return recent bills with offset-based pagination.
     const recentCacheKey = buildCacheKey(
       "legislation",
       "search",
