@@ -315,3 +315,12 @@
   - Changed Legislation and Theater Ratio notes from `.join(" · ")` string to proper arrays
   - Array notes now render as a bullet list (`·` leader per item) instead of a single joined string
   - No new tests needed (pure visual/presentation change); type-check clean
+- [x] **Fix legislative search — stop words, prefix matching, pre-normalization** (2026-04-04)
+  - Root causes: (1) `scoreBill()` counted stop words ("act", "the", "of") as meaningful query words, diluting per-word scores and causing unrelated bills to score equally. (2) No prefix/stem matching — "veteran" never matched "veterans'". (3) Query normalization was only applied as a fallback after an empty API response, so punctuated queries like "Energy & Climate Act" were sent verbatim to Congress.gov.
+  - Fix: Added `TITLE_STOP_WORDS` set; `scoreBill()` filters stop words before word-level scoring, falls back to all words if entire query is stop words.
+  - Fix: `scoreBill()` now splits title into tokens on word-boundary characters and uses exact token match (+1 score) OR prefix match for tokens ≥4 chars (+0.6 score), covering "veteran"↔"veterans'", "healthcare"↔"health".
+  - Fix: Pre-normalize query (`normalizeQuery(q.toLowerCase())`) before the Congress.gov API call AND use the normalized form as the cache key, so queries like "Energy & Climate Act" map to the same cache entry as "Energy Climate Act". The original `q` is preserved in the API response for display.
+  - Removed the dead two-call fallback (normalized retry on empty results) — now unnecessary since normalization is always applied upfront.
+  - Updated test: "triggers fuzzy fallback" → "pre-normalizes punctuated query before calling Congress.gov (single API call)" with assertion that `searchBillsMock` is called once with the normalized string.
+  - Added 2 new tests: stop-word filtering (veterans benefits ranks above unrelated act), prefix matching (veteran matches Veterans').
+  - Tests: 21/21 in legislation-search-route.test.ts; 403/403 full suite passing; type-check clean

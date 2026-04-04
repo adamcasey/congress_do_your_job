@@ -7,16 +7,13 @@
 - Branch: `dev` | Production redirects to `/coming-soon` (feature-flagged via LaunchDarkly)
 - MVP features partially built: rep lookup, bill tracking, waitlist, AI bill summaries, scorecard engine + UI
 - Representative lookup now uses Google Civic Information API (chamber detection fixed)
+- There is to be no additional feature building until the current project is 100% operational
 
 ## High Priority
-
 
 ## Medium Priority
 
 ## Low Priority
-
-- [x] Implement Lob.com physical mail integration
-- [x] Add Eisenhower Fund pooled donation logic
 
 ## Notes
 

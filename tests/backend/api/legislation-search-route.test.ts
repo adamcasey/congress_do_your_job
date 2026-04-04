@@ -162,20 +162,24 @@ describe("GET /api/v1/legislation/search", () => {
     expect(body.data.bills).toHaveLength(0); // query had no punctuation so no fallback
   });
 
-  it("triggers fuzzy fallback when query has punctuation and returns no results", async () => {
-    searchBillsMock
-      .mockResolvedValueOnce({ bills: [], pagination: { count: 0 } })
-      .mockResolvedValueOnce({
-        bills: [makeBill("Energy and Climate Solutions Act", "1")],
-        pagination: { count: 1 },
-      });
+  it("pre-normalizes punctuated query before calling Congress.gov (single API call)", async () => {
+    // "&" is stripped to a space via normalizeQuery before the API call, so Congress.gov
+    // receives "energy climate solutions act" instead of "Energy & Climate Solutions Act".
+    // This means we only ever make ONE API call — there is no two-step fallback.
+    searchBillsMock.mockResolvedValueOnce({
+      bills: [makeBill("Energy and Climate Solutions Act", "1")],
+      pagination: { count: 1 },
+    });
 
-    // Query with punctuation that doesn't match anything
     const response = await GET(
       createRequest("https://app.test/api/v1/legislation/search?q=Energy+%26+Climate+Solutions+Act"),
     );
     const body = await response.json();
-    expect(searchBillsMock).toHaveBeenCalledTimes(2);
+    expect(searchBillsMock).toHaveBeenCalledTimes(1);
+    expect(searchBillsMock).toHaveBeenCalledWith(
+      "energy climate solutions act",
+      expect.objectContaining({ limit: 100, offset: 0 }),
+    );
     expect(body.data.bills).toHaveLength(1);
     expect(body.data.bills[0].title).toBe("Energy and Climate Solutions Act");
   });
@@ -306,6 +310,42 @@ describe("GET /api/v1/legislation/search", () => {
       const body = await response.json();
       expect(body.data.count).toBe(1);
       expect(getBillMock).toHaveBeenCalledWith("s", "42", 119);
+    });
+  });
+
+  describe("scoring improvements", () => {
+    it("stop words do not inflate scores — 'veterans benefits' ranks above 'unrelated act'", async () => {
+      // Both bills contain "act" but only one contains significant query words
+      searchBillsMock.mockResolvedValue({
+        bills: [
+          makeBill("Unrelated Infrastructure Act", "2"),
+          makeBill("Veterans Benefits Improvement Act of 2025", "1"),
+        ],
+        pagination: { count: 2 },
+      });
+
+      const response = await GET(
+        createRequest("https://app.test/api/v1/legislation/search?q=veterans+benefits"),
+      );
+      const body = await response.json();
+      expect(body.data.bills[0].title).toBe("Veterans Benefits Improvement Act of 2025");
+    });
+
+    it("prefix matching — 'veteran' matches 'Veterans' Benefits Act'", async () => {
+      searchBillsMock.mockResolvedValue({
+        bills: [
+          makeBill("Unrelated Commerce Bill", "2"),
+          makeBill("Veterans' Benefits and Transition Act", "1"),
+        ],
+        pagination: { count: 2 },
+      });
+
+      const response = await GET(
+        createRequest("https://app.test/api/v1/legislation/search?q=veteran+transition"),
+      );
+      const body = await response.json();
+      // "veteran" prefix-matches "veterans'" and "transition" exact-matches
+      expect(body.data.bills[0].title).toBe("Veterans' Benefits and Transition Act");
     });
   });
 

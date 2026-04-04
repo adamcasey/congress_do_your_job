@@ -5,15 +5,55 @@ import { Bill } from "@/types/congress";
 import { createLogger } from "@/lib/logger";
 import { jsonError, jsonSuccess } from "@/lib/api-response";
 
-/** Score a bill title against the search query; higher = more relevant. */
+/**
+ * Words so common in bill titles that they should not influence relevance scoring.
+ * Counting "act", "of", or "a" as meaningful query words would dilute per-word
+ * scores and make unrelated bills appear equally relevant.
+ */
+const TITLE_STOP_WORDS = new Set([
+  "a", "an", "the", "of", "to", "and", "or", "for", "in", "on", "at", "by",
+  "with", "act", "bill", "resolution",
+]);
+
+/**
+ * Score a bill title against the search query; higher = more relevant.
+ *
+ * Scoring tiers (descending priority):
+ *   100 – exact title match
+ *    90 – title starts with query phrase
+ *    80 – title contains full query phrase as substring
+ *  1–70 – word-level: proportion of significant query words matched
+ *          exact word match > word-prefix match (e.g. "veteran" ≈ "veterans")
+ */
 function scoreBill(bill: Bill, query: string, queryWords: string[]): number {
   const title = (bill.title ?? "").toLowerCase();
   if (title === query) return 100;
   if (title.startsWith(query)) return 90;
   if (title.includes(query)) return 80;
-  const matched = queryWords.filter((w) => title.includes(w)).length;
-  if (matched === 0) return 0;
-  return Math.round((matched / queryWords.length) * 70);
+
+  // Filter stop words so "and", "the", "act" don't pollute per-word ratios.
+  const significant = queryWords.filter((w) => w.length >= 2 && !TITLE_STOP_WORDS.has(w));
+  // Fall back to all words if the entire query is stop words (e.g. "the act").
+  const matchWords = significant.length > 0 ? significant : queryWords;
+  if (matchWords.length === 0) return 0;
+
+  // Split title into individual tokens for word-boundary comparison.
+  const titleTokens = title.split(/[\s\-–,;:()[\]{}'"]+/).filter(Boolean);
+
+  let score = 0;
+  for (const qw of matchWords) {
+    if (titleTokens.some((tw) => tw === qw)) {
+      // Exact word match — full weight
+      score += 1;
+    } else if (titleTokens.some((tw) => tw.startsWith(qw) || (qw.startsWith(tw) && tw.length >= 4))) {
+      // Prefix match (e.g. "veteran" ↔ "veterans", "heal" ↔ "healthcare")
+      // Require at least 4 chars on the title side to avoid single-letter false positives.
+      score += 0.6;
+    }
+  }
+
+  if (score === 0) return 0;
+  return Math.max(1, Math.round((score / matchWords.length) * 70));
 }
 
 /** Re-rank bills so that title-matching results surface first.
@@ -150,33 +190,27 @@ export async function GET(request: NextRequest) {
         // Fall through to text search if direct lookup found nothing
       }
 
+      // Pre-normalize query before sending to Congress.gov so punctuation like
+      // "&" or "–" doesn't silently drop matches.  The original q is preserved
+      // in the response for display purposes; the normalized form is used for
+      // the API call AND as the cache key so equivalent queries share a cache entry.
+      const normalizedQ = normalizeQuery(q.toLowerCase());
+      const apiQuery = normalizedQ.length >= 2 ? normalizedQ : q;
+
       // Cache the full ranked batch keyed by query only (not per-page).
       // Pagination is applied after cache retrieval so all pages share one API call.
       const rankCacheKey = buildCacheKey(
         "legislation",
         "ranked",
-        `${congress}-${encodeURIComponent(q.toLowerCase())}`,
+        `${congress}-${encodeURIComponent(apiQuery)}`,
       );
 
       const batchResult = await getOrFetch<RankedBatch>(
         rankCacheKey,
         async () => {
-          const response = await searchBills(q, { limit: SEARCH_FETCH_LIMIT, offset: 0, congress });
-          let bills = deduplicateBills(response.bills ?? []);
+          const response = await searchBills(apiQuery, { limit: SEARCH_FETCH_LIMIT, offset: 0, congress });
+          const bills = deduplicateBills(response.bills ?? []);
           const fetchedCount = response.pagination?.count ?? bills.length;
-
-          // Fuzzy fallback: if no results and query has punctuation, try normalized form
-          if (bills.length === 0) {
-            const normalized = normalizeQuery(q);
-            if (normalized !== q && normalized.length >= 2) {
-              const fallback = await searchBills(normalized, {
-                limit: SEARCH_FETCH_LIMIT,
-                offset: 0,
-                congress,
-              });
-              bills = deduplicateBills(fallback.bills ?? []);
-            }
-          }
 
           return { rankedBills: rankBills(bills, q), fetchedCount };
         },
