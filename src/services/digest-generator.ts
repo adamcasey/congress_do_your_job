@@ -38,6 +38,8 @@ export interface GeneratedDigest {
   overallSummary: string;
   stats: DigestStats;
   featuredBills: DigestBill[];
+  /** True when this edition was already published in a prior run — emails must NOT be re-sent. */
+  alreadyPublished: boolean;
 }
 
 /**
@@ -72,8 +74,8 @@ export async function generateWeeklyDigest(now: Date = new Date()): Promise<Gene
   });
 
   if (published) {
-    logger.info("Digest already published for this week", { editionNumber: published.editionNumber });
-    return rehydrateEdition(published);
+    logger.info("Digest already published for this week — skipping re-send", { editionNumber: published.editionNumber });
+    return { ...rehydrateEdition(published), alreadyPublished: true };
   }
 
   // Delete a stale draft from a failed run so we can recreate cleanly.
@@ -194,6 +196,7 @@ export async function generateWeeklyDigest(now: Date = new Date()): Promise<Gene
     overallSummary,
     stats,
     featuredBills,
+    alreadyPublished: false,
   };
 }
 
@@ -244,5 +247,6 @@ function rehydrateEdition(edition: {
       weekEnd: edition.weekEnd,
     },
     featuredBills: (billsSection?.items ?? []) as DigestBill[],
+    alreadyPublished: false, // set by caller when returning a published edition
   };
 }
