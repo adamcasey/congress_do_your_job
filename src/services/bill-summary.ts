@@ -30,6 +30,19 @@ function cleanHtml(text: string): string {
 }
 
 /**
+ * CRS summaries from Congress.gov often begin with a title/short-title
+ * declaration: "Full Title or the Short Title\n\nThis bill..."
+ * Strip that preamble so Gemini only sees the substantive content.
+ */
+function stripLeadingTitle(text: string): string {
+  const match = text.match(/\b(This bill|This legislation|This act)\b/i);
+  if (match?.index && match.index > 0) {
+    return text.substring(match.index);
+  }
+  return text;
+}
+
+/**
  * Select the most advanced CRS summary available.
  * versionCode is a two-digit string where higher values correspond to later
  * legislative stages (e.g. "00" = introduced, "49" = public law).
@@ -84,7 +97,8 @@ export async function getOrCreateBillSummary(
     logger.warn("Could not fetch bill summaries endpoint, using embedded summaries:", err);
   }
 
-  const summaryText = selectBestSummaryText(officialSummaries);
+  const rawSummaryText = selectBestSummaryText(officialSummaries);
+  const summaryText = rawSummaryText ? stripLeadingTitle(rawSummaryText) : "";
 
   // If neither official text nor title is available, return a plain fallback
   // without persisting — this allows a retry on the next request if the bill

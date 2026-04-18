@@ -36,9 +36,7 @@ export function BillDetailModal({ bill, onClose }: BillDetailModalProps) {
               <h3 className="text-lg font-semibold text-slate-900">{billDetails.title}</h3>
               <p className="mt-1 text-sm text-slate-600">
                 Introduced: {formatDate(billDetails.introducedDate)}
-                {billDetails.sponsors && billDetails.sponsors.length > 0 && (
-                  <> by {billDetails.sponsors[0].fullName}</>
-                )}
+                {billDetails.sponsors && billDetails.sponsors.length > 0 && <> by {billDetails.sponsors[0].fullName}</>}
               </p>
             </div>
 

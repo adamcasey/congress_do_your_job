@@ -7,6 +7,7 @@ export interface CongressApiResponse<T> {
   bill?: T;
   bills?: T[];
   summaries?: Summary[];
+  titles?: BillTitle[];
   amendments?: T[];
   member?: T;
   members?: T[];
@@ -31,6 +32,15 @@ export interface RequestMetadata {
   format: string;
 }
 
+export interface BillTitle {
+  title: string;
+  /** e.g. "Short Title as Introduced", "Official Title as Introduced", "Popular Title" */
+  titleType: string;
+  titleTypeCode?: number;
+  chamberCode?: string;
+  chamberName?: string;
+}
+
 export interface Bill {
   number: string;
   type: BillType;
@@ -48,6 +58,8 @@ export interface Bill {
   actions?: Action[];
   summaries?: Summary[];
   policyArea?: PolicyArea;
+  /** Short titles and popular names from the /titles endpoint — not in list responses */
+  shortTitles?: string[];
 }
 
 export type BillType =

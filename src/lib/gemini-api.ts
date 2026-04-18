@@ -75,11 +75,12 @@ ${billText}
 
 Instructions:
 - Write exactly 3-4 complete sentences in plain English that a typical American can understand
-- Sentence 1: State the core action of the bill (what it does, not its name). Start with "This bill..." or "This legislation..."
+- BEGIN your response with "This bill" or "This legislation" — the very first word must be "This"
+- Sentence 1: State the core action of the bill (what it does, not its name)
 - Sentence 2: Explain the primary mechanism or requirement the bill creates (who must do what, or what changes)
 - Sentence 3: Describe the practical impact on people, agencies, or the country
 - Sentence 4 (optional): Add a relevant detail such as funding amounts, eligibility criteria, or key exceptions if meaningful
-- DO NOT repeat the bill title or acronym as the summary — explain the substance
+- DO NOT start with the bill's name, title, or acronym — go straight to what the bill does
 - DO NOT include political opinions, party mentions, or editorial judgment
 - DO NOT use jargon without explanation
 - If the official text is sparse or missing, draw on the metadata and these approved sources for context: ${approvedSources}
