@@ -14,7 +14,7 @@
     },
     {
       "path": "/api/cron/sync-bills",
-      "schedule": "0 * * * *"
+      "schedule": "0 4 * * *"
     }
   ]
 }
