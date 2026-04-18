@@ -28,6 +28,8 @@ interface BillIndexDoc extends Document {
   billNumber: string;
   congress: number;
   title: string;
+  /** Short titles and popular names from /titles endpoint (e.g. ["SAVE Act"]) */
+  shortTitles: string[];
   originChamber: string;
   introducedDate: string;
   updateDate: string;
@@ -43,11 +45,32 @@ let indexEnsured = false;
 async function ensureIndexes(): Promise<void> {
   if (indexEnsured) return;
   const col = await getCollection<BillIndexDoc>(COLLECTION);
+
   await col.createIndex(
     { billType: 1, billNumber: 1, congress: 1 },
     { unique: true, name: "bill_unique_key" },
   );
-  await col.createIndex({ title: "text" }, { name: "title_text_search" });
+
+  // Drop legacy single-field text index so we can replace it with the
+  // weighted compound index below. Silently ignore if it doesn't exist.
+  try {
+    await col.dropIndex("title_text_search");
+  } catch {
+    // index didn't exist — nothing to do
+  }
+
+  // Weighted compound text index mirrors Congress.gov's SOLR field boosting:
+  // short titles (popular names) rank highest, followed by the official title,
+  // then policy area as a weak signal.
+  await col.createIndex(
+    { shortTitles: "text", title: "text", policyArea: "text" },
+    {
+      weights: { shortTitles: 10, title: 5, policyArea: 1 },
+      name: "bill_text_search",
+      default_language: "english",
+    },
+  );
+
   indexEnsured = true;
 }
 
@@ -57,6 +80,7 @@ function billToDoc(bill: Bill): Omit<BillIndexDoc, "_id"> {
     billNumber: bill.number,
     congress: bill.congress,
     title: bill.title ?? "",
+    shortTitles: bill.shortTitles ?? [],
     originChamber: bill.originChamber ?? "",
     introducedDate: bill.introducedDate ?? "",
     updateDate: bill.updateDate ?? "",
@@ -73,6 +97,7 @@ function docToBill(doc: WithId<BillIndexDoc>): Bill {
     number: doc.billNumber,
     congress: doc.congress,
     title: doc.title,
+    shortTitles: doc.shortTitles?.length > 0 ? doc.shortTitles : undefined,
     originChamber: doc.originChamber as Chamber,
     introducedDate: doc.introducedDate,
     updateDate: doc.updateDate,
@@ -140,6 +165,35 @@ export async function searchBillsByTitle(query: string, limit: number = 100): Pr
 
   const wordResults = await runSearch(query);
   return wordResults.map(docToBill);
+}
+
+/**
+ * Store short titles for a bill already in the index.
+ * Filters the raw Congress.gov titles array to only "Short Title" and
+ * "Popular Title" entries, then sets them on the indexed document so
+ * future text searches can match popular names like "SAVE Act".
+ *
+ * Safe to call even if the bill is not yet in the index (no-op in that case).
+ */
+export async function upsertBillShortTitles(
+  billType: string,
+  billNumber: string,
+  congress: number,
+  titles: import("@/types/congress").BillTitle[],
+): Promise<void> {
+  const shortTitles = titles
+    .filter((t) => /short title|popular title/i.test(t.titleType))
+    .map((t) => t.title)
+    .filter(Boolean);
+
+  if (shortTitles.length === 0) return;
+
+  await ensureIndexes();
+  const col = await getCollection<BillIndexDoc>(COLLECTION);
+  await col.updateOne(
+    { billType: billType.toUpperCase(), billNumber, congress },
+    { $set: { shortTitles } },
+  );
 }
 
 /**
