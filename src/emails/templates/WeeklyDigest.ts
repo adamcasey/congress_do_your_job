@@ -116,7 +116,7 @@ export function WeeklyDigest({
             Bills in Focus
           </h3>
           <p style="margin: 0 0 8px 0; color: #94a3b8; font-size: 12px;">
-            AI-generated plain-English summaries of this week's notable legislation
+            Plain-English summaries of this week's notable legislation
           </p>
           <table role="presentation" style="width: 100%; border-collapse: collapse;">
             ${billRows}
