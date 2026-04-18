@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/cron/refresh-legislation/route";
 
-const { getBillsMock, setCachedMock, buildCacheKeyMock, MockCongressApiError } = vi.hoisted(() => {
+const { getBillsMock, setCachedMock, buildCacheKeyMock, upsertBillsMock, MockCongressApiError } = vi.hoisted(() => {
   class HoistedCongressApiError extends Error {
     statusCode?: number;
     constructor(message: string, statusCode?: number) {
@@ -14,6 +14,7 @@ const { getBillsMock, setCachedMock, buildCacheKeyMock, MockCongressApiError } =
     getBillsMock: vi.fn(),
     setCachedMock: vi.fn(),
     buildCacheKeyMock: vi.fn(),
+    upsertBillsMock: vi.fn(),
     MockCongressApiError: HoistedCongressApiError,
   };
 });
@@ -28,6 +29,10 @@ vi.mock("@/lib/cache", () => ({
   setCached: setCachedMock,
   buildCacheKey: buildCacheKeyMock,
   CacheTTL: { LEGISLATIVE_DATA: 3600 },
+}));
+
+vi.mock("@/lib/bill-index", () => ({
+  upsertBills: upsertBillsMock,
 }));
 
 function makeBill(n: number) {
@@ -52,6 +57,7 @@ describe("GET /api/cron/refresh-legislation", () => {
       (service: string, resource: string, id: string) => `${service}:${resource}:${id}:v1`,
     );
     setCachedMock.mockResolvedValue(true);
+    upsertBillsMock.mockResolvedValue(0);
   });
 
   it("fetches 96 bills at offset 0 sorted by updateDate desc", async () => {
