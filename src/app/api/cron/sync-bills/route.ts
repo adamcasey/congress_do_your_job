@@ -6,9 +6,9 @@ import { jsonError, jsonSuccess } from "@/lib/api-response";
 
 const logger = createLogger("SyncBillsCron");
 
-// 2-hour lookback gives a 1-hour overlap buffer so no bills are missed
-// between consecutive hourly runs.
-const LOOKBACK_HOURS = 2;
+// 26-hour lookback gives a 2-hour overlap buffer so no bills are missed
+// between consecutive daily runs (cron fires at 04:00 UTC each day).
+const LOOKBACK_HOURS = 26;
 const BATCH_SIZE = 250;
 
 /**
