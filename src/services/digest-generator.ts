@@ -38,9 +38,33 @@ export interface GeneratedDigest {
   overallSummary: string;
   stats: DigestStats;
   featuredBills: DigestBill[];
+  congressFact: string;
   /** True when this edition was already published in a prior run — emails must NOT be re-sent. */
   alreadyPublished: boolean;
 }
+
+const CONGRESS_FACTS = [
+  "The first Congress met in New York City in 1789 — the Capitol Building in Washington D.C. wasn't ready until 1800.",
+  "Congress has overridden a presidential veto 112 times in U.S. history. The most recent was in 2021.",
+  "The shortest session of Congress lasted just one day. The longest ran for over two years during World War II.",
+  "A bill becomes law roughly 4% of the time it's introduced. In the 117th Congress, 16,601 bills were filed and 344 were signed.",
+  "The House has 435 voting members. That number has been fixed by law since 1929, even as the U.S. population has grown from 106 million to 330 million.",
+  "Congressional staff outnumber members roughly 10-to-1. There are about 10,000 personal and committee staff working on Capitol Hill.",
+  "The Senate filibuster isn't in the Constitution. It emerged by accident in 1805 when a rule allowing debate to be cut off was removed.",
+  "Only 10 women served in Congress in 1971. Today there are over 150 — still under a quarter of total members.",
+  "The Congressional Record has been published daily since 1873. It runs to millions of pages and is available free online.",
+  "Congress has declared war formally just 11 times, covering five wars. U.S. forces have been deployed abroad over 100 times without a formal declaration.",
+  "The youngest person ever elected to the House was William Charles Cole Claiborne in 1797 — he was 22, below the constitutional minimum age of 25.",
+  "Congress passed over 4,000 private bills in the 1940s alone. Today that number is typically in the single digits each year.",
+  "The Capitol Building's dome was completed during the Civil War, in part as a symbol that the Union would hold.",
+  "Before the 17th Amendment passed in 1913, U.S. senators were chosen by state legislatures — not by voters directly.",
+  "The Congressional Budget Office was created in 1974 after Congress decided it needed its own budget analysis independent from the White House.",
+  "Members of Congress receive mail from constituents at a rate of roughly 200 million pieces per year — letters, emails, and calls combined.",
+  "C-SPAN has broadcast congressional proceedings since 1979. It was the first network to air the House live; the Senate followed in 1986.",
+  "Congress holds roughly 10,000 committee and subcommittee meetings each session — most are open to the public.",
+  "The 'lame duck' period between November elections and January inaugurations was shortened from 13 months to 2 months by the 20th Amendment in 1933.",
+  "Representatives run for re-election every two years — meaning they are always running. Senators face voters every six years.",
+];
 
 /**
  * Return the most recent Monday at 00:00:00 UTC.
@@ -149,6 +173,7 @@ export async function generateWeeklyDigest(now: Date = new Date()): Promise<Gene
 
   // --- Persist draft edition ---
   const editionNumber = (await prismaClient.digestEdition.count()) + 1;
+  const congressFact = pickCongressFact(editionNumber);
 
   const edition = await prismaClient.digestEdition.create({
     data: {
@@ -196,6 +221,7 @@ export async function generateWeeklyDigest(now: Date = new Date()): Promise<Gene
     overallSummary,
     stats,
     featuredBills,
+    congressFact,
     alreadyPublished: false,
   };
 }
@@ -247,6 +273,11 @@ function rehydrateEdition(edition: {
       weekEnd: edition.weekEnd,
     },
     featuredBills: (billsSection?.items ?? []) as DigestBill[],
+    congressFact: pickCongressFact(edition.editionNumber),
     alreadyPublished: false, // set by caller when returning a published edition
   };
+}
+
+function pickCongressFact(editionNumber: number): string {
+  return CONGRESS_FACTS[(editionNumber - 1) % CONGRESS_FACTS.length];
 }

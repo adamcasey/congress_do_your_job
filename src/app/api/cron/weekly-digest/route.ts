@@ -85,6 +85,7 @@ export async function GET(request: NextRequest) {
       overallSummary: digest.overallSummary,
       stats: digest.stats,
       featuredBills: digest.featuredBills,
+      congressFact: digest.congressFact,
     });
 
     const subject = `${digest.headline} — Edition #${digest.editionNumber}`;
