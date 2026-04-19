@@ -10,9 +10,14 @@ import { jsonError, jsonSuccess } from "@/lib/api-response";
 const logger = createLogger("WeeklyDigestCron");
 
 export async function GET(request: NextRequest) {
+  const testEmail = request.nextUrl.searchParams.get("test_email")?.trim() || null;
+  const isTestMode = !!testEmail;
+
   logger.info("Weekly digest cron started", {
     userAgent: request.headers.get("user-agent"),
     timestamp: new Date().toISOString(),
+    testMode: isTestMode,
+    ...(isTestMode && { testEmail }),
   });
 
   const stats = {
@@ -34,18 +39,23 @@ export async function GET(request: NextRequest) {
     });
 
     // Guard: if this edition was already published in a prior run, do not re-send.
-    // Without this, every subsequent cron invocation (or manual trigger) would
-    // blast all subscribers with the same digest again.
-    if (digest.alreadyPublished) {
+    // Skip this guard in test mode so you can re-trigger without resetting DB state.
+    if (digest.alreadyPublished && !isTestMode) {
       logger.info("Digest already published this week — no emails sent", {
         editionNumber: digest.editionNumber,
       });
       return jsonSuccess({ message: "Digest already published this week", stats });
     }
 
-    // --- Fetch subscriber list ---
-    const waitlistCollection = await getCollection<WaitlistSignup>("waitlist");
-    const subscribers = await waitlistCollection.find({ confirmed: true }).toArray();
+    // --- Resolve subscriber list ---
+    // In test mode: send only to the provided address without touching the waitlist.
+    let subscribers: { email: string }[];
+    if (isTestMode) {
+      subscribers = [{ email: testEmail! }];
+    } else {
+      const waitlistCollection = await getCollection<WaitlistSignup>("waitlist");
+      subscribers = await waitlistCollection.find({ confirmed: true }).toArray();
+    }
     stats.subscribersTotal = subscribers.length;
 
     logger.info("Subscriber list fetched", { total: subscribers.length });
@@ -108,13 +118,15 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // --- Mark published ---
-    await markDigestPublished(digest.editionId);
+    // --- Mark published (skip in test mode to preserve idempotency state) ---
+    if (!isTestMode) {
+      await markDigestPublished(digest.editionId);
+    }
 
-    logger.info("Weekly digest cron complete", stats);
+    logger.info("Weekly digest cron complete", { ...stats, testMode: isTestMode });
 
     return jsonSuccess({
-      message: "Weekly digest sent",
+      message: isTestMode ? `Test digest sent to ${testEmail}` : "Weekly digest sent",
       stats,
     });
   } catch (error) {
