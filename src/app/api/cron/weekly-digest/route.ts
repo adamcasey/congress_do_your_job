@@ -6,10 +6,14 @@ import { WeeklyDigest } from "@/emails/templates/WeeklyDigest";
 import { WaitlistSignup } from "@/types/waitlist";
 import { createLogger } from "@/lib/logger";
 import { jsonError, jsonSuccess } from "@/lib/api-response";
+import { verifyCronSecret } from "@/lib/cron-auth";
 
 const logger = createLogger("WeeklyDigestCron");
 
 export async function GET(request: NextRequest) {
+  const unauthorized = verifyCronSecret(request);
+  if (unauthorized) return unauthorized;
+
   const testEmail = request.nextUrl.searchParams.get("test_email")?.trim() || null;
   const isTestMode = !!testEmail;
 

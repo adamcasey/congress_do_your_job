@@ -5,6 +5,7 @@ import { upsertBills } from "@/lib/bill-index";
 import { Bill } from "@/types/congress";
 import { createLogger } from "@/lib/logger";
 import { jsonError, jsonSuccess } from "@/lib/api-response";
+import { verifyCronSecret } from "@/lib/cron-auth";
 
 const logger = createLogger("RefreshLegislationCron");
 
@@ -31,6 +32,9 @@ interface PagedSearchResponse {
  * Runs at 05:00 UTC (midnight US Eastern Standard Time) via vercel.json.
  */
 export async function GET(request: NextRequest) {
+  const unauthorized = verifyCronSecret(request);
+  if (unauthorized) return unauthorized;
+
   logger.info("Cron job started", {
     userAgent: request.headers.get("user-agent"),
     timestamp: new Date().toISOString(),
