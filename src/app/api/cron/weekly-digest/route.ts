@@ -84,6 +84,7 @@ export async function GET(request: NextRequest) {
       headline: digest.headline,
       overallSummary: digest.overallSummary,
       stats: digest.stats,
+      newsItems: digest.newsItems,
       featuredBills: digest.featuredBills,
       congressFact: digest.congressFact,
     });

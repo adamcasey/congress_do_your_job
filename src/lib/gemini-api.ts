@@ -30,6 +30,11 @@ export class GeminiApiError extends Error {
   }
 }
 
+export interface CongressNewsItem {
+  heading: string;
+  body: string;
+}
+
 export interface BillMetadata {
   chamber?: string;
   policyArea?: string;
@@ -43,6 +48,58 @@ export interface SummarizeBillOptions {
   billTitle: string;
   maxLength?: number;
   metadata?: BillMetadata;
+}
+
+const BANNED_WORDS =
+  "delve, leverage, utilize, paradigm, synergy, robust, game-changer, streamline, transformative, pivotal, groundbreaking, innovative, empower, holistic, navigate, landscape, realm, foster, facilitate, harness, meticulous, commendable, testament, notably, straightforward, cutting-edge, seamless";
+
+export async function generateCongressNewsItems(weekOf: string): Promise<CongressNewsItem[]> {
+  const prompt = `You are a witty, non-partisan writer for CongressDoYourJob.com — a civic platform with the tagline "Less theater. More legislation."
+
+Search for the top 3 most significant things that happened in the U.S. Congress during the week of ${weekOf}.
+
+For each event write:
+1. A short, comical paragraph heading (5-9 words, punchy, slightly irreverent — the humor comes from the absurdity of the situation, never from partisan shots)
+2. A body of 3-5 sentences: factual, plain English, mildly witty — think NPR if NPR loosened its tie slightly
+
+Hard rules:
+- Never mention political parties, affiliations, or ideology
+- No outrage, no tribalism, no partisan framing
+- Focus only on what actually happened: votes taken, bills passed, hearings held, deadlines missed, procedural drama
+- Do NOT use any of these words: ${BANNED_WORDS}
+
+Return ONLY a valid JSON array — no markdown, no code fences, nothing else:
+[
+  { "heading": "...", "body": "..." },
+  { "heading": "...", "body": "..." },
+  { "heading": "...", "body": "..." }
+]`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        tools: [{ googleSearch: {} }],
+      },
+    });
+
+    if (!response?.text) {
+      throw new GeminiApiError("No text in news items response", 500);
+    }
+
+    const raw = response.text.trim().replace(/^```json\s*/i, "").replace(/```\s*$/, "");
+    const parsed = JSON.parse(raw) as CongressNewsItem[];
+
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      throw new GeminiApiError("Unexpected news items response shape", 500);
+    }
+
+    return parsed.slice(0, 3);
+  } catch (error) {
+    if (error instanceof GeminiApiError) throw error;
+    throw new GeminiApiError("Failed to generate congress news items", 500, error);
+  }
 }
 
 export async function summarizeBill({
