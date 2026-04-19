@@ -138,7 +138,23 @@ export function LegislationSearch() {
                         {status.label}
                       </span>
                     </div>
-                    <h3 className="mt-1 text-sm font-semibold leading-snug text-slate-900">{bill.title}</h3>
+                    {bill.shortTitles && bill.shortTitles.length > 0 ? (
+                      (() => {
+                        const sorted = [...bill.shortTitles].sort((a, b) => a.length - b.length);
+                        const acronym = sorted[0];
+                        const fullShortTitle = sorted.length > 1 ? sorted[sorted.length - 1] : null;
+                        return (
+                          <>
+                            <h3 className="mt-1 text-sm font-bold leading-snug text-slate-900">{acronym}</h3>
+                            {fullShortTitle && (
+                              <p className="mt-0.5 text-xs leading-snug text-slate-500">{fullShortTitle}</p>
+                            )}
+                          </>
+                        );
+                      })()
+                    ) : (
+                      <h3 className="mt-1 text-sm font-semibold leading-snug text-slate-900">{bill.title}</h3>
+                    )}
                     {bill.latestAction && (
                       <p className="mt-2 text-xs text-slate-600">
                         <span className="font-medium">Latest: </span>

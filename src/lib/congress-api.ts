@@ -1,6 +1,7 @@
 import {
   CongressApiResponse,
   Bill,
+  BillTitle,
   Member,
   Vote,
   Amendment,
@@ -123,27 +124,6 @@ async function fetchCongressApi<T>(
   }
 }
 
-interface SearchBillsOptions {
-  limit?: number;
-  offset?: number;
-  congress?: number;
-}
-
-/**
- * Search bills by keyword using Congress.gov full-text search
- * Congress.gov q param format: JSON-encoded search query
- */
-export async function searchBills(query: string, options: SearchBillsOptions = {}): Promise<CongressApiResponse<Bill>> {
-  const { limit = 20, offset = 0, congress = CURRENT_CONGRESS } = options;
-  console.log("[congress-api] searchBills q:", JSON.stringify({ query }));
-  return fetchCongressApi<Bill>(`/bill/${congress}`, {
-    q: JSON.stringify({ query }),
-    limit,
-    offset,
-    sort: "relevance",
-  });
-}
-
 /**
  * Get list of bills with optional filtering
  */
@@ -184,6 +164,22 @@ export async function getBillActions(
   const { limit = 20, offset = 0 } = options;
 
   return fetchCongressApi<Bill>(`/bill/${congress}/${billType.toLowerCase()}/${billNumber}/actions`, { limit, offset });
+}
+
+/**
+ * Get all titles for a bill (official, short, and popular names).
+ * Short titles (e.g. "SAVE Act") are only available via this endpoint —
+ * they are not included in the bill list or bill detail responses.
+ */
+export async function getBillTitles(
+  billType: string,
+  billNumber: string,
+  congress: number = CURRENT_CONGRESS,
+): Promise<BillTitle[]> {
+  const response = await fetchCongressApi<BillTitle>(
+    `/bill/${congress}/${billType.toLowerCase()}/${billNumber}/titles`,
+  );
+  return response.titles ?? [];
 }
 
 /**

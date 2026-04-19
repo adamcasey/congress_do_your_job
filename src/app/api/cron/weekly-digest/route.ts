@@ -30,12 +30,25 @@ export async function GET(request: NextRequest) {
     logger.info("Digest ready", {
       editionNumber: digest.editionNumber,
       featuredBills: digest.featuredBills.length,
+      alreadyPublished: digest.alreadyPublished,
     });
+
+    // Guard: if this edition was already published in a prior run, do not re-send.
+    // Without this, every subsequent cron invocation (or manual trigger) would
+    // blast all subscribers with the same digest again.
+    if (digest.alreadyPublished) {
+      logger.info("Digest already published this week — no emails sent", {
+        editionNumber: digest.editionNumber,
+      });
+      return jsonSuccess({ message: "Digest already published this week", stats });
+    }
 
     // --- Fetch subscriber list ---
     const waitlistCollection = await getCollection<WaitlistSignup>("waitlist");
     const subscribers = await waitlistCollection.find({ confirmed: true }).toArray();
     stats.subscribersTotal = subscribers.length;
+
+    logger.info("Subscriber list fetched", { total: subscribers.length });
 
     if (subscribers.length === 0) {
       logger.info("No confirmed subscribers — marking draft published without sending");
@@ -67,15 +80,30 @@ export async function GET(request: NextRequest) {
     // or Resend batch send (max 100/batch). For MVP waitlist sizes this loop is fine.
     for (const subscriber of subscribers) {
       try {
-        await resend.emails.send({
+        const { data, error } = await resend.emails.send({
           from: "CongressDoYourJob <no-reply@congressdoyourjob.com>",
           to: subscriber.email,
           subject,
           html: emailHtml,
         });
-        stats.emailsSent++;
+
+        if (error) {
+          logger.error(`Resend rejected email to ${subscriber.email}`, {
+            name: error.name,
+            message: error.message,
+          });
+          stats.emailsFailed++;
+        } else {
+          logger.info(`Email sent to ${subscriber.email}`, { resendId: data?.id });
+          stats.emailsSent++;
+        }
       } catch (err) {
-        logger.error(`Failed to send digest to ${subscriber.email}:`, err);
+        const resendErr = err as { name?: string; message?: string; statusCode?: number };
+        logger.error(`Failed to send digest to ${subscriber.email}`, {
+          name: resendErr.name,
+          message: resendErr.message,
+          statusCode: resendErr.statusCode,
+        });
         stats.emailsFailed++;
       }
     }
@@ -90,7 +118,12 @@ export async function GET(request: NextRequest) {
       stats,
     });
   } catch (error) {
-    logger.error("Weekly digest cron error:", error);
+    const resendErr = error as { name?: string; message?: string; statusCode?: number };
+    logger.error("Weekly digest cron error", {
+      name: resendErr.name ?? (error instanceof Error ? error.constructor.name : "Unknown"),
+      message: resendErr.message ?? String(error),
+      statusCode: resendErr.statusCode,
+    });
     return jsonError("Failed to send weekly digest", 500, { stats });
   }
 }

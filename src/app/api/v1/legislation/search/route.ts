@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { getBills, getBill, CongressApiError, getCurrentCongress } from "@/lib/congress-api";
-import { searchBillsByTitle } from "@/lib/bill-index";
+import { getBills, getBill, getBillTitles, CongressApiError, getCurrentCongress } from "@/lib/congress-api";
+import { searchBillsByTitle, upsertBillShortTitles } from "@/lib/bill-index";
 import { getOrFetch, buildCacheKey, CacheTTL } from "@/lib/cache";
 import { Bill } from "@/types/congress";
 import { createLogger } from "@/lib/logger";
@@ -17,33 +17,60 @@ const TITLE_STOP_WORDS = new Set([
 ]);
 
 /**
- * Score a bill title against the search query; higher = more relevant.
+ * Returns true if `acronym` matches the initial letters of consecutive tokens
+ * in `titleTokens`. For example, "save" matches ["safeguard","american","voter","eligibility"].
+ */
+function isAcronymOf(acronym: string, titleTokens: string[]): boolean {
+  if (acronym.length < 2 || acronym.length > titleTokens.length) return false;
+  for (let start = 0; start <= titleTokens.length - acronym.length; start++) {
+    const initials = titleTokens.slice(start, start + acronym.length).map((t) => t[0]).join("");
+    if (initials === acronym) return true;
+  }
+  return false;
+}
+
+/**
+ * Score a bill against the search query; higher = more relevant.
  *
  * Scoring tiers (descending priority):
- *   100 – exact title match
- *    90 – title starts with query phrase
- *    80 – title contains full query phrase as substring
- *  1–70 – word-level: proportion of significant query words matched
+ *   100 – exact official title match
+ *    95 – exact short title / popular name match  (mirrors Congress.gov's 10x weight on shortTitles)
+ *    90 – official title starts with query phrase
+ *    85 – short title contains query phrase
+ *    80 – official title contains query phrase
+ *  1–70 – word-level: proportion of significant query words found in any title
  *          exact word match > word-prefix match (e.g. "veteran" ≈ "veterans")
+ *          acronym match (e.g. "save" → Safeguard American Voter Eligibility)
  */
 function scoreBill(bill: Bill, query: string, queryWords: string[]): number {
   const title = (bill.title ?? "").toLowerCase();
+  const shortTitles = (bill.shortTitles ?? []).map((t) => t.toLowerCase());
+
   if (title === query) return 100;
+  if (shortTitles.some((st) => st === query)) return 95;
   if (title.startsWith(query)) return 90;
+  if (shortTitles.some((st) => st.includes(query))) return 85;
   if (title.includes(query)) return 80;
 
   const significant = queryWords.filter((w) => w.length >= 2 && !TITLE_STOP_WORDS.has(w));
   const matchWords = significant.length > 0 ? significant : queryWords;
   if (matchWords.length === 0) return 0;
 
-  const titleTokens = title.split(/[\s\-–,;:()[\]{}'"]+/).filter(Boolean);
+  // Tokenize all title surfaces (official + short titles) for word-level matching
+  const tokenize = (s: string) => s.split(/[\s\-–,;:()[\]{}'"]+/).filter(Boolean);
+  const allTokens = [
+    ...tokenize(title),
+    ...shortTitles.flatMap(tokenize),
+  ];
 
   let score = 0;
   for (const qw of matchWords) {
-    if (titleTokens.some((tw) => tw === qw)) {
+    if (allTokens.some((tw) => tw === qw)) {
       score += 1;
-    } else if (titleTokens.some((tw) => tw.startsWith(qw) || (qw.startsWith(tw) && tw.length >= 4))) {
+    } else if (allTokens.some((tw) => tw.startsWith(qw) || (qw.startsWith(tw) && tw.length >= 4))) {
       score += 0.6;
+    } else if (isAcronymOf(qw, tokenize(title))) {
+      score += 0.9;
     }
   }
 
@@ -157,6 +184,10 @@ export async function GET(request: NextRequest) {
           async () => {
             try {
               const bill = await getBill(billRef.type, billRef.number, congress);
+              // Fire-and-forget: store short titles so future title searches find this bill
+              getBillTitles(billRef.type, billRef.number, congress)
+                .then((titles) => upsertBillShortTitles(billRef.type, billRef.number, congress, titles))
+                .catch(() => {}); // non-critical — don't block the response
               return { bills: [bill], count: 1, query: q };
             } catch {
               return { bills: [], count: 0, query: q };

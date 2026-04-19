@@ -21,8 +21,8 @@ export default function LegislationPage() {
             Legislation Tracker
           </h1>
           <p className="mx-auto max-w-xl text-lg text-slate-600 text-balance">
-            Search federal bills by keyword or topic. Click any bill for a plain-English summary and its progress through
-            Congress.
+            Search federal bills by bill number, title, or keywords. Click any bill for a plain-English summary and its progress
+            through Congress.
           </p>
         </header>
 
