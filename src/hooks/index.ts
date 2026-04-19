@@ -9,3 +9,4 @@ export { useBillDetails } from "./useBillDetails";
 export { useDebounce } from "./useDebounce";
 export { useLegislationSearch } from "./useLegislationSearch";
 export { useVotingRecord } from "./useVotingRecord";
+export { useBillTitles } from "./useBillTitles";
