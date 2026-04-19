@@ -4,7 +4,7 @@ import Link from "next/link";
 import { NavAuthButton } from "./NavAuthButton";
 
 const NAV_LINKS = [
-  { label: "Briefing", href: "/legislation" },
+  { label: "Legislation", href: "/legislation" },
   { label: "Scorecards", href: "/scorecard" },
   { label: "Petitions", href: "/petitions" },
   { label: "Fund", href: "/fund" },

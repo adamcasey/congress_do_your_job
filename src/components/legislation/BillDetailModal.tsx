@@ -3,7 +3,7 @@
 import { Bill } from "@/types/congress";
 import { BillTimeline } from "./BillTimeline";
 import { Modal } from "@/components/ui/Modal";
-import { useBillDetails, useBillSummary } from "@/hooks";
+import { useBillDetails, useBillSummary, useBillTitles } from "@/hooks";
 import { formatDate, stripHtmlTags, extractSentences } from "@/utils/dates";
 import type { BillDetailModalProps } from "./types";
 
@@ -20,6 +20,18 @@ export function BillDetailModal({ bill, onClose }: BillDetailModalProps) {
     congress: bill.congress,
     enabled: true,
   });
+  const { titles } = useBillTitles({
+    billType: bill.type,
+    billNumber: bill.number,
+    congress: bill.congress,
+    enabled: true,
+  });
+
+  const shortTitles = titles.filter((t) => /short title/i.test(t.titleType));
+  const officialTitle = titles.find((t) => /official title/i.test(t.titleType));
+  const sortedShort = [...shortTitles].sort((a, b) => a.title.length - b.title.length);
+  const acronymTitle = sortedShort[0];
+  const expandedTitle = sortedShort.length > 1 ? sortedShort[sortedShort.length - 1] : null;
 
   return (
     <Modal isOpen onClose={onClose} title={`${bill.type} ${bill.number}`}>
@@ -33,8 +45,20 @@ export function BillDetailModal({ bill, onClose }: BillDetailModalProps) {
         <div className="flex flex-col">
           <div className="space-y-4 p-6">
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">{billDetails.title}</h3>
-              <p className="mt-1 text-sm text-slate-600">
+              {acronymTitle ? (
+                <>
+                  <h3 className="text-lg font-bold text-slate-900">{acronymTitle.title}</h3>
+                  {expandedTitle && (
+                    <p className="mt-0.5 text-sm font-medium text-slate-700">{expandedTitle.title}</p>
+                  )}
+                  {officialTitle && (
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">{officialTitle.title}</p>
+                  )}
+                </>
+              ) : (
+                <h3 className="text-lg font-semibold text-slate-900">{billDetails.title}</h3>
+              )}
+              <p className="mt-2 text-sm text-slate-600">
                 Introduced: {formatDate(billDetails.introducedDate)}
                 {billDetails.sponsors && billDetails.sponsors.length > 0 && <> by {billDetails.sponsors[0].fullName}</>}
               </p>
