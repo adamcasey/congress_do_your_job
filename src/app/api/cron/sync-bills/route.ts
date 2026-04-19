@@ -3,6 +3,7 @@ import { getBills, getBillTitles, CongressApiError } from "@/lib/congress-api";
 import { upsertBills, upsertBillShortTitles } from "@/lib/bill-index";
 import { createLogger } from "@/lib/logger";
 import { jsonError, jsonSuccess } from "@/lib/api-response";
+import { verifyCronSecret } from "@/lib/cron-auth";
 
 const logger = createLogger("SyncBillsCron");
 
@@ -21,6 +22,9 @@ const BATCH_SIZE = 250;
  * to work — they are not included in the list response.
  */
 export async function GET(request: NextRequest) {
+  const unauthorized = verifyCronSecret(request);
+  if (unauthorized) return unauthorized;
+
   logger.info("Sync bills cron started", { timestamp: new Date().toISOString() });
 
   const stats = { fetched: 0, upserted: 0, titlesEnriched: 0, errors: 0 };
