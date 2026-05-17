@@ -10,14 +10,12 @@ CongressDoYourJob.com is a non-partisan civic engagement platform that provides 
 
 ## Git Workflow
 
-This project uses a four-tier branching strategy:
+This project uses a three-tier branching strategy:
 
 ```
 main (production-ready, deployed to congressdoyourjob.com)
   ↑
 dev (integration branch, stable features)
-  ↑
-demo (preview features not quite ready for production)
   ↑
 feature/* (individual features cut from dev)
 ```
@@ -26,7 +24,6 @@ feature/* (individual features cut from dev)
 
 - **main**: Production-ready code only. Deployed to live site.
 - **dev**: Integration branch for stable, tested features. Should always be in a deployable state.
-- **demo**: Preview/staging branch for features that work but need more testing or user feedback before going to production. Can be deployed to a staging URL.
 - **feature/\***: Individual feature branches cut from `dev`. Naming convention: `feature/feature-name` (e.g., `feature/add-auth`, `feature/scorecard-logic`)
 
 ### Workflow Process
@@ -34,16 +31,14 @@ feature/* (individual features cut from dev)
 1. **Create feature branch from dev**: `git checkout dev && git checkout -b feature/your-feature`
 2. **Work on feature**: Commit changes to feature branch
 3. **Sync with dev periodically**: `git rebase dev` (preferred over merge)
-4. **When feature is complete**: Merge into `demo` first for testing
-5. **After demo testing**: Merge from `demo` into `dev`
-6. **When dev is stable**: Merge `dev` into `main` for production release
+4. **When feature is complete**: Merge into `dev`
+5. **When dev is stable**: Merge `dev` into `main` for production release
 
 ### Key Rules
 
-- **Never commit directly to main, dev, or demo** - always use feature branches
+- **Never commit directly to main or dev** - always use feature branches
 - **Prefer rebase over merge** when syncing feature branches with dev
-- **Use pull requests** for merging feature branches into demo/dev
-- **Test on demo** before promoting to dev
+- **Use pull requests** for merging feature branches into dev
 - **Keep main stable** - only merge well-tested code from dev
 
 ## Tech Stack
