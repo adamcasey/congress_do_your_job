@@ -10,7 +10,7 @@ const logger = createLogger("DigestGenerator");
 const MAX_FEATURED_BILLS = 3;
 
 /** When fetching candidates for the digest, look at this many bills. */
-const BILL_CANDIDATE_LIMIT = 20;
+const BILL_CANDIDATE_LIMIT = 50;
 
 export interface DigestBill {
   type: string;
@@ -110,7 +110,7 @@ export async function generateWeeklyDigest(now: Date = new Date()): Promise<Gene
   });
 
   // --- Data collection ---
-  const fromDateTime = new Date(weekStart.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
+  const fromDateTime = weekStart.toISOString().replace(/\.\d{3}Z$/, "Z");
   const toDateTime = weekEnd.toISOString().replace(/\.\d{3}Z$/, "Z");
 
   logger.info("Collecting bills for digest", { fromDateTime, toDateTime });
@@ -156,6 +156,12 @@ export async function generateWeeklyDigest(now: Date = new Date()): Promise<Gene
     }
   }
 
+  const billsWithRecentAction = bills.filter((b) => {
+    if (!b.latestAction?.actionDate) return false;
+    const actionDate = new Date(b.latestAction.actionDate);
+    return actionDate >= weekStart && actionDate <= weekEnd;
+  }).length;
+
   // --- Headline + summary prose ---
   const weekOfStr = weekStart.toLocaleDateString("en-US", {
     month: "long",
@@ -164,7 +170,7 @@ export async function generateWeeklyDigest(now: Date = new Date()): Promise<Gene
     timeZone: "UTC",
   });
   const headline = `Your Weekly Congress Briefing — ${weekOfStr}`;
-  const overallSummary = buildOverallSummary(billsIntroduced, bills.length, featuredBills.length);
+  const overallSummary = buildOverallSummary(billsIntroduced, billsWithRecentAction, featuredBills.length);
 
   // --- News items (grounded web search via Gemini) ---
   let newsItems: CongressNewsItem[] = [];
@@ -177,7 +183,7 @@ export async function generateWeeklyDigest(now: Date = new Date()): Promise<Gene
 
   const stats: DigestStats = {
     billsIntroduced,
-    billsWithRecentAction: bills.length,
+    billsWithRecentAction,
     weekStart,
     weekEnd,
   };
