@@ -151,19 +151,13 @@ export async function getBills(options: FetchOptions = {}): Promise<CongressApiR
  * action matches an introduction pattern and falls within the week window.
  */
 export async function getIntroducedBillCount(weekStart: Date, weekEnd: Date): Promise<number> {
-  // Only match action text that is unambiguously an introduction event.
-  // - Senate: "Read twice and referred to the Committee on …" is the standard
-  //   introduction action and appears nowhere else in a bill's lifecycle.
-  // - House: "Introduced in the House" is explicit. Generic "Referred to the
-  //   House Committee on …" is intentionally excluded because the same text
-  //   appears on re-referrals of old bills, which would inflate the count.
-  const INTRODUCTION_PATTERN = /\b(read twice and referred to the committee|introduced in the house|introduced in the senate)\b/i;
+  const INTRODUCTION_PATTERN = /\b(referred to the (house |senate )?committee|read twice and referred|introduced in the house|laid before the senate)\b/i;
 
   const fromDateTime = weekStart.toISOString().replace(/\.\d{3}Z$/, "Z");
   const toDateTime = weekEnd.toISOString().replace(/\.\d{3}Z$/, "Z");
 
   const response = await fetchCongressApi<Bill>(`/bill/${CURRENT_CONGRESS}`, {
-    limit: 100,
+    limit: 250,
     offset: 0,
     sort: "updateDate+desc",
     fromDateTime,
