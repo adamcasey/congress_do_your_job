@@ -96,7 +96,7 @@ export function WeeklyDigest({
   const newsSection =
     newsItems.length > 0
       ? `<tr>
-           <td style="padding: 0 40px 32px 40px;">
+           <td style="padding: 0 36px 32px 36px;">
              ${sectionHeader("This Week in Congress")}
              ${newsItems.map((item, i) => renderNewsItem(item, i)).join("")}
            </td>
@@ -112,12 +112,12 @@ export function WeeklyDigest({
 
   const factBlock = congressFact
     ? `<tr>
-         <td style="padding: 0 40px 32px 40px;">
+         <td style="padding: 0 36px 32px 36px;">
            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 0 8px 8px 0;">
              <tr>
                <td style="padding: 16px 20px;">
                  <p style="margin: 0 0 4px 0; color: #92400e; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.16em;">
-                   📜 Did You Know?
+                   Did You Know?
                  </p>
                  <p style="margin: 0; color: #78350f; font-size: 14px; line-height: 1.7;">
                    ${congressFact}
@@ -130,34 +130,32 @@ export function WeeklyDigest({
     : "";
 
   const content = `
-    <table role="presentation" style="max-width: 600px; width: 100%; border-collapse: collapse; background-color: #ffffff;">
+    <table role="presentation" style="max-width: 680px; width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 32px rgba(15,23,42,0.10);">
 
-      <!-- Wordmark -->
+      <!-- Masthead -->
       <tr>
-        <td style="padding: 36px 40px 8px 40px; text-align: center;">
-          <p style="margin: 0; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.2em;">
+        <td style="background-color: #0f172a; background-image: linear-gradient(135deg, #0f172a 60%, #1e3a5f 100%); padding: 36px 40px 28px 40px; text-align: center;">
+          <p style="margin: 0 0 10px 0; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.22em;">
             Edition #${editionNumber} &bull; ${weekOf}
           </p>
-          <h1 style="margin: 8px 0 4px 0; color: #0f172a; font-size: 28px; font-weight: 900; letter-spacing: -0.03em; line-height: 1.1;">
+          <h1 style="margin: 0 0 8px 0; color: #ffffff; font-size: 32px; font-weight: 900; letter-spacing: -0.03em; line-height: 1.1;">
             Congress Do Your Job
           </h1>
-          <p style="margin: 0; color: #64748b; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.16em;">
+          <p style="margin: 0; color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.22em;">
             Less theater. More legislation.
           </p>
         </td>
       </tr>
 
-      <!-- Rule -->
+      <!-- Amber accent bar -->
       <tr>
-        <td style="padding: 16px 40px 0 40px;">
-          <div style="border-top: 1px solid #e2e8f0;"></div>
-        </td>
+        <td style="background-color: #f59e0b; height: 3px; font-size: 0; line-height: 0;">&nbsp;</td>
       </tr>
 
       <!-- Editorial intro -->
       <tr>
-        <td style="padding: 28px 40px 32px 40px;">
-          <p style="margin: 0; color: #334155; font-size: 16px; line-height: 1.8;">
+        <td style="padding: 32px 36px 28px 36px;">
+          <p style="margin: 0; color: #334155; font-size: 16px; line-height: 1.85;">
             ${introSummary}
           </p>
         </td>
@@ -165,22 +163,22 @@ export function WeeklyDigest({
 
       <!-- Stats -->
       <tr>
-        <td style="padding: 0 40px 32px 40px;">
-          <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+        <td style="padding: 0 36px 32px 36px;">
+          <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
             <tr>
-              <td style="padding: 16px 20px; text-align: center; border-right: 1px solid #e2e8f0; width: 50%;">
-                <p style="margin: 0; color: #0f172a; font-size: 34px; font-weight: 900; line-height: 1; letter-spacing: -0.04em;">
+              <td style="padding: 20px 24px; text-align: center; border-right: 1px solid #e2e8f0; width: 50%;">
+                <p style="margin: 0; color: #0f172a; font-size: 40px; font-weight: 900; line-height: 1; letter-spacing: -0.04em;">
                   ${stats.billsIntroduced}
                 </p>
-                <p style="margin: 4px 0 0 0; color: #64748b; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;">
+                <p style="margin: 6px 0 0 0; color: #64748b; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em;">
                   New Bills
                 </p>
               </td>
-              <td style="padding: 16px 20px; text-align: center; width: 50%;">
-                <p style="margin: 0; color: #0f172a; font-size: 34px; font-weight: 900; line-height: 1; letter-spacing: -0.04em;">
+              <td style="padding: 20px 24px; text-align: center; width: 50%;">
+                <p style="margin: 0; color: #0f172a; font-size: 40px; font-weight: 900; line-height: 1; letter-spacing: -0.04em;">
                   ${stats.billsWithRecentAction}
                 </p>
-                <p style="margin: 4px 0 0 0; color: #64748b; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;">
+                <p style="margin: 6px 0 0 0; color: #64748b; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em;">
                   Bills Moving
                 </p>
               </td>
@@ -193,7 +191,7 @@ export function WeeklyDigest({
 
       <!-- Bills in Focus -->
       <tr>
-        <td style="padding: 0 40px 32px 40px;">
+        <td style="padding: 0 36px 32px 36px;">
           ${sectionHeader("Bills in Focus")}
           ${billsBody}
         </td>
@@ -201,29 +199,29 @@ export function WeeklyDigest({
 
       ${factBlock}
 
-      <!-- Rule -->
+      <!-- Footer rule -->
       <tr>
-        <td style="padding: 0 40px;">
+        <td style="padding: 0 36px;">
           <div style="border-top: 1px solid #e2e8f0;"></div>
         </td>
       </tr>
 
       <!-- Footer -->
       <tr>
-        <td style="padding: 28px 40px 36px 40px; text-align: center;">
-          <p style="margin: 0 0 20px 0; color: #334155; font-size: 13px; line-height: 1.6;">
+        <td style="padding: 28px 36px 36px 36px; text-align: center;">
+          <p style="margin: 0 0 16px 0; color: #334155; font-size: 13px; line-height: 1.6;">
             Was this forwarded to you? Get the weekly briefing free at
             <a href="https://congressdoyourjob.com" style="color: #1d4ed8; font-weight: 700; text-decoration: none;">Congress Do Your Job</a>.
           </p>
 
-          <p style="margin: 0 0 6px 0; color: #0f172a; font-size: 15px; font-weight: 900; letter-spacing: -0.02em;">
+          <p style="margin: 0 0 4px 0; color: #0f172a; font-size: 14px; font-weight: 900; letter-spacing: -0.01em;">
             <a href="https://congressdoyourjob.com" style="color: #0f172a; text-decoration: none;">Congress Do Your Job</a>
           </p>
-          <p style="margin: 0 0 20px 0; color: #94a3b8; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.16em;">
+          <p style="margin: 0 0 16px 0; color: #94a3b8; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em;">
             Less theater. More legislation.
           </p>
 
-          <p style="margin: 0 0 16px 0; color: #94a3b8; font-size: 11px; line-height: 1.6;">
+          <p style="margin: 0 0 14px 0; color: #94a3b8; font-size: 11px; line-height: 1.6;">
             <a href="https://congressdoyourjob.com" style="color: #94a3b8; text-decoration: none;">Congress Do Your Job</a>
             provides weekly, non-partisan coverage of U.S. federal legislative activity.
             No spin. No outrage. Just what Congress did.
