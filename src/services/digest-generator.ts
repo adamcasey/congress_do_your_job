@@ -88,20 +88,24 @@ export function getMostRecentMonday(from: Date = new Date()): Date {
  * Monday, it is returned directly without touching Congress.gov or Gemini.
  * A 'draft' from a failed prior run is replaced.
  *
- * @param now  Override "now" for testing / backfill.
+ * @param now              Override "now" for testing / backfill.
+ * @param forceRegenerate  Skip the idempotency check and always regenerate fresh data.
+ *                         Use in test mode so stale published editions don't mask bug fixes.
  */
-export async function generateWeeklyDigest(now: Date = new Date()): Promise<GeneratedDigest> {
+export async function generateWeeklyDigest(now: Date = new Date(), forceRegenerate = false): Promise<GeneratedDigest> {
   const weekStart = getMostRecentMonday(now);
   const weekEnd = new Date(now);
 
   // --- Idempotency check ---
-  const published = await prismaClient.digestEdition.findFirst({
-    where: { weekStart, status: "published" },
-  });
+  if (!forceRegenerate) {
+    const published = await prismaClient.digestEdition.findFirst({
+      where: { weekStart, status: "published" },
+    });
 
-  if (published) {
-    logger.info("Digest already published for this week — skipping re-send", { editionNumber: published.editionNumber });
-    return { ...rehydrateEdition(published), alreadyPublished: true };
+    if (published) {
+      logger.info("Digest already published for this week — skipping re-send", { editionNumber: published.editionNumber });
+      return { ...rehydrateEdition(published), alreadyPublished: true };
+    }
   }
 
   // Delete a stale draft from a failed run so we can recreate cleanly.

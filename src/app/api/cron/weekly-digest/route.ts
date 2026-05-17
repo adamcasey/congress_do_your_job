@@ -33,7 +33,9 @@ export async function GET(request: NextRequest) {
 
   try {
     // --- Generate (or retrieve idempotently) the digest ---
-    const digest = await generateWeeklyDigest();
+    // forceRegenerate skips the idempotency check in test mode so stale
+    // published editions don't mask fresh data from recent code changes.
+    const digest = await generateWeeklyDigest(new Date(), isTestMode);
     stats.editionNumber = digest.editionNumber;
 
     logger.info("Digest ready", {
