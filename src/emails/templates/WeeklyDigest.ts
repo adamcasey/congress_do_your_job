@@ -7,6 +7,7 @@ export interface WeeklyDigestProps {
   weekOf: string;
   headline: string;
   overallSummary: string;
+  introSummary: string;
   stats: DigestStats;
   newsItems: CongressNewsItem[];
   featuredBills: DigestBill[];
@@ -86,6 +87,7 @@ export function WeeklyDigest({
   editionNumber,
   weekOf,
   overallSummary,
+  introSummary,
   stats,
   newsItems,
   featuredBills,
@@ -152,14 +154,11 @@ export function WeeklyDigest({
         </td>
       </tr>
 
-      <!-- Greeting -->
+      <!-- Editorial intro -->
       <tr>
         <td style="padding: 28px 40px 32px 40px;">
-          <p style="margin: 0 0 12px 0; color: #0f172a; font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">
-            Hey,
-          </p>
-          <p style="margin: 0; color: #334155; font-size: 15px; line-height: 1.75;">
-            ${overallSummary}
+          <p style="margin: 0; color: #334155; font-size: 16px; line-height: 1.8;">
+            ${introSummary}
           </p>
         </td>
       </tr>

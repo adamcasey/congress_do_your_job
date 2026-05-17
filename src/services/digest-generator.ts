@@ -1,7 +1,7 @@
 import { prismaClient } from "@/lib/db";
 import { getBills, getIntroducedBillCount } from "@/lib/congress-api";
 import { getOrCreateBillSummary } from "@/services/bill-summary";
-import { generateCongressNewsItems, CongressNewsItem } from "@/lib/gemini-api";
+import { generateCongressNewsItems, generateDigestIntro, CongressNewsItem } from "@/lib/gemini-api";
 import { createLogger } from "@/lib/logger";
 
 const logger = createLogger("DigestGenerator");
@@ -37,6 +37,8 @@ export interface GeneratedDigest {
   weekEnd: Date;
   headline: string;
   overallSummary: string;
+  /** AI-generated 4-5 sentence editorial opening paragraph replacing the generic "Hey," greeting. */
+  introSummary: string;
   stats: DigestStats;
   newsItems: CongressNewsItem[];
   featuredBills: DigestBill[];
@@ -176,13 +178,21 @@ export async function generateWeeklyDigest(now: Date = new Date(), forceRegenera
   const headline = `Your Weekly Congress Briefing — ${weekOfStr}`;
   const overallSummary = buildOverallSummary(billsIntroduced, billsWithRecentAction, featuredBills.length);
 
-  // --- News items (grounded web search via Gemini) ---
+  // --- News items + editorial intro (grounded web search via Gemini) ---
   let newsItems: CongressNewsItem[] = [];
   try {
     newsItems = await generateCongressNewsItems(weekOfStr);
     logger.info(`Generated ${newsItems.length} congress news items`);
   } catch (err) {
     logger.warn("Failed to generate congress news items — omitting section:", err);
+  }
+
+  let introSummary = overallSummary;
+  try {
+    introSummary = await generateDigestIntro(weekOfStr, { featuredBills, newsItems });
+    logger.info("Generated digest intro paragraph");
+  } catch (err) {
+    logger.warn("Failed to generate digest intro — falling back to overallSummary:", err);
   }
 
   const stats: DigestStats = {
@@ -221,11 +231,18 @@ export async function generateWeeklyDigest(now: Date = new Date(), forceRegenera
           order: 1,
         },
         {
+          sectionType: "intro",
+          title: "Intro",
+          content: introSummary,
+          items: [{ text: introSummary }],
+          order: 2,
+        },
+        {
           sectionType: "bills",
           title: "Bills in Focus",
           content: `${featuredBills.length} bill${featuredBills.length !== 1 ? "s" : ""} summarized this week`,
           items: featuredBills.map((b) => ({ ...b })),
-          order: 2,
+          order: 3,
         },
       ],
     },
@@ -240,6 +257,7 @@ export async function generateWeeklyDigest(now: Date = new Date(), forceRegenera
     weekEnd,
     headline,
     overallSummary,
+    introSummary,
     stats,
     newsItems,
     featuredBills,
@@ -281,6 +299,10 @@ function rehydrateEdition(edition: {
   const billsSection = edition.sections.find((s) => s.sectionType === "bills");
   const rawStats = (statsSection?.items?.[0] ?? {}) as Record<string, unknown>;
 
+  const introSection = edition.sections.find((s) => s.sectionType === "intro");
+  const introSummary =
+    (introSection?.items?.[0] as Record<string, unknown>)?.text as string | undefined ?? edition.summary;
+
   return {
     editionId: edition.id,
     editionNumber: edition.editionNumber,
@@ -288,6 +310,7 @@ function rehydrateEdition(edition: {
     weekEnd: edition.weekEnd,
     headline: edition.headline,
     overallSummary: edition.summary,
+    introSummary,
     stats: {
       billsIntroduced: (rawStats.billsIntroduced as number) ?? 0,
       billsWithRecentAction: (rawStats.billsWithRecentAction as number) ?? 0,

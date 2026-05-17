@@ -53,6 +53,75 @@ export interface SummarizeBillOptions {
 const BANNED_WORDS =
   "delve, leverage, utilize, paradigm, synergy, robust, game-changer, streamline, transformative, pivotal, groundbreaking, innovative, empower, holistic, navigate, landscape, realm, foster, facilitate, harness, meticulous, commendable, testament, notably, straightforward, cutting-edge, seamless";
 
+export interface DigestIntroContext {
+  featuredBills: Array<{ title: string; summary: string; type: string; number: string }>;
+  newsItems: CongressNewsItem[];
+}
+
+/**
+ * Generate the editorial opening paragraph for the weekly digest email.
+ *
+ * Uses Google Search grounding to find the single most important thing that
+ * happened in or around Congress this week, then writes 4-5 sentences about
+ * it in plain, conversational prose — no jargon, no partisan framing.
+ */
+export async function generateDigestIntro(weekOf: string, context: DigestIntroContext): Promise<string> {
+  const billContext =
+    context.featuredBills.length > 0
+      ? context.featuredBills
+          .map((b) => `- ${b.type} ${b.number}: ${b.title}\n  ${b.summary}`)
+          .join("\n")
+      : "No featured bills this week.";
+
+  const newsContext =
+    context.newsItems.length > 0
+      ? context.newsItems.map((n) => `- ${n.heading}: ${n.body}`).join("\n")
+      : "No major news items this week.";
+
+  const prompt = `You are writing the opening paragraph for a weekly congressional briefing email from CongressDoYourJob.com — a non-partisan civic platform with the tagline "Less theater. More legislation."
+
+The tone to match: Josh Barro (Central Air podcast), Ben Dreyfuss (Calm Down newsletter), Megan McArdle (The McSudermans). Smart and conversational. Short declarative sentences mixed with the occasional longer analytical one. Plain English. Slightly wry without being snarky. You are explaining what happened in Washington this week to someone who is smart and busy but doesn't follow politics obsessively. Think NPR if NPR loosened its tie.
+
+Here is context about what moved through Congress the week of ${weekOf}:
+
+Featured bills:
+${billContext}
+
+Top news items this week:
+${newsContext}
+
+Your task: Write 4-5 sentences about the SINGLE most important thing that happened in or around Congress this week. This could be a major bill advancing, a significant floor vote, a Supreme Court ruling that affects federal law, a major budget moment, or a significant procedural development. Use your web search tool to find what is most important and verify details.
+
+Rules:
+- Never mention political parties, ideology, or affiliation
+- No outrage, no tribalism, no partisan framing
+- Do NOT use these words: ${BANNED_WORDS}
+- Begin DIRECTLY with substance — no "Hey", no "This week in Congress", no "Welcome back"
+- Write in natural long-form prose as if opening a letter to a smart friend
+- The paragraph should stand alone — it is the FIRST thing the reader sees
+
+Return ONLY the paragraph text. No headings, no markdown, no extra commentary.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        tools: [{ googleSearch: {} }],
+      },
+    });
+
+    if (!response?.text) {
+      throw new GeminiApiError("No text in digest intro response", 500);
+    }
+
+    return response.text.trim();
+  } catch (error) {
+    if (error instanceof GeminiApiError) throw error;
+    throw new GeminiApiError("Failed to generate digest intro", 500, error);
+  }
+}
+
 export async function generateCongressNewsItems(weekOf: string): Promise<CongressNewsItem[]> {
   const prompt = `You are a witty, non-partisan writer for CongressDoYourJob.com — a civic platform with the tagline "Less theater. More legislation."
 
