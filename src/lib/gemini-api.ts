@@ -88,6 +88,9 @@ Your task is to produce TWO things:
    - The best publicly accessible URL for the story (Congress.gov, senate.gov, house.gov, or a well-known news outlet; empty string if none)
 
 2. ONE intro paragraph — 4-5 sentences about the SINGLE most important thing that happened in or around Congress this week. Tone: Josh Barro / Ben Dreyfuss / Megan McArdle. Smart, conversational, slightly wry. Begin DIRECTLY with substance — no "Hey", no "This week in Congress". Write as if opening a letter to a smart, busy friend who doesn't follow politics obsessively.
+   - When you reference a specific story that has a URL (from your news items or web search), wrap the relevant phrase in an HTML anchor tag using this exact style: <a href="URL" style="color: #1d4ed8; text-decoration: underline;">phrase</a>
+   - Use only inline HTML — no block tags, no <p> tags, no line breaks
+   - Plain text where no URL is available
 
 Hard rules for ALL content:
 - Never mention political parties, affiliations, or ideology
