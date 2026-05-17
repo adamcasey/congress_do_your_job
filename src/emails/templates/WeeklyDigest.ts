@@ -30,13 +30,13 @@ function renderNewsItem(item: CongressNewsItem, index: number): string {
 
   return `
     <div style="${borderBottom}">
-      <p style="margin: 0 0 8px 0; display: inline-block; background-color: #fef3c7; color: #92400e; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.16em; padding: 3px 10px; border-radius: 4px;">
+      <p style="margin: 0 0 8px 0; display: inline-block; background-color: #fef3c7; color: #92400e; font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.16em; padding: 3px 10px; border-radius: 4px;">
         ${emoji} This Week
       </p>
-      <p style="margin: 6px 0 10px 0; font-size: 19px; font-weight: 800; line-height: 1.3; letter-spacing: -0.02em;">
+      <p style="margin: 6px 0 10px 0; font-size: 28px; font-weight: 800; line-height: 1.3; letter-spacing: -0.02em;">
         ${heading}
       </p>
-      <p style="margin: 0; color: #334155; font-size: 14px; line-height: 1.75;">
+      <p style="margin: 0; color: #334155; font-size: 21px; line-height: 1.75;">
         ${item.body}
       </p>
     </div>`;
@@ -47,15 +47,15 @@ function renderBillCard(bill: DigestBill, isLast: boolean): string {
   const borderBottom = isLast ? "" : "border-bottom: 1px solid #e2e8f0; padding-bottom: 24px; margin-bottom: 24px;";
 
   const actionLine = bill.latestAction
-    ? `<p style="margin: 8px 0 0 0; color: #64748b; font-size: 12px; line-height: 1.5;">
-        <strong style="color: #475569; text-transform: uppercase; letter-spacing: 0.05em; font-size: 10px;">Latest move:</strong>
+    ? `<p style="margin: 8px 0 0 0; color: #64748b; font-size: 18px; line-height: 1.5;">
+        <strong style="color: #475569; text-transform: uppercase; letter-spacing: 0.05em; font-size: 15px;">Latest move:</strong>
         ${bill.latestAction}
        </p>`
     : "";
 
   const readMore = bill.url
     ? `<p style="margin: 10px 0 0 0;">
-        <a href="${bill.url}" style="color: #1d4ed8; font-size: 12px; font-weight: 700; text-decoration: none;">
+        <a href="${bill.url}" style="color: #1d4ed8; font-size: 18px; font-weight: 700; text-decoration: none;">
           Read the full bill
         </a>
        </p>`
@@ -63,13 +63,13 @@ function renderBillCard(bill: DigestBill, isLast: boolean): string {
 
   return `
     <div style="${borderBottom}">
-      <p style="margin: 0 0 8px 0; display: inline-block; background-color: #1e3a5f; color: #bfdbfe; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; padding: 3px 10px; border-radius: 4px;">
+      <p style="margin: 0 0 8px 0; display: inline-block; background-color: #1e3a5f; color: #bfdbfe; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; padding: 3px 10px; border-radius: 4px;">
         🏛 ${billLabel}
       </p>
-      <p style="margin: 6px 0 8px 0; color: #0f172a; font-size: 17px; font-weight: 700; line-height: 1.35; letter-spacing: -0.01em;">
+      <p style="margin: 6px 0 8px 0; color: #0f172a; font-size: 26px; font-weight: 700; line-height: 1.35; letter-spacing: -0.01em;">
         ${bill.title}
       </p>
-      <p style="margin: 0; color: #334155; font-size: 14px; line-height: 1.75;">
+      <p style="margin: 0; color: #334155; font-size: 21px; line-height: 1.75;">
         ${bill.summary}
       </p>
       ${actionLine}
@@ -82,7 +82,7 @@ function sectionHeader(label: string): string {
     <table role="presentation" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
       <tr>
         <td style="padding-top: 8px; border-top: 2px solid #0f172a;">
-          <span style="color: #0f172a; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em;">${label}</span>
+          <span style="color: #0f172a; font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em;">${label}</span>
         </td>
       </tr>
     </table>`;
@@ -111,7 +111,7 @@ export function WeeklyDigest({
   const billsBody =
     featuredBills.length > 0
       ? featuredBills.map((b, i) => renderBillCard(b, i === featuredBills.length - 1)).join("")
-      : `<p style="color: #64748b; font-size: 14px; font-style: italic; margin: 0;">
+      : `<p style="color: #64748b; font-size: 21px; font-style: italic; margin: 0;">
            Nothing moved through the chambers this week. We checked.
          </p>`;
 
@@ -121,10 +121,10 @@ export function WeeklyDigest({
            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 0 8px 8px 0;">
              <tr>
                <td style="padding: 16px 20px;">
-                 <p style="margin: 0 0 4px 0; color: #92400e; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.16em;">
+                 <p style="margin: 0 0 4px 0; color: #92400e; font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.16em;">
                    Did You Know?
                  </p>
-                 <p style="margin: 0; color: #78350f; font-size: 14px; line-height: 1.7;">
+                 <p style="margin: 0; color: #78350f; font-size: 21px; line-height: 1.7;">
                    ${congressFact}
                  </p>
                </td>
@@ -140,13 +140,13 @@ export function WeeklyDigest({
       <!-- Masthead -->
       <tr>
         <td style="background-color: #ffffff; padding: 28px 40px 20px 40px; text-align: center;">
-          <p style="margin: 0 0 16px 0; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.22em;">
+          <p style="margin: 0 0 16px 0; font-size: 17px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.22em;">
             Edition #${editionNumber} &bull; ${weekOf}
           </p>
           <img src="https://congressdoyourjob.com/logos/figma/figma_logo_secondary.svg"
                alt="Congress Do Your Job — Less Theatre. More Legislation."
-               width="300"
-               style="display: block; margin: 0 auto; max-width: 300px; height: auto; border: 0;">
+               width="900"
+               style="display: block; margin: 0 auto; max-width: 100%; height: auto; border: 0;">
         </td>
       </tr>
 
@@ -158,7 +158,7 @@ export function WeeklyDigest({
       <!-- Editorial intro -->
       <tr>
         <td style="padding: 32px 36px 28px 36px;">
-          <p style="margin: 0; color: #334155; font-size: 16px; line-height: 1.85;">
+          <p style="margin: 0; color: #334155; font-size: 24px; line-height: 1.85;">
             ${introSummary}
           </p>
         </td>
@@ -170,23 +170,23 @@ export function WeeklyDigest({
           <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
             <tr>
               <td style="padding: 20px 24px; text-align: center; border-right: 1px solid #e2e8f0; width: 50%;">
-                <p style="margin: 0; color: #0f172a; font-size: 40px; font-weight: 900; line-height: 1; letter-spacing: -0.04em;">
+                <p style="margin: 0; color: #0f172a; font-size: 60px; font-weight: 900; line-height: 1; letter-spacing: -0.04em;">
                   ${stats.billsIntroduced}
                 </p>
-                <p style="margin: 6px 0 0 0; color: #64748b; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em;">
+                <p style="margin: 6px 0 0 0; color: #64748b; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em;">
                   New Bills
                 </p>
                 <p style="margin: 8px 0 0 0;">
-                  <a href="https://www.congress.gov/search?q=%7B%22congress%22%3A%22119%22%2C%22source%22%3A%22legislation%22%2C%22search%22%3A%22congressId%3A119+AND+billStatus%3A%5C%22Introduced%5C%22%22%7D&amp;pageSort=dateOfIntroduction%3Adesc" style="color: #1d4ed8; font-size: 11px; font-weight: 600; text-decoration: none;">
+                  <a href="https://www.congress.gov/search?q=%7B%22congress%22%3A%22119%22%2C%22source%22%3A%22legislation%22%2C%22search%22%3A%22congressId%3A119+AND+billStatus%3A%5C%22Introduced%5C%22%22%7D&amp;pageSort=dateOfIntroduction%3Adesc" style="color: #1d4ed8; font-size: 17px; font-weight: 600; text-decoration: none;">
                     Check out all the new bills here
                   </a>
                 </p>
               </td>
               <td style="padding: 20px 24px; text-align: center; width: 50%;">
-                <p style="margin: 0; color: #0f172a; font-size: 40px; font-weight: 900; line-height: 1; letter-spacing: -0.04em;">
+                <p style="margin: 0; color: #0f172a; font-size: 60px; font-weight: 900; line-height: 1; letter-spacing: -0.04em;">
                   ${stats.billsWithRecentAction}
                 </p>
-                <p style="margin: 6px 0 0 0; color: #64748b; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em;">
+                <p style="margin: 6px 0 0 0; color: #64748b; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em;">
                   Bills Moving
                 </p>
               </td>
@@ -217,33 +217,33 @@ export function WeeklyDigest({
       <!-- Footer -->
       <tr>
         <td style="padding: 28px 36px 36px 36px; text-align: center;">
-          <p style="margin: 0 0 16px 0; color: #334155; font-size: 13px; line-height: 1.6;">
+          <p style="margin: 0 0 16px 0; color: #334155; font-size: 20px; line-height: 1.6;">
             Was this forwarded to you? Get the weekly briefing free at
             <a href="https://congressdoyourjob.com" style="color: #1d4ed8; font-weight: 700; text-decoration: none;">Congress Do Your Job</a>.
           </p>
 
-          <p style="margin: 0 0 4px 0; color: #0f172a; font-size: 14px; font-weight: 900; letter-spacing: -0.01em;">
+          <p style="margin: 0 0 4px 0; color: #0f172a; font-size: 21px; font-weight: 900; letter-spacing: -0.01em;">
             <a href="https://congressdoyourjob.com" style="color: #0f172a; text-decoration: none;">Congress Do Your Job</a>
           </p>
-          <p style="margin: 0 0 16px 0; color: #94a3b8; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em;">
+          <p style="margin: 0 0 16px 0; color: #94a3b8; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em;">
             Less theater. More legislation.
           </p>
 
-          <p style="margin: 0 0 14px 0; color: #94a3b8; font-size: 11px; line-height: 1.6;">
+          <p style="margin: 0 0 14px 0; color: #94a3b8; font-size: 17px; line-height: 1.6;">
             <a href="https://congressdoyourjob.com" style="color: #94a3b8; text-decoration: none;">Congress Do Your Job</a>
             provides weekly, non-partisan coverage of U.S. federal legislative activity.
             No spin. No outrage. Just what Congress did.
           </p>
 
           <p style="margin: 0 0 20px 0;">
-            <a href="https://congressdoyourjob.com" style="color: #64748b; font-size: 11px; font-weight: 600; text-decoration: none;">Website</a>
+            <a href="https://congressdoyourjob.com" style="color: #64748b; font-size: 17px; font-weight: 600; text-decoration: none;">Website</a>
             &nbsp;&bull;&nbsp;
-            <a href="https://congressdoyourjob.com/unsubscribe" style="color: #64748b; font-size: 11px; font-weight: 600; text-decoration: none;">Unsubscribe</a>
+            <a href="https://congressdoyourjob.com/unsubscribe" style="color: #64748b; font-size: 17px; font-weight: 600; text-decoration: none;">Unsubscribe</a>
             &nbsp;&bull;&nbsp;
-            <a href="https://congressdoyourjob.com/privacy" style="color: #64748b; font-size: 11px; font-weight: 600; text-decoration: none;">Privacy Policy</a>
+            <a href="https://congressdoyourjob.com/privacy" style="color: #64748b; font-size: 17px; font-weight: 600; text-decoration: none;">Privacy Policy</a>
           </p>
 
-          <p style="margin: 0; color: #cbd5e1; font-size: 10px; letter-spacing: 0.04em;">
+          <p style="margin: 0; color: #cbd5e1; font-size: 15px; letter-spacing: 0.04em;">
             &copy; Congress Do Your Job &bull; Less theater. More legislation.
           </p>
         </td>
