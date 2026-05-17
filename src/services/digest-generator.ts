@@ -1,15 +1,16 @@
 import { prismaClient } from "@/lib/db";
 import { getBills } from "@/lib/congress-api";
 import { getOrCreateBillSummary } from "@/services/bill-summary";
+import { generateCongressNewsItems, CongressNewsItem } from "@/lib/gemini-api";
 import { createLogger } from "@/lib/logger";
 
 const logger = createLogger("DigestGenerator");
 
 /** Maximum bills to surface in the digest's featured section. */
-const MAX_FEATURED_BILLS = 5;
+const MAX_FEATURED_BILLS = 3;
 
 /** When fetching candidates for the digest, look at this many bills. */
-const BILL_CANDIDATE_LIMIT = 20;
+const BILL_CANDIDATE_LIMIT = 50;
 
 export interface DigestBill {
   type: string;
@@ -37,6 +38,7 @@ export interface GeneratedDigest {
   headline: string;
   overallSummary: string;
   stats: DigestStats;
+  newsItems: CongressNewsItem[];
   featuredBills: DigestBill[];
   congressFact: string;
   /** True when this edition was already published in a prior run — emails must NOT be re-sent. */
@@ -86,20 +88,24 @@ export function getMostRecentMonday(from: Date = new Date()): Date {
  * Monday, it is returned directly without touching Congress.gov or Gemini.
  * A 'draft' from a failed prior run is replaced.
  *
- * @param now  Override "now" for testing / backfill.
+ * @param now              Override "now" for testing / backfill.
+ * @param forceRegenerate  Skip the idempotency check and always regenerate fresh data.
+ *                         Use in test mode so stale published editions don't mask bug fixes.
  */
-export async function generateWeeklyDigest(now: Date = new Date()): Promise<GeneratedDigest> {
+export async function generateWeeklyDigest(now: Date = new Date(), forceRegenerate = false): Promise<GeneratedDigest> {
   const weekStart = getMostRecentMonday(now);
   const weekEnd = new Date(now);
 
   // --- Idempotency check ---
-  const published = await prismaClient.digestEdition.findFirst({
-    where: { weekStart, status: "published" },
-  });
+  if (!forceRegenerate) {
+    const published = await prismaClient.digestEdition.findFirst({
+      where: { weekStart, status: "published" },
+    });
 
-  if (published) {
-    logger.info("Digest already published for this week — skipping re-send", { editionNumber: published.editionNumber });
-    return { ...rehydrateEdition(published), alreadyPublished: true };
+    if (published) {
+      logger.info("Digest already published for this week — skipping re-send", { editionNumber: published.editionNumber });
+      return { ...rehydrateEdition(published), alreadyPublished: true };
+    }
   }
 
   // Delete a stale draft from a failed run so we can recreate cleanly.
@@ -108,7 +114,7 @@ export async function generateWeeklyDigest(now: Date = new Date()): Promise<Gene
   });
 
   // --- Data collection ---
-  const fromDateTime = new Date(weekStart.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
+  const fromDateTime = weekStart.toISOString().replace(/\.\d{3}Z$/, "Z");
   const toDateTime = weekEnd.toISOString().replace(/\.\d{3}Z$/, "Z");
 
   logger.info("Collecting bills for digest", { fromDateTime, toDateTime });
@@ -154,6 +160,12 @@ export async function generateWeeklyDigest(now: Date = new Date()): Promise<Gene
     }
   }
 
+  const billsWithRecentAction = bills.filter((b) => {
+    if (!b.latestAction?.actionDate) return false;
+    const actionDate = new Date(b.latestAction.actionDate);
+    return actionDate >= weekStart && actionDate <= weekEnd;
+  }).length;
+
   // --- Headline + summary prose ---
   const weekOfStr = weekStart.toLocaleDateString("en-US", {
     month: "long",
@@ -162,11 +174,20 @@ export async function generateWeeklyDigest(now: Date = new Date()): Promise<Gene
     timeZone: "UTC",
   });
   const headline = `Your Weekly Congress Briefing — ${weekOfStr}`;
-  const overallSummary = buildOverallSummary(billsIntroduced, bills.length, featuredBills.length);
+  const overallSummary = buildOverallSummary(billsIntroduced, billsWithRecentAction, featuredBills.length);
+
+  // --- News items (grounded web search via Gemini) ---
+  let newsItems: CongressNewsItem[] = [];
+  try {
+    newsItems = await generateCongressNewsItems(weekOfStr);
+    logger.info(`Generated ${newsItems.length} congress news items`);
+  } catch (err) {
+    logger.warn("Failed to generate congress news items — omitting section:", err);
+  }
 
   const stats: DigestStats = {
     billsIntroduced,
-    billsWithRecentAction: bills.length,
+    billsWithRecentAction,
     weekStart,
     weekEnd,
   };
@@ -220,6 +241,7 @@ export async function generateWeeklyDigest(now: Date = new Date()): Promise<Gene
     headline,
     overallSummary,
     stats,
+    newsItems,
     featuredBills,
     congressFact,
     alreadyPublished: false,
@@ -272,6 +294,7 @@ function rehydrateEdition(edition: {
       weekStart: edition.weekStart,
       weekEnd: edition.weekEnd,
     },
+    newsItems: [],
     featuredBills: (billsSection?.items ?? []) as DigestBill[],
     congressFact: pickCongressFact(edition.editionNumber),
     alreadyPublished: false, // set by caller when returning a published edition
