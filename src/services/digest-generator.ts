@@ -1,5 +1,5 @@
 import { prismaClient } from "@/lib/db";
-import { getBills } from "@/lib/congress-api";
+import { getBills, getIntroducedBillCount } from "@/lib/congress-api";
 import { getOrCreateBillSummary } from "@/services/bill-summary";
 import { generateCongressNewsItems, CongressNewsItem } from "@/lib/gemini-api";
 import { createLogger } from "@/lib/logger";
@@ -129,11 +129,11 @@ export async function generateWeeklyDigest(now: Date = new Date(), forceRegenera
   const bills = billsResponse.bills ?? [];
   logger.info(`Collected ${bills.length} candidate bills`);
 
-  const billsIntroduced = bills.filter((b) => {
-    if (!b.introducedDate) return false;
-    const introduced = new Date(b.introducedDate);
-    return introduced >= weekStart && introduced <= weekEnd;
-  }).length;
+  // Congress.gov list responses do not include introducedDate — only updateDate.
+  // We detect newly introduced bills via a separate query using latestAction.text
+  // patterns that appear when a bill first enters Congress (committee referral).
+  const billsIntroduced = await getIntroducedBillCount(weekStart, weekEnd);
+  logger.info(`Counted ${billsIntroduced} newly introduced bills`);
 
   // --- Summary generation ---
   const featuredBills: DigestBill[] = [];
