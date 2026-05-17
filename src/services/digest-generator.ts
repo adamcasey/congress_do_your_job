@@ -189,9 +189,13 @@ export async function generateWeeklyDigest(now: Date = new Date(), forceRegenera
 
   let introSummary = overallSummary;
   try {
-    const rawIntro = await generateDigestIntro(weekOfStr, { featuredBills, newsItems });
-    introSummary = linkifyIntroText(rawIntro, newsItems);
+    introSummary = await generateDigestIntro(weekOfStr, { featuredBills, newsItems });
     logger.info("Generated digest intro paragraph");
+    try {
+      introSummary = linkifyIntroText(introSummary, newsItems);
+    } catch (linkErr) {
+      logger.warn("linkifyIntroText failed — using plain intro text:", linkErr);
+    }
   } catch (err) {
     logger.warn("Failed to generate digest intro — falling back to overallSummary:", err);
   }
@@ -354,7 +358,7 @@ function linkifyIntroText(intro: string, newsItems: CongressNewsItem[]): string 
     // or a single distinctive token (6+ chars) appearing in the intro
     const distinctTokens = tokens.filter((t) => t.length >= 6);
     const candidates = [
-      ...tokens.slice(0, 3).join(" "), // first three words as a phrase
+      tokens.slice(0, 3).join(" "), // first three words as a single phrase
       ...distinctTokens,
     ].filter(Boolean);
 
