@@ -76,9 +76,7 @@ export async function generateDigestIntro(weekOf: string, context: DigestIntroCo
 
   const newsContext =
     context.newsItems.length > 0
-      ? context.newsItems
-          .map((n) => `- ${n.heading}: ${n.body}${n.url ? ` [URL: ${n.url}]` : ""}`)
-          .join("\n")
+      ? context.newsItems.map((n) => `- ${n.heading}: ${n.body}`).join("\n")
       : "No major news items this week.";
 
   const prompt = `You are writing the opening paragraph for a weekly congressional briefing email from CongressDoYourJob.com — a non-partisan civic platform with the tagline "Less theater. More legislation."
@@ -90,7 +88,7 @@ Here is context about what moved through Congress the week of ${weekOf}:
 Featured bills:
 ${billContext}
 
-Top news items this week (some include a URL you can link to):
+Top news items this week:
 ${newsContext}
 
 Your task: Write 4-5 sentences about the SINGLE most important thing that happened in or around Congress this week. This could be a major bill advancing, a significant floor vote, a Supreme Court ruling that affects federal law, a major budget moment, or a significant procedural development. Use your web search tool to find what is most important and verify details.
@@ -102,10 +100,8 @@ Rules:
 - Begin DIRECTLY with substance — no "Hey", no "This week in Congress", no "Welcome back"
 - Write in natural long-form prose as if opening a letter to a smart friend
 - The paragraph should stand alone — it is the FIRST thing the reader sees
-- When you mention a specific story or event that has a URL in the context above, wrap the relevant phrase in an HTML anchor tag: <a href="URL" style="color: #1d4ed8; text-decoration: underline;">phrase</a>
-- Use anchor tags ONLY for inline phrases — no block-level HTML, no <p> tags, no line breaks
 
-Return ONLY the paragraph HTML (inline elements only). No headings, no markdown, no extra commentary.`;
+Return ONLY the paragraph text. No headings, no markdown, no HTML, no extra commentary.`;
 
   try {
     const response = await ai.models.generateContent({

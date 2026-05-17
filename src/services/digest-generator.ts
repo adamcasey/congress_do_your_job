@@ -189,7 +189,8 @@ export async function generateWeeklyDigest(now: Date = new Date(), forceRegenera
 
   let introSummary = overallSummary;
   try {
-    introSummary = await generateDigestIntro(weekOfStr, { featuredBills, newsItems });
+    const rawIntro = await generateDigestIntro(weekOfStr, { featuredBills, newsItems });
+    introSummary = linkifyIntroText(rawIntro, newsItems);
     logger.info("Generated digest intro paragraph");
   } catch (err) {
     logger.warn("Failed to generate digest intro — falling back to overallSummary:", err);
@@ -326,4 +327,49 @@ function rehydrateEdition(edition: {
 
 function pickCongressFact(editionNumber: number): string {
   return CONGRESS_FACTS[(editionNumber - 1) % CONGRESS_FACTS.length];
+}
+
+/**
+ * Scan the plain-text intro for words that overlap with news item headings
+ * and wrap matched phrases in anchor tags pointing to the item's URL.
+ * Only items with a URL are considered. Matching is case-insensitive and
+ * stops after the first substitution per news item to avoid double-linking.
+ */
+function linkifyIntroText(intro: string, newsItems: CongressNewsItem[]): string {
+  let result = intro;
+
+  for (const item of newsItems) {
+    if (!item.url) continue;
+
+    // Extract meaningful tokens from the heading (4+ chars, skip common words)
+    const STOPWORDS = new Set(["this", "that", "with", "from", "have", "been", "will", "were", "they", "their", "there", "what", "when", "which", "after", "before", "about"]);
+    const tokens = item.heading
+      .replace(/[^a-zA-Z0-9 ]/g, " ")
+      .split(/\s+/)
+      .filter((t) => t.length >= 4 && !STOPWORDS.has(t.toLowerCase()));
+
+    if (tokens.length === 0) continue;
+
+    // Build a pattern that matches any sequence of 2+ consecutive heading tokens
+    // or a single distinctive token (6+ chars) appearing in the intro
+    const distinctTokens = tokens.filter((t) => t.length >= 6);
+    const candidates = [
+      ...tokens.slice(0, 3).join(" "), // first three words as a phrase
+      ...distinctTokens,
+    ].filter(Boolean);
+
+    for (const phrase of candidates) {
+      const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const re = new RegExp(`(${escaped})`, "i");
+      if (re.test(result)) {
+        result = result.replace(
+          re,
+          `<a href="${item.url}" style="color: #1d4ed8; text-decoration: underline;">$1</a>`,
+        );
+        break; // one link per news item
+      }
+    }
+  }
+
+  return result;
 }
