@@ -33,6 +33,7 @@ export class GeminiApiError extends Error {
 export interface CongressNewsItem {
   heading: string;
   body: string;
+  url?: string;
 }
 
 export interface BillMetadata {
@@ -137,11 +138,13 @@ Hard rules:
 - Focus only on what actually happened: votes taken, bills passed, hearings held, deadlines missed, procedural drama
 - Do NOT use any of these words: ${BANNED_WORDS}
 
+For each item also include a "url" field: the best publicly accessible URL related to the story (prefer Congress.gov bill or vote pages, senate.gov, house.gov, or well-known news outlets; use an empty string if none is available).
+
 Return ONLY a valid JSON array — no markdown, no code fences, nothing else:
 [
-  { "heading": "...", "body": "..." },
-  { "heading": "...", "body": "..." },
-  { "heading": "...", "body": "..." }
+  { "heading": "...", "body": "...", "url": "https://..." },
+  { "heading": "...", "body": "...", "url": "https://..." },
+  { "heading": "...", "body": "...", "url": "https://..." }
 ]`;
 
   try {

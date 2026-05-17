@@ -23,13 +23,18 @@ function renderNewsItem(item: CongressNewsItem, index: number): string {
     ? ""
     : "border-bottom: 1px solid #e2e8f0; padding-bottom: 24px; margin-bottom: 24px;";
 
+  const heading =
+    item.url
+      ? `<a href="${item.url}" style="color: #0f172a; text-decoration: none;">${item.heading}</a>`
+      : item.heading;
+
   return `
     <div style="${borderBottom}">
       <p style="margin: 0 0 8px 0; display: inline-block; background-color: #fef3c7; color: #92400e; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.16em; padding: 3px 10px; border-radius: 4px;">
         ${emoji} This Week
       </p>
-      <p style="margin: 6px 0 10px 0; color: #0f172a; font-size: 19px; font-weight: 800; line-height: 1.3; letter-spacing: -0.02em;">
-        ${item.heading}
+      <p style="margin: 6px 0 10px 0; font-size: 19px; font-weight: 800; line-height: 1.3; letter-spacing: -0.02em;">
+        ${heading}
       </p>
       <p style="margin: 0; color: #334155; font-size: 14px; line-height: 1.75;">
         ${item.body}
@@ -134,16 +139,14 @@ export function WeeklyDigest({
 
       <!-- Masthead -->
       <tr>
-        <td style="background-color: #0f172a; background-image: linear-gradient(135deg, #0f172a 60%, #1e3a5f 100%); padding: 36px 40px 28px 40px; text-align: center;">
-          <p style="margin: 0 0 10px 0; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.22em;">
+        <td style="background-color: #ffffff; padding: 28px 40px 20px 40px; text-align: center;">
+          <p style="margin: 0 0 16px 0; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.22em;">
             Edition #${editionNumber} &bull; ${weekOf}
           </p>
-          <h1 style="margin: 0 0 8px 0; color: #ffffff; font-size: 32px; font-weight: 900; letter-spacing: -0.03em; line-height: 1.1;">
-            Congress Do Your Job
-          </h1>
-          <p style="margin: 0; color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.22em;">
-            Less theater. More legislation.
-          </p>
+          <img src="https://congressdoyourjob.com/logos/figma/figma_logo_secondary.svg"
+               alt="Congress Do Your Job — Less Theatre. More Legislation."
+               width="300"
+               style="display: block; margin: 0 auto; max-width: 300px; height: auto; border: 0;">
         </td>
       </tr>
 
@@ -172,6 +175,11 @@ export function WeeklyDigest({
                 </p>
                 <p style="margin: 6px 0 0 0; color: #64748b; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em;">
                   New Bills
+                </p>
+                <p style="margin: 8px 0 0 0;">
+                  <a href="https://www.congress.gov/search?q=%7B%22congress%22%3A%22119%22%2C%22source%22%3A%22legislation%22%2C%22search%22%3A%22congressId%3A119+AND+billStatus%3A%5C%22Introduced%5C%22%22%7D&amp;pageSort=dateOfIntroduction%3Adesc" style="color: #1d4ed8; font-size: 11px; font-weight: 600; text-decoration: none;">
+                    Check out all the new bills here
+                  </a>
                 </p>
               </td>
               <td style="padding: 20px 24px; text-align: center; width: 50%;">
