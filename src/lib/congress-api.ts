@@ -140,6 +140,40 @@ export async function getBills(options: FetchOptions = {}): Promise<CongressApiR
 }
 
 /**
+ * Count bills introduced during a given week.
+ *
+ * The Congress.gov list API does not include `introducedDate` in bill list
+ * responses — only `updateDate`. As a reliable proxy we detect introduction
+ * by matching `latestAction.text` against patterns that appear exclusively
+ * when a bill first enters Congress (committee referral on introduction).
+ *
+ * Fetches up to 250 bills updated in the week and counts those whose latest
+ * action matches an introduction pattern and falls within the week window.
+ */
+export async function getIntroducedBillCount(weekStart: Date, weekEnd: Date): Promise<number> {
+  const INTRODUCTION_PATTERN = /\b(referred to the (house |senate )?committee|read twice and referred|introduced in the house|laid before the senate)\b/i;
+
+  const fromDateTime = weekStart.toISOString().replace(/\.\d{3}Z$/, "Z");
+  const toDateTime = weekEnd.toISOString().replace(/\.\d{3}Z$/, "Z");
+
+  const response = await fetchCongressApi<Bill>(`/bill/${CURRENT_CONGRESS}`, {
+    limit: 250,
+    offset: 0,
+    sort: "updateDate+desc",
+    fromDateTime,
+    toDateTime,
+  });
+
+  const bills = response.bills ?? [];
+
+  return bills.filter((b) => {
+    if (!b.latestAction?.text || !b.latestAction?.actionDate) return false;
+    const actionDate = new Date(b.latestAction.actionDate);
+    return actionDate >= weekStart && actionDate <= weekEnd && INTRODUCTION_PATTERN.test(b.latestAction.text);
+  }).length;
+}
+
+/**
  * Get specific bill details (single bill)
  */
 export async function getBill(billType: string, billNumber: string, congress: number = CURRENT_CONGRESS): Promise<Bill> {
