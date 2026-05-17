@@ -1,7 +1,7 @@
 import { prismaClient } from "@/lib/db";
 import { getBills, getIntroducedBillCount } from "@/lib/congress-api";
 import { getOrCreateBillSummary } from "@/services/bill-summary";
-import { generateCongressNewsItems, generateDigestIntro, CongressNewsItem } from "@/lib/gemini-api";
+import { generateCongressDigestContent, CongressNewsItem } from "@/lib/gemini-api";
 import { createLogger } from "@/lib/logger";
 
 const logger = createLogger("DigestGenerator");
@@ -178,21 +178,16 @@ export async function generateWeeklyDigest(now: Date = new Date(), forceRegenera
   const headline = `Your Weekly Congress Briefing — ${weekOfStr}`;
   const overallSummary = buildOverallSummary(billsIntroduced, billsWithRecentAction, featuredBills.length);
 
-  // --- News items + editorial intro (grounded web search via Gemini) ---
+  // --- News items + editorial intro (single grounded Gemini call) ---
   let newsItems: CongressNewsItem[] = [];
-  try {
-    newsItems = await generateCongressNewsItems(weekOfStr);
-    logger.info(`Generated ${newsItems.length} congress news items`);
-  } catch (err) {
-    logger.warn("Failed to generate congress news items — omitting section:", err);
-  }
-
   let introSummary = overallSummary;
   try {
-    introSummary = await generateDigestIntro(weekOfStr, { featuredBills, newsItems });
-    logger.info("Generated digest intro paragraph");
+    const digestContent = await generateCongressDigestContent(weekOfStr, featuredBills);
+    newsItems = digestContent.newsItems;
+    introSummary = digestContent.introSummary;
+    logger.info(`Generated digest content: ${newsItems.length} news items + intro paragraph`);
   } catch (err) {
-    logger.warn("Failed to generate digest intro — falling back to overallSummary:", err);
+    logger.warn("Failed to generate digest content — omitting news section, using fallback intro:", err);
   }
 
   const stats: DigestStats = {
