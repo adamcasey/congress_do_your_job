@@ -130,7 +130,7 @@ export function WeeklyDigest({
     : "";
 
   const content = `
-    <table role="presentation" style="max-width: 680px; width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 32px rgba(15,23,42,0.10);">
+    <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 32px rgba(15,23,42,0.10);">
 
       <!-- Masthead -->
       <tr>

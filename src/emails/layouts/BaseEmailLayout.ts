@@ -39,7 +39,7 @@ export function BaseEmailLayout({ content, preheader }: BaseEmailLayoutProps): s
         <!-- Main wrapper table -->
         <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #e4f0f9; background-image: linear-gradient(135deg, #e4f0f9 50%, #fde3e0 100%); min-height: 100vh;">
           <tr>
-            <td align="center" style="padding: 32px 16px;">
+            <td align="center" style="padding: 24px 32px;">
               ${content}
             </td>
           </tr>
