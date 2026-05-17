@@ -33,6 +33,7 @@ export class GeminiApiError extends Error {
 export interface CongressNewsItem {
   heading: string;
   body: string;
+  url?: string;
 }
 
 export interface BillMetadata {
@@ -53,27 +54,58 @@ export interface SummarizeBillOptions {
 const BANNED_WORDS =
   "delve, leverage, utilize, paradigm, synergy, robust, game-changer, streamline, transformative, pivotal, groundbreaking, innovative, empower, holistic, navigate, landscape, realm, foster, facilitate, harness, meticulous, commendable, testament, notably, straightforward, cutting-edge, seamless";
 
-export async function generateCongressNewsItems(weekOf: string): Promise<CongressNewsItem[]> {
-  const prompt = `You are a witty, non-partisan writer for CongressDoYourJob.com — a civic platform with the tagline "Less theater. More legislation."
+export interface DigestContent {
+  newsItems: CongressNewsItem[];
+  introSummary: string;
+}
 
-Search for the top 3 most significant things that happened in the U.S. Congress during the week of ${weekOf}.
+/**
+ * Single Gemini call (with Google Search grounding) that returns both the
+ * three "This Week in Congress" news items AND the editorial intro paragraph.
+ * Combining them into one request halves the API quota consumption.
+ */
+export async function generateCongressDigestContent(
+  weekOf: string,
+  featuredBills: Array<{ title: string; summary: string; type: string; number: string }>,
+): Promise<DigestContent> {
+  const billContext =
+    featuredBills.length > 0
+      ? featuredBills.map((b) => `- ${b.type} ${b.number}: ${b.title}\n  ${b.summary}`).join("\n")
+      : "No featured bills this week.";
 
-For each event write:
-1. A short, comical paragraph heading (5-9 words, punchy, slightly irreverent — the humor comes from the absurdity of the situation, never from partisan shots)
-2. A body of 3-5 sentences: factual, plain English, mildly witty — think NPR if NPR loosened its tie slightly
+  const prompt = `You are writing content for the weekly email from CongressDoYourJob.com — a non-partisan civic platform with the tagline "Less theater. More legislation."
 
-Hard rules:
+Use your web search tool to research what happened in the U.S. Congress during the week of ${weekOf}.
+
+Featured bills that moved this week (for additional context):
+${billContext}
+
+Your task is to produce TWO things:
+
+1. THREE news items — the most significant things that happened in or around Congress this week (votes, bills advancing, hearings, deadlines, procedural drama). For each:
+   - A short punchy heading (5-9 words, slightly irreverent — humor from absurdity, never from partisan shots)
+   - A body of 3-5 factual sentences in plain, mildly witty English
+   - The best publicly accessible URL for the story (Congress.gov, senate.gov, house.gov, or a well-known news outlet; empty string if none)
+
+2. ONE intro paragraph — 4-5 sentences about the SINGLE most important thing that happened in or around Congress this week. Tone: Josh Barro / Ben Dreyfuss / Megan McArdle. Smart, conversational, slightly wry. Begin DIRECTLY with substance — no "Hey", no "This week in Congress". Write as if opening a letter to a smart, busy friend who doesn't follow politics obsessively.
+   - When you reference a specific story that has a URL (from your news items or web search), wrap the relevant phrase in an HTML anchor tag using this exact style: <a href="URL" style="color: #1d4ed8; text-decoration: underline;">phrase</a>
+   - Use only inline HTML — no block tags, no <p> tags, no line breaks
+   - Plain text where no URL is available
+
+Hard rules for ALL content:
 - Never mention political parties, affiliations, or ideology
 - No outrage, no tribalism, no partisan framing
-- Focus only on what actually happened: votes taken, bills passed, hearings held, deadlines missed, procedural drama
-- Do NOT use any of these words: ${BANNED_WORDS}
+- Do NOT use these words: ${BANNED_WORDS}
 
-Return ONLY a valid JSON array — no markdown, no code fences, nothing else:
-[
-  { "heading": "...", "body": "..." },
-  { "heading": "...", "body": "..." },
-  { "heading": "...", "body": "..." }
-]`;
+Return ONLY valid JSON — no markdown, no code fences, nothing else:
+{
+  "newsItems": [
+    { "heading": "...", "body": "...", "url": "https://..." },
+    { "heading": "...", "body": "...", "url": "https://..." },
+    { "heading": "...", "body": "...", "url": "https://..." }
+  ],
+  "introSummary": "..."
+}`;
 
   try {
     const response = await ai.models.generateContent({
@@ -85,20 +117,23 @@ Return ONLY a valid JSON array — no markdown, no code fences, nothing else:
     });
 
     if (!response?.text) {
-      throw new GeminiApiError("No text in news items response", 500);
+      throw new GeminiApiError("No text in digest content response", 500);
     }
 
     const raw = response.text.trim().replace(/^```json\s*/i, "").replace(/```\s*$/, "");
-    const parsed = JSON.parse(raw) as CongressNewsItem[];
+    const parsed = JSON.parse(raw) as DigestContent;
 
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      throw new GeminiApiError("Unexpected news items response shape", 500);
+    if (!Array.isArray(parsed.newsItems) || typeof parsed.introSummary !== "string") {
+      throw new GeminiApiError("Unexpected digest content response shape", 500);
     }
 
-    return parsed.slice(0, 3);
+    return {
+      newsItems: parsed.newsItems.slice(0, 3),
+      introSummary: parsed.introSummary.trim(),
+    };
   } catch (error) {
     if (error instanceof GeminiApiError) throw error;
-    throw new GeminiApiError("Failed to generate congress news items", 500, error);
+    throw new GeminiApiError("Failed to generate digest content", 500, error);
   }
 }
 

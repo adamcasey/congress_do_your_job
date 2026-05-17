@@ -85,6 +85,7 @@ export async function GET(request: NextRequest) {
       weekOf,
       headline: digest.headline,
       overallSummary: digest.overallSummary,
+      introSummary: digest.introSummary,
       stats: digest.stats,
       newsItems: digest.newsItems,
       featuredBills: digest.featuredBills,

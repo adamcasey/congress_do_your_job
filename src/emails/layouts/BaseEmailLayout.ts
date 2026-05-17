@@ -24,7 +24,7 @@ export function BaseEmailLayout({ content, preheader }: BaseEmailLayoutProps): s
         </style>
         <![endif]-->
       </head>
-      <body style="margin: 0; padding: 0; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
+      <body style="margin: 0; padding: 0; background-color: #e4f0f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
         ${
           preheader
             ? `
@@ -37,9 +37,9 @@ export function BaseEmailLayout({ content, preheader }: BaseEmailLayoutProps): s
         }
 
         <!-- Main wrapper table -->
-        <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #ffffff; min-height: 100vh;">
+        <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #e4f0f9; background-image: linear-gradient(135deg, #e4f0f9 50%, #fde3e0 100%); min-height: 100vh;">
           <tr>
-            <td align="center" style="padding: 40px 20px;">
+            <td align="center" style="padding: 24px 32px;">
               ${content}
             </td>
           </tr>
