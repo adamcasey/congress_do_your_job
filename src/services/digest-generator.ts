@@ -1,12 +1,13 @@
 import { prismaClient } from "@/lib/db";
 import { getBills } from "@/lib/congress-api";
 import { getOrCreateBillSummary } from "@/services/bill-summary";
+import { generateCongressNewsItems, CongressNewsItem } from "@/lib/gemini-api";
 import { createLogger } from "@/lib/logger";
 
 const logger = createLogger("DigestGenerator");
 
 /** Maximum bills to surface in the digest's featured section. */
-const MAX_FEATURED_BILLS = 5;
+const MAX_FEATURED_BILLS = 3;
 
 /** When fetching candidates for the digest, look at this many bills. */
 const BILL_CANDIDATE_LIMIT = 20;
@@ -37,6 +38,7 @@ export interface GeneratedDigest {
   headline: string;
   overallSummary: string;
   stats: DigestStats;
+  newsItems: CongressNewsItem[];
   featuredBills: DigestBill[];
   congressFact: string;
   /** True when this edition was already published in a prior run — emails must NOT be re-sent. */
@@ -164,6 +166,15 @@ export async function generateWeeklyDigest(now: Date = new Date()): Promise<Gene
   const headline = `Your Weekly Congress Briefing — ${weekOfStr}`;
   const overallSummary = buildOverallSummary(billsIntroduced, bills.length, featuredBills.length);
 
+  // --- News items (grounded web search via Gemini) ---
+  let newsItems: CongressNewsItem[] = [];
+  try {
+    newsItems = await generateCongressNewsItems(weekOfStr);
+    logger.info(`Generated ${newsItems.length} congress news items`);
+  } catch (err) {
+    logger.warn("Failed to generate congress news items — omitting section:", err);
+  }
+
   const stats: DigestStats = {
     billsIntroduced,
     billsWithRecentAction: bills.length,
@@ -220,6 +231,7 @@ export async function generateWeeklyDigest(now: Date = new Date()): Promise<Gene
     headline,
     overallSummary,
     stats,
+    newsItems,
     featuredBills,
     congressFact,
     alreadyPublished: false,
@@ -272,6 +284,7 @@ function rehydrateEdition(edition: {
       weekStart: edition.weekStart,
       weekEnd: edition.weekEnd,
     },
+    newsItems: [],
     featuredBills: (billsSection?.items ?? []) as DigestBill[],
     congressFact: pickCongressFact(edition.editionNumber),
     alreadyPublished: false, // set by caller when returning a published edition

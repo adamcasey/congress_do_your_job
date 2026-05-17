@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const {
   mockGetBills,
   mockGetOrCreateBillSummary,
+  mockGenerateCongressNewsItems,
   mockFindFirst,
   mockDeleteMany,
   mockCreate,
@@ -13,6 +14,7 @@ const {
 } = vi.hoisted(() => ({
   mockGetBills: vi.fn(),
   mockGetOrCreateBillSummary: vi.fn(),
+  mockGenerateCongressNewsItems: vi.fn().mockResolvedValue([]),
   mockFindFirst: vi.fn(),
   mockDeleteMany: vi.fn(),
   mockCreate: vi.fn(),
@@ -22,6 +24,11 @@ const {
 
 vi.mock("@/lib/congress-api", () => ({
   getBills: mockGetBills,
+}));
+
+vi.mock("@/lib/gemini-api", () => ({
+  generateCongressNewsItems: mockGenerateCongressNewsItems,
+  GeminiApiError: class GeminiApiError extends Error {},
 }));
 
 vi.mock("@/services/bill-summary", () => ({
@@ -218,7 +225,7 @@ describe("generateWeeklyDigest", () => {
     });
   });
 
-  it("caps featured bills at 5 even when more are available", async () => {
+  it("caps featured bills at 3 even when more are available", async () => {
     mockFindFirst.mockResolvedValue(null);
     mockDeleteMany.mockResolvedValue({ count: 0 });
 
@@ -237,7 +244,7 @@ describe("generateWeeklyDigest", () => {
 
     const result = await generateWeeklyDigest(NOW);
 
-    expect(result.featuredBills).toHaveLength(5);
+    expect(result.featuredBills).toHaveLength(3);
   });
 
   it("continues past a bill that throws during summary generation", async () => {

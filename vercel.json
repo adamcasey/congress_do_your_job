@@ -5,10 +5,6 @@
       "schedule": "0 2 * * *"
     },
     {
-      "path": "/api/cron/weekly-digest",
-      "schedule": "0 12 * * 1"
-    },
-    {
       "path": "/api/cron/refresh-legislation",
       "schedule": "0 5 * * *"
     },
