@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { collectScorecardData, CollectionResult, DataSourceReport } from "@/services/scorecard-data-collector";
+import { collectScorecardData } from "@/services/scorecard-data-collector";
 import { calculateScorecard } from "@/services/scorecard-calculator";
 import { CongressApiError } from "@/lib/congress-api";
 import { getOrFetch, buildCacheKey, CacheTTL } from "@/lib/cache";
@@ -13,7 +13,7 @@ const BIOGUIDE_ID_PATTERN = /^[A-Z]\d{6}$/;
 
 interface ScorecardResponse {
   scorecard: CalculatedScorecard;
-  dataSources: DataSourceReport;
+  dataSources: Record<string, string>;
 }
 
 /**
@@ -49,14 +49,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const cacheKey = buildCacheKey("scorecard", "calculated", `${bioguideId}:${period}`);
 
     const fetcher = async (): Promise<ScorecardResponse> => {
-      const collectionResult: CollectionResult = await collectScorecardData(bioguideId, periodStart, periodEnd);
-
-      const scorecard = calculateScorecard(collectionResult.input);
-
-      return {
-        scorecard,
-        dataSources: collectionResult.dataSources,
-      };
+      const { input, dataSources } = await collectScorecardData(bioguideId, periodStart, periodEnd);
+      return { scorecard: calculateScorecard(input), dataSources };
     };
 
     let result;
