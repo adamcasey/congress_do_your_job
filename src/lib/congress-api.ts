@@ -457,4 +457,14 @@ export async function getHouseVoteDetail(congress: number, session: number, roll
   };
 }
 
+/**
+ * Returns the congressional session number (1 or 2) for the current calendar year.
+ * Congress starts on odd years; the first year of a congress is session 1, the second is session 2.
+ */
+export function deriveCurrentSession(congress: number): number {
+  const year = new Date().getFullYear();
+  const congressStartYear = 2025 + (congress - 119) * 2;
+  return year - congressStartYear + 1;
+}
+
 export { CongressApiError };

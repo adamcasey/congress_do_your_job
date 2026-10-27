@@ -49,13 +49,6 @@ export async function GET(request: NextRequest) {
     for (const bill of response.bills) {
       stats.processed++;
 
-      const introducedDate = bill.introducedDate ? new Date(bill.introducedDate) : null;
-
-      if (!introducedDate || introducedDate < threeMonthsAgo) {
-        stats.skipped++;
-        continue;
-      }
-
       try {
         const existing = await prismaClient.billSummary.findUnique({
           where: {

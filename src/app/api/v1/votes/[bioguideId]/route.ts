@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getMember, getHouseVotes, getHouseVoteDetail, CongressApiError, getCurrentCongress } from "@/lib/congress-api";
+import { getMember, getHouseVotes, getHouseVoteDetail, CongressApiError, getCurrentCongress, deriveCurrentSession } from "@/lib/congress-api";
 import { getOrFetch, buildCacheKey, CacheTTL } from "@/lib/cache";
 import { createLogger } from "@/lib/logger";
 import { jsonError, jsonSuccess } from "@/lib/api-response";
@@ -155,11 +155,3 @@ async function buildVotingRecord(bioguideId: string, limit: number): Promise<Vot
   return { bioguideId, chamber: "House", available: true, votes, congress };
 }
 
-/** Congress.gov sessions are 1-indexed per Congress. The 119th Congress began
- *  Jan 3 2025 (session 1). Odd calendar years = session 1, even = session 2. */
-function deriveCurrentSession(congress: number): number {
-  const year = new Date().getFullYear();
-  // Congress starts on odd years; session 1 = first year, session 2 = second year
-  const congressStartYear = 2025 + (congress - 119) * 2;
-  return year - congressStartYear + 1;
-}

@@ -1,100 +1,39 @@
 import Link from "next/link";
-import { DEFAULT_WEIGHTS, METHODOLOGY_VERSION } from "@/services/scorecard-calculator";
-import { ScoreCategory } from "@/types/scorecard";
+import { METHODOLOGY_VERSION } from "@/services/scorecard-calculator";
 
 export const metadata = {
   title: "Scorecard Methodology - Congress Do Your Job",
   description:
-    "Transparent, documented methodology for how we calculate Civility & Productivity Scorecards for members of Congress.",
+    "Transparent, documented methodology for how we calculate Productivity Scorecards for members of Congress.",
 };
 
-type CategoryEntry = {
-  category: ScoreCategory;
-  name: string;
-  weight: number;
-  description: string;
-  formula: string;
-  dataSource: string;
-  notes: string | string[];
-};
-
-const categories: CategoryEntry[] = [
+const categories = [
   {
-    category: ScoreCategory.ATTENDANCE,
-    name: "Attendance",
-    weight: DEFAULT_WEIGHTS[ScoreCategory.ATTENDANCE],
+    name: "Vote Participation",
+    weight: 50,
     description:
-      "Measures participation in floor votes and committee hearings. Vote participation is weighted more heavily (70%) because voting is the core legislative function.",
-    formula: "(vote participation rate × 0.7) + (hearing attendance rate × 0.3)",
-    dataSource: "Congress.gov vote records, official hearing schedules",
-    notes:
-      "Members are not penalized when no votes are scheduled. Vote pairing and announced positions are counted as participation.",
-  },
-  {
-    category: ScoreCategory.LEGISLATION,
-    name: "Legislation",
-    weight: DEFAULT_WEIGHTS[ScoreCategory.LEGISLATION],
-    description:
-      "Measures legislative productivity using a points system that rewards activity at each stage of the legislative process. Points are normalized logarithmically to prevent bulk cosponsorships from distorting scores.",
-    formula: "clamp(25 × log₂(points + 1), 10, 100)",
-    dataSource: "Congress.gov bill records, cosponsor data, bill status",
+      "The core job of a legislator is to show up and cast a vote. This score measures the percentage of roll-call votes a member participated in (Yea, Nay, or Present) out of the last 50 votes held. Not Voting counts as a miss.",
+    formula: "votesParticipated / totalVotesSampled × 100",
+    dataSource: "Congress.gov House roll-call vote records",
     notes: [
-      "Bill sponsored: 3 points",
-      "Bill cosponsored: 1 point",
-      "Bill advanced past committee: 5 points",
-      "Bill passed chamber: 8 points",
-      "Bill enacted into law: 15 points",
-      "Amendment proposed: 2 points",
-      "Amendment adopted: 4 points",
+      "Based on a sample of the 50 most recent roll-call votes in the session.",
+      "Not Voting is treated as a missed vote.",
+      "Senate vote data is not yet available from Congress.gov — Senate members are scored on Bipartisan Engagement only.",
+      "Members are not penalized if no votes are scheduled during the selected period.",
     ],
   },
   {
-    category: ScoreCategory.BIPARTISANSHIP,
-    name: "Bipartisanship",
-    weight: DEFAULT_WEIGHTS[ScoreCategory.BIPARTISANSHIP],
+    name: "Bipartisan Engagement",
+    weight: 50,
     description:
-      "Rewards working across party lines. Measured by the rate of cross-party cosponsorships and the proportion of bipartisan bill sponsorships.",
-    formula: "(cross-party cosponsor rate × 0.6) + (bipartisan sponsor rate × 0.4)",
-    dataSource: "Congress.gov cosponsor records with party affiliation cross-reference",
-    notes:
-      "Members with no cosponsorships receive a neutral score (50) rather than a penalty, since low cosponsor counts may reflect individual legislative style, not partisanship.",
-  },
-  {
-    category: ScoreCategory.COMMITTEE_WORK,
-    name: "Committee Work",
-    weight: DEFAULT_WEIGHTS[ScoreCategory.COMMITTEE_WORK],
-    description:
-      "Measures active participation beyond floor votes: hearing attendance within assigned committees, participation in markup sessions, and breadth of committee service.",
-    formula: "(hearing rate × 0.5) + (markup participation rate × 0.4) + min(committee count × 3, 10)",
-    dataSource: "Congress.gov committee records, official hearing attendance",
-    notes:
-      "Committee service bonus is capped at +10 points to prevent artificial inflation from holding many minor committee seats.",
-  },
-  {
-    category: ScoreCategory.CIVILITY,
-    name: "Civility",
-    weight: DEFAULT_WEIGHTS[ScoreCategory.CIVILITY],
-    description:
-      "Starts at a baseline of 80 (professional conduct assumed). Deductions are made only for documented, verifiable incivility in official proceedings. Bonuses are awarded for bipartisan engagement.",
-    formula:
-      "clamp(80 − (attacks × 10) − (censures × 25) − (ethics × 5) + min(caucuses × 5, 15) + min(⌊cosponsorships / 5⌋, 10), 0, 100)",
-    dataSource: "Congressional Record, Ethics Committee records, official caucus memberships",
-    notes:
-      "Personal attacks are only counted when documented in the Congressional Record or official proceedings. Social media rhetoric is NOT included. All civility deductions require human editorial review before publication.",
-  },
-  {
-    category: ScoreCategory.THEATER_RATIO,
-    name: "Work vs. Theater",
-    weight: DEFAULT_WEIGHTS[ScoreCategory.THEATER_RATIO],
-    description:
-      "Measures whether a member spends proportionate time governing versus performing. High legislative output with moderate media activity scores well. Low legislative output with high media activity scores poorly.",
-    formula: "ratio = legislativeActions / (socialMedia + media + pressConferences + 1), mapped to 0–100",
-    dataSource: "Congress.gov actions, Twitter/X API (public posts), TV appearance logs",
+      "Measures the share of a member's legislative activity that crosses party lines. Two things count: bills they sponsored that attracted at least one co-sponsor from the other party, and bills from the other party that they chose to co-sign. A member where 40% or more of their legislative activity is bipartisan earns a perfect 100.",
+    formula: "min(100, (crossPartyCosponsorships + bipartisanBillsSponsored) / (totalCosponsorships + totalBillsSponsored) × 250)",
+    dataSource: "Congress.gov sponsored and co-sponsored legislation with party affiliation",
     notes: [
-      "ratio ≥ 1.0 → score 90–100 (more work than theater)",
-      "ratio ≥ 0.5 → score 70–89 (balanced)",
-      "ratio ≥ 0.2 → score 40–69 (leaning theater)",
-      "ratio < 0.2 → score 0–39 (all theater, no work)",
+      "crossPartyCosponsorships: bills from the other party that this member co-signed.",
+      "bipartisanBillsSponsored: own bills that attracted at least one cross-party co-sponsor.",
+      "A member with zero bipartisan activity earns a 0 — there is no neutral baseline.",
+      "Party affiliation is sourced from Congress.gov member records.",
     ],
   },
 ];
@@ -126,8 +65,8 @@ export default function MethodologyPage() {
           </Link>
           <h1 className="text-3xl font-bold text-slate-900">Scorecard Methodology</h1>
           <p className="mt-3 text-slate-600 text-lg leading-relaxed">
-            Our Civility &amp; Productivity Scorecards are calculated entirely from verifiable public records. Every formula,
-            weight, and data source is documented here.
+            Scores are calculated from two verifiable metrics: showing up to vote, and working across the aisle.
+            Nothing else.
           </p>
           <div className="mt-4 inline-flex items-center gap-2 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-full px-3 py-1.5">
             <span>Methodology version {METHODOLOGY_VERSION}</span>
@@ -147,30 +86,22 @@ export default function MethodologyPage() {
             <li className="flex gap-3">
               <span className="text-slate-300 mt-0.5">—</span>
               <span>
-                <strong className="text-slate-800">Verifiable only.</strong> Every data point can be traced to an official
+                <strong className="text-slate-800">Verifiable only.</strong> Every data point traces to an official
                 government record. We score what legislators DO, not what they say.
               </span>
             </li>
             <li className="flex gap-3">
               <span className="text-slate-300 mt-0.5">—</span>
               <span>
-                <strong className="text-slate-800">Non-partisan.</strong> Methodology never references party affiliation as a
-                factor in scoring. We measure bipartisanship as a positive behavior, not partisanship as a negative one.
+                <strong className="text-slate-800">Non-partisan.</strong> Party affiliation is never a scoring factor.
+                We measure bipartisanship as a positive behavior, not partisanship as a negative one.
               </span>
             </li>
             <li className="flex gap-3">
               <span className="text-slate-300 mt-0.5">—</span>
               <span>
-                <strong className="text-slate-800">Human review required.</strong> All sentiment analysis, promise tracking, and
-                media interpretation is reviewed by our editorial team before publication. No automated scoring of speech
-                content.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-slate-300 mt-0.5">—</span>
-              <span>
-                <strong className="text-slate-800">Transparent methodology.</strong> Every change to the scoring algorithm is
-                version-controlled and publicly documented.
+                <strong className="text-slate-800">Simple and honest.</strong> Two scores. No neutral baselines. A member
+                who shows up and works across the aisle earns a high score. A member who doesn&apos;t earns a low one.
               </span>
             </li>
           </ul>
@@ -180,28 +111,28 @@ export default function MethodologyPage() {
         <section>
           <h2 className="text-xl font-semibold text-slate-900 mb-4">Category Weights</h2>
           <p className="text-slate-600 mb-5">
-            The overall score is a weighted sum of six categories. Weights reflect the relative importance of each activity to
-            the core job of legislating.
+            The overall score is an equal-weight average of two categories. For Senate members, Vote Participation
+            data is unavailable; Bipartisan Engagement carries 100% of the score.
           </p>
           <div className="rounded-2xl border border-slate-200 overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
                   <th className="text-left px-5 py-3 font-medium text-slate-600">Category</th>
-                  <th className="text-right px-5 py-3 font-medium text-slate-600">Weight</th>
+                  <th className="text-right px-5 py-3 font-medium text-slate-600">Weight (House)</th>
+                  <th className="text-right px-5 py-3 font-medium text-slate-600">Weight (Senate)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {categories.map((cat) => (
-                  <tr key={cat.category} className="bg-white">
+                  <tr key={cat.name} className="bg-white">
                     <td className="px-5 py-3 text-slate-800">{cat.name}</td>
-                    <td className="px-5 py-3 text-right font-semibold text-slate-900">{Math.round(cat.weight * 100)}%</td>
+                    <td className="px-5 py-3 text-right font-semibold text-slate-900">{cat.weight}%</td>
+                    <td className="px-5 py-3 text-right font-semibold text-slate-500">
+                      {cat.name === "Vote Participation" ? "N/A" : "100%"}
+                    </td>
                   </tr>
                 ))}
-                <tr className="bg-slate-50 font-semibold">
-                  <td className="px-5 py-3 text-slate-700">Total</td>
-                  <td className="px-5 py-3 text-right text-slate-900">100%</td>
-                </tr>
               </tbody>
             </table>
           </div>
@@ -211,11 +142,11 @@ export default function MethodologyPage() {
         <section className="space-y-10">
           <h2 className="text-xl font-semibold text-slate-900">Category Details</h2>
           {categories.map((cat) => (
-            <div key={cat.category} className="rounded-2xl border border-slate-200 p-6 space-y-4">
+            <div key={cat.name} className="rounded-2xl border border-slate-200 p-6 space-y-4">
               <div className="flex items-start justify-between gap-4">
                 <h3 className="text-lg font-semibold text-slate-900">{cat.name}</h3>
                 <span className="flex-shrink-0 text-sm font-medium text-slate-500 bg-slate-100 rounded-full px-3 py-0.5">
-                  {Math.round(cat.weight * 100)}% of total
+                  {cat.weight}% of total
                 </span>
               </div>
 
@@ -238,18 +169,14 @@ export default function MethodologyPage() {
                   </div>
                   <div className="bg-slate-50 rounded-xl p-4">
                     <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Notes</p>
-                    {Array.isArray(cat.notes) ? (
-                      <ul className="space-y-1">
-                        {cat.notes.map((note, i) => (
-                          <li key={i} className="flex gap-2 text-sm text-slate-700">
-                            <span className="text-slate-400 flex-shrink-0 mt-px">·</span>
-                            <span>{note}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-slate-700">{cat.notes}</p>
-                    )}
+                    <ul className="space-y-1">
+                      {cat.notes.map((note, i) => (
+                        <li key={i} className="flex gap-2 text-sm text-slate-700">
+                          <span className="text-slate-400 flex-shrink-0 mt-px">·</span>
+                          <span>{note}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -288,18 +215,21 @@ export default function MethodologyPage() {
           <h2 className="text-xl font-semibold text-slate-900 mb-4">Data Limitations</h2>
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900 space-y-3">
             <p>
-              <strong>Partial data during early operation.</strong> Categories without live data sources (committee attendance,
-              civility, theater ratio) use neutral defaults until connections are established. Each scorecard displays a data
-              source transparency report showing which categories are live, partial, or using defaults.
+              <strong>Vote participation is a sample.</strong> Participation is calculated from the 50 most recent
+              roll-call votes. This is an accurate proxy for recent performance but does not cover the entire session.
             </p>
             <p>
-              <strong>Not a complete picture.</strong> Constituent casework, private negotiations, and informal cross-aisle
-              collaboration are difficult to quantify. This scorecard measures what can be verified from public records, not
-              every aspect of an official&&apos;s work.
+              <strong>Senate participation is unavailable.</strong> Congress.gov does not yet expose Senate roll-call
+              vote data through the same API. Senate members are scored only on Bipartisan Engagement until this
+              data source is integrated.
             </p>
             <p>
-              <strong>Corrections welcome.</strong> If you believe a score contains an error, use the community correction form.
-              All corrections are reviewed with supporting evidence before any change is made.
+              <strong>Not a complete picture.</strong> Constituent casework, private negotiations, and informal
+              cross-aisle collaboration are difficult to quantify from public records alone.
+            </p>
+            <p>
+              <strong>Corrections welcome.</strong> If you believe a score contains an error, use the community
+              correction form. All corrections are reviewed with supporting evidence before any change is made.
             </p>
           </div>
         </section>

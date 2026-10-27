@@ -5,21 +5,13 @@ import { CategoryScore, ScoreCategory } from "@/types/scorecard";
 import type { CategoryRowProps } from "./types";
 
 const categoryDisplayNames: Record<ScoreCategory, string> = {
-  [ScoreCategory.ATTENDANCE]: "Attendance",
-  [ScoreCategory.LEGISLATION]: "Legislation",
-  [ScoreCategory.BIPARTISANSHIP]: "Bipartisanship",
-  [ScoreCategory.COMMITTEE_WORK]: "Committee Work",
-  [ScoreCategory.CIVILITY]: "Civility",
-  [ScoreCategory.THEATER_RATIO]: "Work vs. Theater",
+  [ScoreCategory.PARTICIPATION]: "Vote Participation",
+  [ScoreCategory.CIVILITY]: "Bipartisan Engagement",
 };
 
 const categoryDescriptions: Record<ScoreCategory, string> = {
-  [ScoreCategory.ATTENDANCE]: "Vote and hearing participation rate",
-  [ScoreCategory.LEGISLATION]: "Bills sponsored, advanced, and enacted",
-  [ScoreCategory.BIPARTISANSHIP]: "Working across party lines",
-  [ScoreCategory.COMMITTEE_WORK]: "Hearing, markup, and committee participation",
-  [ScoreCategory.CIVILITY]: "Professional conduct on the record",
-  [ScoreCategory.THEATER_RATIO]: "Legislative actions vs. media activity",
+  [ScoreCategory.PARTICIPATION]: "Percentage of roll-call votes cast vs. missed",
+  [ScoreCategory.CIVILITY]: "Share of legislative activity that crosses party lines",
 };
 
 function getBarColor(score: number): string {
