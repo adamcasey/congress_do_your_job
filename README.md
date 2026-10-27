@@ -1,4 +1,4 @@
-# CongressDoYourJob.com
+# Congress Do Your Job (CDYJ)
 
 Less theater. More legislation.
 

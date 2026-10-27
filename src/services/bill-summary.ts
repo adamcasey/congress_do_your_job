@@ -2,9 +2,40 @@ import { prismaClient } from "@/lib/db";
 import { getBill, getBillSummaries } from "@/lib/congress-api";
 import { summarizeBill } from "@/lib/gemini-api";
 import { createLogger } from "@/lib/logger";
-import { Summary } from "@/types/congress";
+import { Summary, Bill } from "@/types/congress";
 
 const logger = createLogger("BillSummary");
+
+/**
+ * Compose a human-readable fallback from whatever bill metadata is available.
+ * Used when there is no CRS text and the AI call hasn't produced a result.
+ */
+function buildMetadataFallback(bill: Bill): string {
+  const parts: string[] = [];
+
+  if (bill.policyArea?.name) {
+    parts.push(`This legislation relates to ${bill.policyArea.name}.`);
+  }
+
+  if (bill.sponsors && bill.sponsors.length > 0) {
+    const s = bill.sponsors[0];
+    const dateStr = bill.introducedDate
+      ? new Date(bill.introducedDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+      : null;
+    parts.push(
+      `Introduced${dateStr ? ` on ${dateStr}` : ""} by ${s.fullName}${s.state ? ` (${s.state})` : ""}.`,
+    );
+  }
+
+  if (bill.latestAction?.text) {
+    parts.push(`Latest action: ${bill.latestAction.text}.`);
+  }
+
+  const base = parts.length > 0 ? parts.join(" ") : (bill.title ?? "");
+  return base
+    ? `${base} A plain-English summary has not yet been generated for this bill. Check back soon.`
+    : "A summary for this bill is not yet available. Check back soon.";
+}
 
 export interface BillSummaryResult {
   summary: string;
@@ -100,12 +131,9 @@ export async function getOrCreateBillSummary(
   const rawSummaryText = selectBestSummaryText(officialSummaries);
   const summaryText = rawSummaryText ? stripLeadingTitle(rawSummaryText) : "";
 
-  // If neither official text nor title is available, return a plain fallback
-  // without persisting — this allows a retry on the next request if the bill
-  // later receives a CRS summary.
   if (!summaryText && !bill.title) {
     return {
-      summary: "Summary not yet available for this legislation.",
+      summary: buildMetadataFallback(bill),
       source: "fallback",
       generatedAt: new Date(),
     };

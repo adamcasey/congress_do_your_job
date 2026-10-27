@@ -78,7 +78,12 @@ export function BillDetailModal({ bill, onClose }: BillDetailModalProps) {
                   {extractSentences(stripHtmlTags(billDetails.summaries[0].text), 2)}
                 </p>
               ) : (
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">Summary not yet available.</p>
+                <p className="mt-2 text-sm leading-relaxed text-slate-500 italic">
+                  No summary is available for this bill yet.
+                  {billDetails.latestAction?.text && (
+                    <> Latest action: {billDetails.latestAction.text}</>
+                  )}
+                </p>
               )}
             </div>
           </div>
