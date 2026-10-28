@@ -124,7 +124,7 @@ function parseBillNumber(q: string): { type: string; number: string } | null {
 function deduplicateBills(bills: Bill[]): Bill[] {
   const seen = new Set<string>();
   return bills.filter((bill) => {
-    const key = `${bill.congress}-${bill.type}-${bill.number}`;
+    const key = `${bill.congress}-${(bill.type ?? "").toLowerCase()}-${bill.number}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -249,35 +249,38 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 3. No query — return recent bills with offset-based pagination.
-    const recentCacheKey = buildCacheKey(
-      "legislation",
-      "search",
-      `${congress}-recent-${limit}-${offset}`,
-    );
+    // 3. No query — return recent bills with stable pagination.
+    // Cache the full 100-bill batch under one key so all pages come from the
+    // same snapshot and bills can't shift between page fetches.
+    const recentCacheKey = buildCacheKey("legislation", "search", `${congress}-recent`);
 
-    const recentResult = await getOrFetch<SearchResponse>(
+    const recentBatchResult = await getOrFetch<RankedBatch>(
       recentCacheKey,
       async () => {
-        const response = await getBills({ limit, offset, sort: "updateDate+desc" });
+        const response = await getBills({ limit: 100, offset: 0, sort: "updateDate+desc" });
         const bills = deduplicateBills(response.bills ?? []);
-        const count = response.pagination?.count ?? bills.length;
-        return { bills, count, query: q };
+        return { rankedBills: bills, fetchedCount: bills.length };
       },
       CacheTTL.LEGISLATIVE_DATA,
     );
 
-    if (!recentResult.data) {
+    if (!recentBatchResult.data) {
       return jsonError("Failed to search legislation", 500);
     }
 
-    return jsonSuccess(recentResult.data, {
-      headers: {
-        "X-Cache-Status": recentResult.status,
-        "X-Cache-Stale": recentResult.isStale ? "true" : "false",
-        ...(recentResult.age !== undefined && { "X-Cache-Age": recentResult.age.toString() }),
+    const { rankedBills: recentBills, fetchedCount: recentCount } = recentBatchResult.data;
+    const recentPage = recentBills.slice(offset, offset + limit);
+
+    return jsonSuccess(
+      { bills: recentPage, count: recentCount, query: q },
+      {
+        headers: {
+          "X-Cache-Status": recentBatchResult.status,
+          "X-Cache-Stale": recentBatchResult.isStale ? "true" : "false",
+          ...(recentBatchResult.age !== undefined && { "X-Cache-Age": recentBatchResult.age.toString() }),
+        },
       },
-    });
+    );
   } catch (error) {
     logger.error("Legislation search error:", error);
 
