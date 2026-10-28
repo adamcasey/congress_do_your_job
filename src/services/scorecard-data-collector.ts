@@ -143,16 +143,30 @@ async function fetchVoteParticipation(bioguideId: string, congress: number): Pro
 }
 
 /**
+ * Congress.gov uses short codes ("R", "D") in bill-level sponsor data but full
+ * names ("Republican Party") on the member detail endpoint. Normalize to the
+ * first significant word so both representations compare equal.
+ */
+function canonicalParty(party: string | undefined): string {
+  if (!party) return "";
+  const p = party.trim().toLowerCase();
+  if (p === "r" || p.startsWith("republican")) return "republican";
+  if (p === "d" || p.startsWith("democrat")) return "democrat";
+  if (p === "i" || p === "id" || p.startsWith("independent")) return "independent";
+  return p;
+}
+
+/**
  * Build civility data from sponsored/co-sponsored legislation.
  * Cross-party = bill's primary sponsor belongs to a different party than this member.
  */
 function buildCivilityData(sponsoredBills: Bill[], cosponsoredBills: Bill[], member: Member): CivilityData {
-  const memberParty = member.partyName;
+  const memberPartyNorm = canonicalParty(member.partyName);
 
   let crossPartyCosponsorships = 0;
   for (const bill of cosponsoredBills) {
-    const sponsorParty = bill.sponsors?.[0]?.party;
-    if (sponsorParty && sponsorParty !== memberParty) {
+    const sponsorParty = canonicalParty(bill.sponsors?.[0]?.party);
+    if (sponsorParty && sponsorParty !== memberPartyNorm) {
       crossPartyCosponsorships++;
     }
   }
@@ -160,7 +174,10 @@ function buildCivilityData(sponsoredBills: Bill[], cosponsoredBills: Bill[], mem
   let bipartisanBillsSponsored = 0;
   for (const bill of sponsoredBills) {
     const cosponsors = bill.cosponsors ?? [];
-    if (cosponsors.some((c: Cosponsor) => c.party && c.party !== memberParty)) {
+    if (cosponsors.some((c: Cosponsor) => {
+      const cp = canonicalParty(c.party);
+      return cp && cp !== memberPartyNorm;
+    })) {
       bipartisanBillsSponsored++;
     }
   }
