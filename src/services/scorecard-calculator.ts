@@ -127,8 +127,8 @@ export function calculateScorecard(input: ScoringInput): CalculatedScorecard {
   const civility = calculateCivilityScore(input.civility);
 
   let totalScore: number;
-  if (!input.participation.available) {
-    // Senate: civility carries full weight since participation is unavailable
+  if (input.chamber === "Senate") {
+    // Senate vote data not available from Congress.gov — civility carries full weight
     civility.weight = 1.0;
     civility.weightedScore = civility.rawScore;
     totalScore = civility.rawScore;
