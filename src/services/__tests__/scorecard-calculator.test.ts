@@ -136,6 +136,26 @@ describe("calculateScorecard", () => {
     expect(civScore.weight).toBe(1.0);
   });
 
+  it("House member with failed vote fetch uses House weighting, not Senate", () => {
+    // Before the fix, available:false caused civility to get weight 1.0 regardless of chamber.
+    const sc = calculateScorecard({
+      bioguideId: "H000001",
+      chamber: "House",
+      periodStart: new Date("2025-01-03"),
+      periodEnd: new Date("2025-10-01"),
+      participation: { votesParticipated: 0, totalVotesSampled: 0, totalVotesInSession: 0, available: false },
+      civility: {
+        crossPartyCosponsorships: 20,
+        bipartisanBillsSponsored: 4,
+        totalCosponsorships: 100,
+        totalBillsSponsored: 20,
+      },
+    });
+    const civScore = sc.categoryScores.find((c) => c.category === ScoreCategory.CIVILITY)!;
+    // House: civility stays at weight 0.5 (50/50 split), NOT 1.0 like Senate
+    expect(civScore.weight).toBe(0.5);
+  });
+
   it("grade corresponds to score", () => {
     expect(scoreToGrade(100)).toBe("A+");
     expect(scoreToGrade(77)).toBe("C+");
