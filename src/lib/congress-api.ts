@@ -385,10 +385,11 @@ export async function getHouseVotes(
   options: { limit?: number; offset?: number } = {},
 ): Promise<CongressApiResponse<HouseVoteListItem>> {
   const { limit = 20, offset = 0 } = options;
+  // No sort param: the house-vote endpoint rejects unknown sort fields with 400.
+  // Congress.gov returns votes in descending date order by default.
   return fetchCongressApi<HouseVoteListItem>(`/house-vote/${congress}`, {
     limit,
     offset,
-    sort: "date+desc",
   });
 }
 

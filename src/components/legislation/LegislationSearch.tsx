@@ -39,7 +39,7 @@ export function LegislationSearch() {
   const allBills = data?.pages.flatMap((p) => p.bills) ?? [];
   const seen = new Set<string>();
   const bills = allBills.filter((bill) => {
-    const key = `${bill.congress}-${bill.type}-${bill.number}`;
+    const key = `${bill.congress}-${(bill.type ?? "").toLowerCase()}-${bill.number}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
